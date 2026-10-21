@@ -1,8 +1,9 @@
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import ServicesSection from "@/components/ServicesSection";
+import AlumniMapSection from "@/components/AlumniMapSection";
+import AlumniTestimonialsSection from "@/components/AlumniTestimonialsSection";
 import AboutSection from "@/components/AboutSection";
-import TeamSection from "@/components/TeamSection";
 import CtaSection from "@/components/CtaSection";
 import Footer from "@/components/Footer";
 
@@ -15,14 +16,17 @@ export default function Home() {
         {/* Hero Section */}
         <Hero />
 
-        {/* 4 Layanan Utama Berbasis Data */}
-        <ServicesSection />
-
         {/* Tentang Eightracer & Statistik */}
         <AboutSection />
 
-        {/* Tim Pengembang (4 Kelompok) */}
-        <TeamSection />
+        {/* 4 Layanan Utama Berbasis Data */}
+        <ServicesSection />
+
+        {/* Peta Sebaran Alumni Interaktif */}
+        <AlumniMapSection />
+
+        {/* Cerita & Kesan Alumni */}
+        <AlumniTestimonialsSection />
 
         {/* Call to Action Banner */}
         <CtaSection />

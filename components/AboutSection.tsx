@@ -3,9 +3,9 @@ import { GraduationCap, UserGroup, ChartNoAxesColumnIncreasing, Image as ImageIc
 
 export default function AboutSection() {
   return (
-    <section id="tentang" className="py-20 sm:py-24 bg-[#FFFAEE] relative overflow-hidden">
-      <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white to-transparent pointer-events-none" />
-      <div className="absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-white to-transparent pointer-events-none" />
+    <section id="tentang" className="py-20 sm:py-24 bg-[#FAF7FC] relative overflow-hidden">
+      <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-white to-transparent pointer-events-none" />
+      <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-white to-transparent pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">

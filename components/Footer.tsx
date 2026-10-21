@@ -93,23 +93,23 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="#tentang" className="hover:text-white transition-colors">
+                <Link href="/#tentang" className="hover:text-white transition-colors">
                   Tentang Eightracer
+                </Link>
+              </li>
+              <li>
+                <Link href="/#layanan" className="hover:text-white transition-colors">
+                  Layanan
+                </Link>
+              </li>
+              <li>
+                <Link href="/tim-pengembang" className="hover:text-white transition-colors">
+                  Tim Pengembang
                 </Link>
               </li>
               <li>
                 <Link href="#profil" className="hover:text-white transition-colors">
                   Profil SMAN 8
-                </Link>
-              </li>
-              <li>
-                <Link href="#bantuan" className="hover:text-white transition-colors">
-                  Pusat Bantuan
-                </Link>
-              </li>
-              <li>
-                <Link href="#pengumuman" className="hover:text-white transition-colors">
-                  Pengumuman
                 </Link>
               </li>
             </ul>
