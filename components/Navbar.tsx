@@ -18,7 +18,6 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-purple-100 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          {/* Logo */}
           <Link href="/" className="flex items-center gap-4 group">
             <div className="w-12 h-12 relative rounded-2xl overflow-hidden shadow-md shadow-purple-900/20 group-hover:scale-105 transition-transform flex items-center justify-center bg-[#5F089E] shrink-0">
               <Image
@@ -39,15 +38,13 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Navigasi Desktop: Beranda, Tentang Kami, Layanan, Tim Pengembang */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
             <Link
               href="/"
-              className={`transition-colors ${
-                isHome
-                  ? "text-[#5F089E] font-semibold"
-                  : "hover:text-[#5F089E]"
-              }`}
+              className={`transition-colors ${isHome
+                ? "text-[#5F089E] font-semibold"
+                : "hover:text-[#5F089E]"
+                }`}
             >
               Beranda
             </Link>
@@ -59,7 +56,6 @@ export default function Navbar() {
               Tentang Kami
             </Link>
 
-            {/* Layanan dengan Menu Dropdown Opsional */}
             <div
               className="relative"
               onMouseEnter={() => setServicesDropdownOpen(true)}
@@ -72,9 +68,8 @@ export default function Navbar() {
               >
                 <span>Layanan</span>
                 <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-200 ${
-                    servicesDropdownOpen ? "rotate-180 text-[#5F089E]" : ""
-                  }`}
+                  className={`w-4 h-4 transition-transform duration-200 ${servicesDropdownOpen ? "rotate-180 text-[#5F089E]" : ""
+                    }`}
                 />
               </Link>
 
@@ -120,11 +115,10 @@ export default function Navbar() {
 
             <Link
               href="/tim-pengembang"
-              className={`transition-colors ${
-                isTeam
-                  ? "text-[#5F089E] font-semibold"
-                  : "hover:text-[#5F089E]"
-              }`}
+              className={`transition-colors ${isTeam
+                ? "text-[#5F089E] font-semibold"
+                : "hover:text-[#5F089E]"
+                }`}
             >
               Tim Pengembang
             </Link>
@@ -170,11 +164,10 @@ export default function Navbar() {
             <Link
               href="/"
               onClick={() => setMobileMenuOpen(false)}
-              className={`px-3 py-2 rounded-lg transition-colors ${
-                isHome
-                  ? "text-purple-700 font-semibold bg-purple-50"
-                  : "hover:bg-purple-50"
-              }`}
+              className={`px-3 py-2 rounded-lg transition-colors ${isHome
+                ? "text-purple-700 font-semibold bg-purple-50"
+                : "hover:bg-purple-50"
+                }`}
             >
               Beranda
             </Link>
@@ -195,11 +188,10 @@ export default function Navbar() {
             <Link
               href="/tim-pengembang"
               onClick={() => setMobileMenuOpen(false)}
-              className={`px-3 py-2 rounded-lg transition-colors ${
-                isTeam
-                  ? "text-purple-700 font-semibold bg-purple-50"
-                  : "hover:bg-purple-50"
-              }`}
+              className={`px-3 py-2 rounded-lg transition-colors ${isTeam
+                ? "text-purple-700 font-semibold bg-purple-50"
+                : "hover:bg-purple-50"
+                }`}
             >
               Tim Pengembang
             </Link>

@@ -103,11 +103,9 @@ export default function AlumniTestimonialsSection() {
       onMouseEnter={() => setIsAutoPlay(false)}
       onMouseLeave={() => setIsAutoPlay(true)}
     >
-      {/* Decorative Background Orbs */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-r from-purple-200/30 via-[#5F089E]/10 to-amber-200/25 blur-3xl rounded-full pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Section Header */}
         <div className="max-w-3xl mb-12 sm:mb-16 text-center sm:text-left">
           <span className="text-xs sm:text-sm font-bold tracking-widest text-[#5F089E] uppercase block mb-2">
             CERITA & KESAN ALUMNI
@@ -120,14 +118,12 @@ export default function AlumniTestimonialsSection() {
           </p>
         </div>
 
-        {/* 3D COVERFLOW ROTARY CAROUSEL STAGE */}
         <div
           className="relative w-full h-[540px] sm:h-[500px] flex items-center justify-center"
           style={{ perspective: "1200px" }}
         >
           <div className="relative w-full max-w-[920px] h-full flex items-center justify-center">
             {testimonials.map((item, idx) => {
-              // Hitung jarak rotasi melingkar (-2, -1, 0, 1, 2)
               let offset = idx - currentIndex;
               if (offset > total / 2) offset -= total;
               if (offset < -total / 2) offset += total;
@@ -139,10 +135,9 @@ export default function AlumniTestimonialsSection() {
 
               if (!isVisible) return null;
 
-              // Transformasi 3D Coverflow
-              const xPos = offset * 260; // Geser horizontal
-              const zPos = isCenter ? 80 : -Math.abs(offset) * 160; // Kedalaman 3D
-              const rotateY = offset * -32; // Sudut putar 3D coverflow
+              const xPos = offset * 260;
+              const zPos = isCenter ? 80 : -Math.abs(offset) * 160;
+              const rotateY = offset * -32;
               const scale = isCenter ? 1 : 0.85 - Math.abs(offset) * 0.05;
               const opacity = isCenter ? 1 : Math.max(0.25, 0.75 - Math.abs(offset) * 0.35);
               const zIndex = 30 - Math.abs(offset) * 10;
@@ -172,11 +167,10 @@ export default function AlumniTestimonialsSection() {
                     transformStyle: "preserve-3d",
                   }}
                   className={`absolute w-[330px] sm:w-[420px] rounded-3xl p-6 sm:p-8 bg-white/95 backdrop-blur-xl border-2 transition-shadow duration-300 cursor-pointer ${isCenter
-                      ? "border-[#5F089E] shadow-2xl shadow-purple-900/15"
-                      : "border-purple-200/80 hover:border-purple-400 shadow-md"
+                    ? "border-[#5F089E] shadow-2xl shadow-purple-900/15"
+                    : "border-purple-200/80 hover:border-purple-400 shadow-md"
                     }`}
                 >
-                  {/* Badge Status Kelolosan Bersih Tanpa Sparkling */}
                   <div className="flex items-center justify-between gap-2 mb-5 pb-3 border-b border-purple-100/70">
                     <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#EFE6F5] text-[#5F089E] font-bold text-xs border border-[#5F089E]/20">
                       {item.highlight}
@@ -187,7 +181,6 @@ export default function AlumniTestimonialsSection() {
                     </span>
                   </div>
 
-                  {/* Kutipan Alumni dengan Spacing yang Lega dan Teratur */}
                   <div className="relative mb-6 min-h-[110px] sm:min-h-[120px] flex items-start">
                     <Quote className="w-6 h-6 text-[#5F089E]/30 shrink-0 mt-0.5 mr-2" />
                     <p className="text-xs sm:text-[13.5px] text-slate-700 leading-relaxed font-normal italic flex-1">
@@ -197,7 +190,6 @@ export default function AlumniTestimonialsSection() {
 
                   <div className="w-full h-px bg-purple-100/80 mb-5" />
 
-                  {/* Identitas Alumni */}
                   <div className="flex items-center gap-3.5 pt-1">
                     <div className="w-12 h-12 rounded-2xl bg-[#5F089E] text-white flex items-center justify-center font-black text-sm shrink-0 shadow-sm border border-purple-300">
                       {item.avatarText}
@@ -221,7 +213,6 @@ export default function AlumniTestimonialsSection() {
             })}
           </div>
 
-          {/* Tombol Navigasi Kiri / Kanan */}
           <button
             type="button"
             onClick={handlePrev}
@@ -241,7 +232,6 @@ export default function AlumniTestimonialsSection() {
           </button>
         </div>
 
-        {/* Indikator Dot Navigasi */}
         <div className="flex items-center justify-center gap-2 mt-4 sm:mt-6">
           {testimonials.map((_, idx) => (
             <button
@@ -250,8 +240,8 @@ export default function AlumniTestimonialsSection() {
               onClick={() => setCurrentIndex(idx)}
               aria-label={`Ke slide ${idx + 1}`}
               className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${idx === currentIndex
-                  ? "w-8 bg-[#5F089E] shadow-xs"
-                  : "w-2.5 bg-purple-200 hover:bg-purple-300"
+                ? "w-8 bg-[#5F089E] shadow-xs"
+                : "w-2.5 bg-purple-200 hover:bg-purple-300"
                 }`}
             />
           ))}

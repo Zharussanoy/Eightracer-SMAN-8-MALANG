@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 import { GraduationCap, Building2, TrendingUp } from "lucide-react";
 
-// Dynamic import with SSR: false
 const AlumniMapChart = dynamic(() => import("./AlumniMapChart"), {
   ssr: false,
   loading: () => (
@@ -20,7 +19,6 @@ export default function AlumniMapSection() {
   return (
     <section id="sebaran-alumni" className="py-20 sm:py-24 bg-white relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
         <div className="max-w-3xl mb-10 sm:mb-12 text-left">
           <span className="text-xs sm:text-sm font-bold tracking-widest text-[#5F089E] uppercase block mb-2">
             SEBARAN ALUMNI
@@ -33,9 +31,7 @@ export default function AlumniMapSection() {
           </p>
         </div>
 
-        {/* 1. STATISTIK SERAPAN PTN (3 GRID LAYOUT DI ATAS PETA) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-10">
-          {/* Grid 1: Total Alumni di PTN */}
           <div className="p-5 sm:p-6 rounded-2xl bg-[#EFE6F5]/50 border-2 border-[#5F089E]/25 hover:border-[#5F089E]/60 transition-all duration-300 shadow-xs hover:shadow-md flex items-center gap-4">
             <div className="w-13 h-13 rounded-2xl bg-white border border-[#5F089E]/20 flex items-center justify-center text-[#5F089E] shadow-xs shrink-0">
               <GraduationCap className="w-7 h-7 stroke-[1.8]" />
@@ -53,7 +49,6 @@ export default function AlumniMapSection() {
             </div>
           </div>
 
-          {/* Grid 2: Top 3 PTN Tujuan */}
           <div className="p-5 sm:p-6 rounded-2xl bg-[#EFE6F5]/50 border-2 border-[#5F089E]/25 hover:border-[#5F089E]/60 transition-all duration-300 shadow-xs hover:shadow-md flex items-center gap-4">
             <div className="w-13 h-13 rounded-2xl bg-white border border-[#5F089E]/20 flex items-center justify-center text-[#5F089E] shadow-xs shrink-0">
               <Building2 className="w-7 h-7 stroke-[1.8]" />
@@ -79,7 +74,6 @@ export default function AlumniMapSection() {
             </div>
           </div>
 
-          {/* Grid 3: Jalur Penerimaan */}
           <div className="p-5 sm:p-6 rounded-2xl bg-[#EFE6F5]/50 border-2 border-[#5F089E]/25 hover:border-[#5F089E]/60 transition-all duration-300 shadow-xs hover:shadow-md flex items-center gap-4">
             <div className="w-13 h-13 rounded-2xl bg-white border border-[#5F089E]/20 flex items-center justify-center text-[#5F089E] shadow-xs shrink-0">
               <TrendingUp className="w-7 h-7 stroke-[1.8]" />
@@ -102,7 +96,6 @@ export default function AlumniMapSection() {
           </div>
         </div>
 
-        {/* PETA INTERAKTIF FULL-WIDTH */}
         <div className="w-full">
           <AlumniMapChart />
         </div>

@@ -131,7 +131,6 @@ export const dataPersebaran: Record<string, ProvinsiData> = {
   }
 };
 
-// Centroid GPS coordinates [longitude, latitude]
 const PROVINCE_CENTROIDS: Record<string, [number, number]> = {
   "Jawa Timur": [112.75, -7.7],
   "DI Yogyakarta": [110.37, -7.88],
@@ -170,9 +169,9 @@ export const getProvinceData = (
 };
 
 const getProvinceFillColor = (persentase: number): string => {
-  if (persentase >= 50) return "#5F089E"; // Dominan Utama (Jatim)
-  if (persentase >= 1) return "#7E22CE";  // Menengah
-  return "#A855F7"; // Terdata
+  if (persentase >= 50) return "#5F089E";
+  if (persentase >= 1) return "#7E22CE";
+  return "#A855F7";
 };
 
 interface ProvinceFeatureItem {
@@ -207,7 +206,6 @@ export default function AlumniMapChart() {
   const [isOutlineDrawn, setIsOutlineDrawn] = useState(false);
   const [outlineKey, setOutlineKey] = useState(0);
 
-  // D3 Projection and Path Generator
   const projection = useMemo(() => {
     return geoMercator()
       .scale(1050)
@@ -219,7 +217,6 @@ export default function AlumniMapChart() {
     return geoPath().projection(projection);
   }, [projection]);
 
-  // Load and pre-process TopoJSON
   useEffect(() => {
     let isMounted = true;
     fetch("/indonesia-topo.json")
@@ -250,7 +247,6 @@ export default function AlumniMapChart() {
           };
         });
 
-        // Urutkan pulau / provinsi dari Barat ke Timur berdasarkan garis bujur (Longitude)
         mapped.sort((a, b) => a.centroidLon - b.centroidLon);
         setFeaturesList(mapped);
       })
@@ -263,7 +259,6 @@ export default function AlumniMapChart() {
     };
   }, [projection, pathGenerator]);
 
-  // Spring physics motion values for Zoom & Pan
   const targetScale = useMotionValue(1);
   const targetCenterX = useMotionValue(SVG_WIDTH / 2);
   const targetCenterY = useMotionValue(SVG_HEIGHT / 2);
@@ -276,7 +271,6 @@ export default function AlumniMapChart() {
   const [activeZoomLevel, setActiveZoomLevel] = useState(1);
   const mapGroupRef = useRef<SVGGElement>(null);
 
-  // Directly sync spring coordinates to the SVG <g> transform attribute
   useEffect(() => {
     const updateSvgMatrix = () => {
       const s = smoothScale.get();
@@ -305,7 +299,6 @@ export default function AlumniMapChart() {
     };
   }, [smoothScale, smoothCenterX, smoothCenterY]);
 
-  // Smooth Pan & Zoom to Specific Coordinates
   const zoomToCoordinates = useCallback(
     (pixelX: number, pixelY: number, targetZoom: number) => {
       targetCenterX.set(pixelX);
@@ -316,7 +309,6 @@ export default function AlumniMapChart() {
     [targetCenterX, targetCenterY, targetScale]
   );
 
-  // Reset to National Overview
   const handleResetNasional = useCallback(() => {
     setSelectedProvince(null);
     setSelectedKampus(null);
@@ -326,7 +318,6 @@ export default function AlumniMapChart() {
     setActiveZoomLevel(1);
   }, [targetCenterX, targetCenterY, targetScale]);
 
-  // Focus to Jawa Timur (Primary Basis)
   const handleFocusJatim = useCallback(() => {
     const coords = PROVINCE_CENTROIDS["Jawa Timur"];
     const pixel = projection(coords) || [353.8, 370.7];
@@ -336,7 +327,6 @@ export default function AlumniMapChart() {
     zoomToCoordinates(pixel[0], pixel[1], 4.2);
   }, [projection, zoomToCoordinates]);
 
-  // Manual Zoom Controls
   const handleZoomIn = () => {
     const currentScale = targetScale.get();
     const newScale = Math.min(currentScale * 1.45, 8);
@@ -355,13 +345,12 @@ export default function AlumniMapChart() {
     }
   };
 
-  // Drag & Pan Handlers for SVG
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0, cx: 0, cy: 0 });
   const hasDraggedRef = useRef(false);
 
   const handleMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
-    if (e.button !== 0) return; // Left click only
+    if (e.button !== 0) return;
     isDraggingRef.current = true;
     hasDraggedRef.current = false;
     dragStartRef.current = {
@@ -380,7 +369,6 @@ export default function AlumniMapChart() {
       hasDraggedRef.current = true;
     }
     const currentS = targetScale.get();
-    // Delta in SVG coordinates
     const newCx = dragStartRef.current.cx - dx / currentS;
     const newCy = dragStartRef.current.cy - dy / currentS;
     targetCenterX.set(newCx);
@@ -391,7 +379,66 @@ export default function AlumniMapChart() {
     isDraggingRef.current = false;
   };
 
-  // Mouse Wheel Zoom
+  const touchStartRef = useRef<{ x: number; y: number; cx: number; cy: number } | null>(null);
+  const touchPinchDistRef = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent<SVGSVGElement>) => {
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      isDraggingRef.current = true;
+      hasDraggedRef.current = false;
+      touchStartRef.current = {
+        x: touch.clientX,
+        y: touch.clientY,
+        cx: targetCenterX.get(),
+        cy: targetCenterY.get(),
+      };
+      touchPinchDistRef.current = null;
+    } else if (e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      touchPinchDistRef.current = dist;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<SVGSVGElement>) => {
+    if (e.touches.length === 1 && touchStartRef.current) {
+      const touch = e.touches[0];
+      const dx = touch.clientX - touchStartRef.current.x;
+      const dy = touch.clientY - touchStartRef.current.y;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+        hasDraggedRef.current = true;
+      }
+      const currentS = targetScale.get();
+      const newCx = touchStartRef.current.cx - dx / currentS;
+      const newCy = touchStartRef.current.cy - dy / currentS;
+      targetCenterX.set(newCx);
+      targetCenterY.set(newCy);
+    } else if (e.touches.length === 2 && touchPinchDistRef.current !== null) {
+      const newDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      if (touchPinchDistRef.current > 0) {
+        const factor = newDist / touchPinchDistRef.current;
+        const currentScale = targetScale.get();
+        const newScale = Math.min(Math.max(currentScale * factor, 1), 8);
+        targetScale.set(newScale);
+        setActiveZoomLevel(newScale);
+      }
+      touchPinchDistRef.current = newDist;
+      hasDraggedRef.current = true;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    isDraggingRef.current = false;
+    touchStartRef.current = null;
+    touchPinchDistRef.current = null;
+  };
+
   const handleWheel = (e: React.WheelEvent<SVGSVGElement>) => {
     e.preventDefault();
     const currentS = targetScale.get();
@@ -405,24 +452,21 @@ export default function AlumniMapChart() {
     }
   };
 
-  // Replay Opening Animation
   const handleReplayIntro = () => {
     setIsOutlineDrawn(false);
     setOutlineKey((prev) => prev + 1);
   };
 
-  // Province selection & drill-down trigger
   const handleProvinceClick = (provName: string) => {
-    if (hasDraggedRef.current) return; // Ignore click if user was dragging/panning
+    if (hasDraggedRef.current) return;
     const match = getProvinceData(provName);
-    if (!match) return; // Non-alumni regions are non-interactive
+    if (!match) return;
 
     const targetKey = match.provinceKey;
     setSelectedProvince(targetKey);
     setSelectedKampus(null);
     setSearchQuery("");
 
-    // Calculate centroid for dynamic zoom & pan transition
     const coords = PROVINCE_CENTROIDS[targetKey];
     let pixel: [number, number];
     if (coords) {
@@ -442,7 +486,6 @@ export default function AlumniMapChart() {
     setSearchQuery("");
   };
 
-  // Active Province Data
   const currentProvinceData = selectedProvince ? dataPersebaran[selectedProvince] : null;
 
   const sortedKampus = useMemo(() => {
@@ -479,7 +522,6 @@ export default function AlumniMapChart() {
     setSelectedKampus(sortedKampus[nextIdx]);
   }, [sortedKampus, currentKampusIndex]);
 
-  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!selectedProvince) return;
@@ -504,7 +546,6 @@ export default function AlumniMapChart() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedProvince, selectedKampus, handlePrevKampus, handleNextKampus]);
 
-  // Tooltip Mouse Handlers
   const handleProvinceMouseEnter = (item: ProvinceFeatureItem, e: React.MouseEvent) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
@@ -541,7 +582,6 @@ export default function AlumniMapChart() {
       onMouseMove={handleMouseMove}
       className="relative w-full h-[620px] sm:h-[650px] rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#F9F5FD] via-white to-[#F6EEFD] border-2 border-[#5F089E]/25 p-4 sm:p-6 shadow-sm overflow-hidden flex flex-col justify-between select-none"
     >
-      {/* Map Header Status Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-3 mb-1 border-b border-purple-100 z-10 shrink-0">
         <div className="flex items-center gap-2">
           <span className="relative flex h-2.5 w-2.5">
@@ -549,7 +589,7 @@ export default function AlumniMapChart() {
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#5F089E]"></span>
           </span>
           <span className="text-[11px] sm:text-xs font-bold text-[#5F089E] uppercase tracking-wider">
-            Peta Sebaran Wilayah Alumni &bull; Framer Motion Drill-Down
+            Peta Sebaran Wilayah Alumni
           </span>
         </div>
 
@@ -569,9 +609,7 @@ export default function AlumniMapChart() {
         </div>
       </div>
 
-      {/* SVG Map Container */}
       <div className="relative w-full flex-1 flex items-center justify-center overflow-hidden">
-        {/* Navigation Buttons (Top Right) */}
         <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-30 flex items-center gap-1 sm:gap-1.5 bg-white/95 backdrop-blur-md p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border border-[#5F089E]/25 shadow-md">
           <button
             type="button"
@@ -620,7 +658,6 @@ export default function AlumniMapChart() {
           </button>
         </div>
 
-        {/* Legend Scale Info (Bottom Left) */}
         <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 z-20 bg-white/95 backdrop-blur-md px-3 py-2 rounded-xl sm:rounded-2xl border border-[#5F089E]/20 shadow-sm hidden sm:flex flex-col gap-1.5 text-[11px]">
           <span className="font-extrabold text-[#5F089E] tracking-wide uppercase text-[10px]">
             Tingkat Sebaran Alumni
@@ -645,7 +682,6 @@ export default function AlumniMapChart() {
           </div>
         </div>
 
-        {/* Master Interactive SVG Map with Pan & Wheel Zoom */}
         <svg
           viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
           className="w-full h-full max-h-full cursor-grab active:cursor-grabbing select-none"
@@ -654,10 +690,13 @@ export default function AlumniMapChart() {
           onMouseMove={handleSvgMouseMove}
           onMouseUp={handleSvgMouseUp}
           onMouseLeave={handleSvgMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
           onWheel={handleWheel}
         >
           <defs>
-            {/* Glow Filter for Active Markers */}
             <filter id="marker-glow" x="-50%" y="-50%" width="200%" height="200%">
               <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#5F089E" floodOpacity="0.4" />
             </filter>
@@ -667,14 +706,11 @@ export default function AlumniMapChart() {
             </linearGradient>
           </defs>
 
-          {/* Group yang terikat Spring Physics Framer Motion untuk Zoom & Pan (Native SVG Transform) */}
           <g
             ref={mapGroupRef}
             transform="translate(0, 0) scale(1)"
           >
-            {/* ======================================================== */}
             {/* FITUR 1: ANIMASI PEMBUKA (DRAWING SVG OUTLINE PATH)      */}
-            {/* ======================================================== */}
             <g key={`outline-${outlineKey}`} className="pointer-events-none">
               {featuresList.map((item, idx) => (
                 <motion.path
@@ -705,10 +741,7 @@ export default function AlumniMapChart() {
               ))}
             </g>
 
-            {/* ======================================================== */}
             {/* FITUR 1 & 3: FILL WILAYAH (STAGGERED FADE-IN & DRILL-DOWN)*/}
-            {/* Barat ke Timur via Longitude, Redup ke 0.2 saat terpilih*/}
-            {/* ======================================================== */}
             <g className="regions-fill">
               {featuresList.map((item, idx) => {
                 const isSelected = selectedProvince === item.name;
@@ -716,7 +749,6 @@ export default function AlumniMapChart() {
                 const isHovered =
                   hoveredProvince?.hasData && hoveredProvince?.name === item.name;
 
-                // Color priority
                 let baseFill = item.hasData
                   ? getProvinceFillColor(item.persentase)
                   : "#EDE8F5";
@@ -749,7 +781,7 @@ export default function AlumniMapChart() {
                     transition={{
                       opacity: {
                         duration: 0.5,
-                        delay: 0.8 + idx * 0.035, // Staggered Barat ke Timur
+                        delay: 0.8 + idx * 0.035,
                       },
                       scale: {
                         duration: 0.6,
@@ -774,10 +806,7 @@ export default function AlumniMapChart() {
               })}
             </g>
 
-            {/* ======================================================== */}
             {/* FITUR 2: ANIMASI RIAK AKTIF (CONTINUOUS RIPPLE EFFECT)    */}
-            {/* Memancar keluar secara terus menerus (infinite loop)     */}
-            {/* ======================================================== */}
             <g className="ripple-markers">
               {Object.entries(dataPersebaran).map(([provName, provData]) => {
                 const coords = PROVINCE_CENTROIDS[provName];
@@ -805,7 +834,6 @@ export default function AlumniMapChart() {
                       transition: "opacity 0.3s ease",
                     }}
                   >
-                    {/* Ring 1 - Outer Wave Ripple (Infinite Loop) */}
                     <motion.circle
                       cx={cx}
                       cy={cy}
@@ -826,7 +854,6 @@ export default function AlumniMapChart() {
                       }}
                     />
 
-                    {/* Ring 2 - Secondary Offset Wave Ripple (Infinite Loop) */}
                     <motion.circle
                       cx={cx}
                       cy={cy}
@@ -848,7 +875,6 @@ export default function AlumniMapChart() {
                       }}
                     />
 
-                    {/* Outer Glow Halo saat Hover / Select */}
                     {(isHovered || isSelected) && (
                       <motion.circle
                         cx={cx}
@@ -862,7 +888,6 @@ export default function AlumniMapChart() {
                       />
                     )}
 
-                    {/* Lingkaran Luar Penanda Pin */}
                     <circle
                       cx={cx}
                       cy={cy}
@@ -874,7 +899,6 @@ export default function AlumniMapChart() {
                       className="transition-all duration-200"
                     />
 
-                    {/* Titik Inti Penanda */}
                     <circle
                       cx={cx}
                       cy={cy}
@@ -889,7 +913,6 @@ export default function AlumniMapChart() {
           </g>
         </svg>
 
-        {/* Hover Tooltip (Mengikuti Kursor) */}
         {hoveredProvince && tooltipPos && (
           <div
             className="pointer-events-none absolute z-40 transform -translate-x-1/2 -translate-y-full pb-3 transition-opacity duration-150"
@@ -927,9 +950,7 @@ export default function AlumniMapChart() {
         )}
       </div>
 
-      {/* ======================================================== */}
       {/* FITUR 4: POP-UP MODAL & LIST ANIMASI (SPRING & STAGGER)  */}
-      {/* ======================================================== */}
       <AnimatePresence>
         {selectedProvince && currentProvinceData && (
           <motion.div
@@ -954,12 +975,9 @@ export default function AlumniMapChart() {
               className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-lg w-full border border-purple-100 relative overflow-hidden flex flex-col max-h-[90vh]"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* ==================================================== */}
               {/* LEVEL 2: DETAIL KAMPUS SPESIFIK                     */}
-              {/* ==================================================== */}
               {selectedKampus ? (
                 <div className="flex flex-col h-full overflow-hidden">
-                  {/* Header Navigasi Level 2 */}
                   <div className="p-4 sm:p-5 border-b border-purple-100 flex items-center justify-between bg-gradient-to-r from-purple-50/60 to-white">
                     <div className="flex items-center gap-2">
                       <button
@@ -971,7 +989,6 @@ export default function AlumniMapChart() {
                         <span>Daftar Kampus</span>
                       </button>
 
-                      {/* Navigasi Kampus Sebelumnya / Berikutnya */}
                       <div className="flex items-center gap-1 ml-1">
                         <button
                           type="button"
@@ -1009,7 +1026,7 @@ export default function AlumniMapChart() {
                     </button>
                   </div>
 
-                  {/* Konten Detail Kampus */}
+                  {/* Detail Kampus */}
                   <motion.div
                     key={`detail-${selectedKampus.id}`}
                     initial={{ opacity: 0, x: 20 }}
@@ -1036,7 +1053,6 @@ export default function AlumniMapChart() {
                       </div>
                     </div>
 
-                    {/* Card Highlight Statistik Serapan */}
                     <div className="p-4.5 rounded-2xl bg-gradient-to-r from-[#EFE6F5] to-purple-50 border border-[#5F089E]/20 flex items-center justify-between">
                       <div>
                         <span className="text-xs font-bold text-[#5F089E] uppercase tracking-wider block">
@@ -1072,7 +1088,6 @@ export default function AlumniMapChart() {
                       </div>
                     </div>
 
-                    {/* Jurusan / Program Studi Favorit */}
                     <div className="p-4 rounded-xl bg-purple-50/50 border border-purple-100">
                       <div className="flex items-center gap-2 mb-2">
                         <BookOpen className="w-4 h-4 text-[#5F089E]" />
@@ -1092,9 +1107,8 @@ export default function AlumniMapChart() {
                       </div>
                     </div>
 
-                    {/* CTA Banner */}
                     <Link
-                      href="#persebaran-kampus"
+                      href="/admin?tab=direktori&role=siswa"
                       onClick={handleCloseModal}
                       className="w-full py-3 px-4 rounded-xl bg-[#5F089E] hover:bg-[#4d0680] active:bg-[#3d0566] text-white font-bold text-sm shadow-md hover:shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer mt-4"
                     >
@@ -1104,11 +1118,8 @@ export default function AlumniMapChart() {
                   </motion.div>
                 </div>
               ) : (
-                /* ==================================================== */
                 /* LEVEL 1: DAFTAR KAMPUS DENGAN STAGGERED SPRING      */
-                /* ==================================================== */
                 <div className="flex flex-col h-full overflow-hidden">
-                  {/* Header Modal Level 1 */}
                   <div className="p-5 sm:p-6 border-b border-purple-100 bg-gradient-to-r from-purple-50/70 to-white">
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div className="flex items-center gap-2.5">
@@ -1135,7 +1146,6 @@ export default function AlumniMapChart() {
                       </button>
                     </div>
 
-                    {/* Rangkuman Statistik Provinsi */}
                     <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-purple-100/80">
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#5F089E] text-[#FCC850] text-xs font-black shadow-2xs">
                         <Users className="w-3.5 h-3.5" />
@@ -1152,7 +1162,6 @@ export default function AlumniMapChart() {
                       </span>
                     </div>
 
-                    {/* Kotak Pencarian Kampus */}
                     {sortedKampus.length > 3 && (
                       <div className="relative mt-3.5">
                         <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -1167,7 +1176,6 @@ export default function AlumniMapChart() {
                     )}
                   </div>
 
-                  {/* Sub-Header Petunjuk */}
                   <div className="px-5 py-2.5 bg-purple-50/50 border-b border-purple-100 flex items-center justify-between text-xs text-slate-600 font-medium">
                     <span>Daftar Kampus Berdasarkan Jumlah Alumni:</span>
                     <span className="text-[11px] text-[#5F089E] font-bold">
@@ -1175,7 +1183,6 @@ export default function AlumniMapChart() {
                     </span>
                   </div>
 
-                  {/* List Kampus per Provinsi dengan Framer Motion Stagger & Spring */}
                   <div className="p-4 sm:p-5 overflow-y-auto space-y-2.5 max-h-[380px]">
                     {filteredKampus.length > 0 ? (
                       <motion.div
@@ -1187,7 +1194,7 @@ export default function AlumniMapChart() {
                           show: {
                             opacity: 1,
                             transition: {
-                              staggerChildren: 0.05, // Staggered delay milidetik
+                              staggerChildren: 0.05,
                             },
                           },
                         }}
@@ -1221,7 +1228,6 @@ export default function AlumniMapChart() {
                               className="group p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-purple-100 hover:border-[#5F089E] bg-white hover:bg-purple-50/60 transition-colors duration-200 cursor-pointer shadow-2xs hover:shadow-md flex items-center justify-between gap-3"
                             >
                               <div className="flex items-center gap-3 min-w-0">
-                                {/* Ranking Badge */}
                                 <div
                                   className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center font-black text-xs shrink-0 ${rank === 1
                                     ? "bg-[#FCC850] text-slate-900 shadow-xs"
@@ -1235,7 +1241,6 @@ export default function AlumniMapChart() {
                                   #{rank}
                                 </div>
 
-                                {/* Nama Kampus & Info Favorit */}
                                 <div className="min-w-0">
                                   <h4 className="font-extrabold text-sm text-slate-900 group-hover:text-[#5F089E] transition-colors truncate">
                                     {kampus.nama}
@@ -1246,7 +1251,6 @@ export default function AlumniMapChart() {
                                 </div>
                               </div>
 
-                              {/* Alumni Count Badge & Arrow */}
                               <div className="flex items-center gap-2 shrink-0">
                                 <div className="text-right">
                                   <span className="block font-black text-sm text-[#5F089E]">
@@ -1275,7 +1279,6 @@ export default function AlumniMapChart() {
                     )}
                   </div>
 
-                  {/* Footer Modal Level 1 */}
                   <div className="p-3.5 px-5 bg-slate-50 border-t border-purple-100 flex items-center justify-between text-xs text-slate-500">
                     <span className="font-medium">
                       Menampilkan {filteredKampus.length} dari {sortedKampus.length} kampus
