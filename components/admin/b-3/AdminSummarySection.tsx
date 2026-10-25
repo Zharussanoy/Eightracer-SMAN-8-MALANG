@@ -7,7 +7,7 @@ import {
   Users,
   ClipboardList,
 } from "lucide-react";
-import { AdminTab } from "./types";
+import { AdminTab } from "@/components/admin/types";
 
 interface AdminSummarySectionProps {
   onNavigateTab: (tab: AdminTab) => void;
@@ -126,7 +126,7 @@ export default function AdminSummarySection({
         <button
           type="button"
           onClick={() => onNavigateTab("Direktori Alumni")}
-          className="px-4 py-2 rounded-xl bg-[#5F089E] text-white text-xs font-bold hover:bg-[#4D0680] transition-colors cursor-pointer shrink-0 shadow-2xs"
+          className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#5F089E] text-white text-xs font-bold hover:bg-[#4D0680] transition-colors cursor-pointer shrink-0 shadow-2xs text-center"
         >
           Buka Direktori Alumni &rarr;
         </button>

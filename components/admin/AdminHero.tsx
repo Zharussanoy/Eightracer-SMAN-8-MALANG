@@ -28,11 +28,11 @@ export default function AdminHero({ onNavigateTab }: AdminHeroProps) {
               dashboard terpadu.
             </p>
 
-            <div className="pt-2 flex flex-wrap gap-3">
+            <div className="pt-2 flex flex-col sm:flex-row gap-3">
               <button
                 type="button"
                 onClick={() => onNavigateTab("Direktori Alumni")}
-                className="px-4 py-2.5 rounded-xl bg-white text-[#5F089E] text-xs font-bold hover:bg-purple-50 transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 cursor-pointer"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white text-[#5F089E] text-xs font-bold hover:bg-purple-50 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <span>Buka Direktori Alumni</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -41,7 +41,7 @@ export default function AdminHero({ onNavigateTab }: AdminHeroProps) {
               <button
                 type="button"
                 onClick={() => onNavigateTab("AI Strategi Jurusan")}
-                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/25 transition-all flex items-center gap-1.5 cursor-pointer backdrop-blur-xs"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/25 transition-all flex items-center justify-center gap-1.5 cursor-pointer backdrop-blur-xs"
               >
                 <Bot className="w-3.5 h-3.5 text-amber-300" />
                 <span>Konsultasi AI Strategi</span>

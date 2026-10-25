@@ -1108,7 +1108,7 @@ export default function AlumniMapChart() {
                     </div>
 
                     <Link
-                      href="/admin?tab=direktori&role=siswa"
+                      href="/admin/alumni?tab=direktori&role=siswa"
                       onClick={handleCloseModal}
                       className="w-full py-3 px-4 rounded-xl bg-[#5F089E] hover:bg-[#4d0680] active:bg-[#3d0566] text-white font-bold text-sm shadow-md hover:shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer mt-4"
                     >

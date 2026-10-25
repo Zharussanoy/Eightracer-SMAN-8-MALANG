@@ -15,11 +15,11 @@ export default function AdminTabNav({
   alumniCount,
 }: AdminTabNavProps) {
   return (
-    <nav className="mb-6 flex flex-wrap items-center gap-2 border-b border-slate-200/80 pb-3">
+    <nav className="mb-6 flex items-center gap-2 border-b border-slate-200/80 pb-3 overflow-x-auto no-scrollbar sm:flex-wrap">
       <button
         type="button"
         onClick={() => onTabChange("Ringkasan")}
-        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${activeTab === "Ringkasan"
+        className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${activeTab === "Ringkasan"
           ? "bg-[#5F089E] text-white shadow-md shadow-purple-900/15"
           : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
           }`}
@@ -31,7 +31,7 @@ export default function AdminTabNav({
       <button
         type="button"
         onClick={() => onTabChange("Direktori Alumni")}
-        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${activeTab === "Direktori Alumni"
+        className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${activeTab === "Direktori Alumni"
           ? "bg-[#5F089E] text-white shadow-md shadow-purple-900/15"
           : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
           }`}
@@ -51,7 +51,7 @@ export default function AdminTabNav({
       <button
         type="button"
         onClick={() => onTabChange("AI Strategi Jurusan")}
-        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${activeTab === "AI Strategi Jurusan"
+        className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${activeTab === "AI Strategi Jurusan"
           ? "bg-[#5F089E] text-white shadow-md shadow-purple-900/15"
           : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
           }`}

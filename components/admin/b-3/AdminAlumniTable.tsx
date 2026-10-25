@@ -15,7 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { AlumniItem, AdminRole } from "./types";
+import { AlumniItem, AdminRole } from "@/components/admin/types";
 
 interface AdminAlumniTableProps {
   role: AdminRole;
@@ -79,31 +79,31 @@ export default function AdminAlumniTable({
         </div>
 
         {role === "admin" && (
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
             <button
               type="button"
               onClick={onOpenImportModal}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-300/80 hover:bg-emerald-100 text-xs font-bold transition-colors cursor-pointer shadow-2xs"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-300/80 hover:bg-emerald-100 text-xs font-bold transition-colors cursor-pointer shadow-2xs"
             >
-              <FileSpreadsheet className="w-4 h-4" />
+              <FileSpreadsheet className="w-4 h-4 shrink-0" />
               <span>Import CSV</span>
             </button>
 
             <button
               type="button"
               onClick={() => alert("Mengunduh laporan PDF...")}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-50 text-blue-700 border border-blue-300/80 hover:bg-blue-100 text-xs font-bold transition-colors cursor-pointer shadow-2xs"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-blue-50 text-blue-700 border border-blue-300/80 hover:bg-blue-100 text-xs font-bold transition-colors cursor-pointer shadow-2xs"
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-4 h-4 shrink-0" />
               <span>Export PDF</span>
             </button>
 
             <button
               type="button"
               onClick={onOpenAddModal}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#5F089E] text-white hover:bg-[#4D0680] text-xs font-bold transition-colors cursor-pointer shadow-2xs"
+              className="col-span-2 sm:col-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#5F089E] text-white hover:bg-[#4D0680] text-xs font-bold transition-colors cursor-pointer shadow-2xs"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 shrink-0" />
               <span>Tambah Data Alumni</span>
             </button>
           </div>
@@ -191,7 +191,155 @@ export default function AdminAlumniTable({
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Mobile Selection Header */}
+        {role === "admin" && filteredAlumni.length > 0 && (
+          <div className="md:hidden flex items-center justify-between p-3.5 bg-slate-50 border-b border-slate-200 text-xs">
+            <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-700 select-none">
+              <input
+                type="checkbox"
+                checked={
+                  filteredAlumni.length > 0 &&
+                  selectedIds.length === filteredAlumni.length
+                }
+                onChange={onSelectAll}
+                className="w-4 h-4 rounded-sm border-slate-300 text-[#5F089E] focus:ring-[#5F089E] cursor-pointer"
+              />
+              <span>Pilih Semua Data ({selectedIds.length}/{filteredAlumni.length})</span>
+            </label>
+          </div>
+        )}
+
+        {/* Mobile Cards List (< md) */}
+        <div className="md:hidden divide-y divide-slate-100">
+          {filteredAlumni.length === 0 ? (
+            <div className="py-12 text-center text-slate-400 font-medium text-xs px-4">
+              Tidak ada data alumni yang cocok dengan pencarian / filter.
+            </div>
+          ) : (
+            filteredAlumni.map((alumni) => {
+              const isSelected = selectedIds.includes(alumni.id);
+              return (
+                <div
+                  key={alumni.id}
+                  className={`p-4 transition-colors space-y-3 ${
+                    role === "admin" && isSelected ? "bg-purple-50/40" : "hover:bg-slate-50/60"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-2.5">
+                      {role === "admin" && (
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => onToggleSelect(alumni.id)}
+                          className="w-4 h-4 rounded-sm border-slate-300 text-[#5F089E] focus:ring-[#5F089E] cursor-pointer mt-0.5"
+                        />
+                      )}
+                      <div>
+                        <span className="font-mono text-[11px] font-semibold text-slate-500 block">
+                          {alumni.nisn}
+                        </span>
+                        <h4 className="text-sm font-bold text-slate-900 leading-snug">
+                          {alumni.nama}
+                        </h4>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 font-bold border border-purple-100">
+                        {alumni.angkatan}
+                      </span>
+                      {role === "admin" && (
+                        <div className="flex items-center gap-0.5 ml-1">
+                          <button
+                            type="button"
+                            onClick={() => onOpenEditModal(alumni)}
+                            title="Edit"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-[#5F089E] hover:bg-purple-100 transition-colors"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onDeleteRow(alumni.id)}
+                            title="Hapus"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-50/80 rounded-xl p-2.5 border border-slate-100 space-y-1.5 text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <span className="px-2 py-0.5 rounded-md bg-purple-100 text-[#5F089E] text-[10px] font-bold">
+                        {alumni.kampusKode}
+                      </span>
+                      <span className="font-semibold text-slate-800 truncate">
+                        {alumni.kampus}
+                      </span>
+                    </div>
+                    <div className="text-slate-600 font-medium pl-0.5">
+                      Prodi: <span className="text-slate-900 font-semibold">{alumni.jurusan}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                          alumni.jalur === "SNBP"
+                            ? "bg-purple-50 text-purple-700 border-purple-200"
+                            : alumni.jalur === "SNBT"
+                              ? "bg-blue-50 text-blue-700 border-blue-200"
+                              : "bg-amber-50 text-amber-700 border-amber-200"
+                        }`}
+                      >
+                        {alumni.jalur}
+                      </span>
+
+                      {alumni.isKipk ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          KIP-K
+                        </span>
+                      ) : (
+                        <span className="inline-block px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-medium">
+                          Reguler
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-semibold text-slate-600">
+                        Nilai: <strong className="text-slate-900 text-xs font-bold">{alumni.nilai}</strong>
+                      </span>
+
+                      {alumni.sertifikat && alumni.sertifikat.length > 0 ? (
+                        <button
+                          type="button"
+                          onClick={() => setViewCertAlumni(alumni)}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-purple-50 text-[#5F089E] hover:bg-purple-100 text-[10px] font-bold border border-purple-200 transition-colors cursor-pointer"
+                        >
+                          <Award className="w-3 h-3" />
+                          <span>{alumni.sertifikat.length} Berkas</span>
+                          <Eye className="w-3 h-3 opacity-60" />
+                        </button>
+                      ) : (
+                        <span className="text-[10px] text-slate-400 font-medium">0 Berkas</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop Table View (>= md) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[11px]">

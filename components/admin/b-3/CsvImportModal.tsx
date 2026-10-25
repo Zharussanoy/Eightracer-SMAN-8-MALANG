@@ -11,7 +11,7 @@ import {
   ArrowRight,
   ChevronLeft,
 } from "lucide-react";
-import { AlumniItem } from "./types";
+import { AlumniItem } from "@/components/admin/types";
 import { SAMPLE_IMPORT_ALUMNI } from "./mockData";
 
 interface CsvImportModalProps {
@@ -60,18 +60,18 @@ export default function CsvImportModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
               <FileSpreadsheet className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900">
                 Import Data Alumni (Berkas CSV)
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-[11px] sm:text-xs text-slate-500">
                 {importStep === 1 && "Langkah 1: Unggah berkas CSV alumni"}
                 {importStep === 2 && "Langkah 2: Validasi & preview format kolom"}
                 {importStep === 3 && "Langkah 3: Proses impor selesai"}
@@ -87,7 +87,7 @@ export default function CsvImportModal({
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {importStep === 1 && (
             <div className="space-y-4">
               <div
@@ -202,11 +202,11 @@ export default function CsvImportModal({
                     </table>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2">
+                  <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-2">
                     <button
                       type="button"
                       onClick={() => setImportStep(1)}
-                      className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors flex items-center gap-1 cursor-pointer"
+                      className="px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors flex items-center justify-center gap-1 cursor-pointer"
                     >
                       <ChevronLeft className="w-4 h-4" />
                       <span>Ganti File</span>
@@ -214,7 +214,7 @@ export default function CsvImportModal({
                     <button
                       type="button"
                       onClick={handleExecuteImport}
-                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                      className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer text-center"
                     >
                       <span>Lanjutkan Simpan ke Database</span>
                       <ArrowRight className="w-4 h-4" />

@@ -10,7 +10,7 @@ import {
   CheckSquare,
   Square,
 } from "lucide-react";
-import { AlumniItem, CertificateItem } from "./types";
+import { AlumniItem, CertificateItem } from "@/components/admin/types";
 import { AVAILABLE_CERTIFICATES } from "./mockData";
 
 interface AlumniFormModalProps {
@@ -122,9 +122,10 @@ export default function AlumniFormModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
-      <div className="bg-[#F8FAFC] rounded-3xl border border-slate-200 shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">        {/* Header Modal Sesuai Gambar 2 */}
-        <div className="bg-white px-6 sm:px-8 py-5 border-b border-slate-200/80">
+    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-5 overflow-y-auto">
+      <div className="bg-[#F8FAFC] rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl w-full max-w-5xl max-h-[94vh] sm:max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        {/* Header Modal Sesuai Gambar 2 */}
+        <div className="bg-white px-4 sm:px-8 py-4 sm:py-5 border-b border-slate-200/80">
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2 text-xs font-semibold text-blue-600 mb-1">
@@ -132,7 +133,7 @@ export default function AlumniFormModal({
                 <span>•</span>
                 <span>Data Pendaftaran PTN</span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
                 {initialData ? "Edit Data Alumni" : "Form Study Tracer & Sertifikat"}
               </h2>
               <p className="text-xs text-slate-500 font-normal mt-0.5">
@@ -154,9 +155,10 @@ export default function AlumniFormModal({
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1 custom-scrollbar">          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          <div className="lg:col-span-7 space-y-6">
-            <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-5">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-8 space-y-5 sm:space-y-6 overflow-y-auto flex-1 custom-scrollbar">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
+          <div className="lg:col-span-7 space-y-5 sm:space-y-6">
+            <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-4 sm:space-y-5">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
@@ -356,8 +358,8 @@ export default function AlumniFormModal({
             </div>
           </div>
 
-          <div className="lg:col-span-5 space-y-6">
-            <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
+          <div className="lg:col-span-5 space-y-5 sm:space-y-6">
+            <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
               <div className="flex items-center gap-3 pb-2 border-b border-slate-100">
                 <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
                   <Award className="w-5 h-5" />

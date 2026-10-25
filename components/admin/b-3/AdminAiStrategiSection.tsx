@@ -1,7 +1,7 @@
 "use client";
 
 import { Bot, Sparkles, ArrowRight } from "lucide-react";
-import { AdminTab } from "./types";
+import { AdminTab } from "@/components/admin/types";
 
 interface AdminAiStrategiSectionProps {
   onNavigateTab: (tab: AdminTab) => void;
@@ -28,18 +28,18 @@ export default function AdminAiStrategiSection({
           dan sertifikat prestasi alumni terdahulu untuk memetakan peluang kelulusan
           siswa di PTN impian secara presisi.
         </p>
-        <div className="pt-2 flex justify-center gap-3">
+        <div className="pt-2 flex flex-col sm:flex-row justify-center gap-3">
           <button
             type="button"
             onClick={() => onNavigateTab("Direktori Alumni")}
-            className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer text-center"
           >
             &larr; Kembali ke Direktori Alumni
           </button>
           <button
             type="button"
             onClick={() => alert("Fitur AI Strategi Jurusan sedang disiapkan!")}
-            className="px-5 py-2.5 rounded-xl bg-[#5F089E] hover:bg-[#4D0680] text-white text-xs font-bold transition-colors cursor-pointer shadow-md flex items-center gap-1.5"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#5F089E] hover:bg-[#4D0680] text-white text-xs font-bold transition-colors cursor-pointer shadow-md flex items-center justify-center gap-1.5"
           >
             <span>Buka Pratinjau Model</span>
             <ArrowRight className="w-3.5 h-3.5" />

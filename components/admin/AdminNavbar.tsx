@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   ChevronDown,
   Menu,
@@ -10,32 +11,31 @@ import {
   UserCheck,
   Shield,
   ArrowUpRight,
-  Bot,
-  GraduationCap,
-  Sparkles,
 } from "lucide-react";
 import { AdminRole, AdminTab } from "./types";
 
 interface AdminNavbarProps {
-  role: AdminRole;
-  onRoleChange: (newRole: AdminRole) => void;
-  onNavigateTab: (tab: AdminTab) => void;
+  role?: AdminRole;
+  onRoleChange?: (newRole: AdminRole) => void;
+  onNavigateTab?: (tab: AdminTab) => void;
 }
 
 export default function AdminNavbar({
-  role,
-  onRoleChange,
-  onNavigateTab,
+  role = "admin",
+  onRoleChange = () => {},
+  onNavigateTab = () => {},
 }: AdminNavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
+  const pathname = usePathname();
+  const isAdminHome = pathname === "/admin";
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-purple-100 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-3 sm:gap-4 group">
+            <Link href="/admin" className="flex items-center gap-3 sm:gap-4 group">
               <div className="w-12 h-12 relative rounded-2xl overflow-hidden shadow-md shadow-purple-900/20 group-hover:scale-105 transition-transform flex items-center justify-center bg-[#5F089E] shrink-0">
                 <Image
                   src="/images/logo.svg"
@@ -58,98 +58,78 @@ export default function AdminNavbar({
 
           <nav className="hidden lg:flex items-center gap-7 text-sm font-medium text-slate-600">
             <Link
-              href="/"
+              href="/admin"
               className="hover:text-[#5F089E] transition-colors"
             >
               Beranda
             </Link>
             <Link
-              href="/#tentang-kami"
+              href="/admin#tentang"
               className="hover:text-[#5F089E] transition-colors"
             >
               Tentang Kami
             </Link>
 
-            <div className="relative group">
-              <button
-                type="button"
-                onClick={() => setServicesDropdownOpen(!servicesDropdownOpen)}
-                className="flex items-center gap-1 hover:text-[#5F089E] transition-colors py-2 cursor-pointer"
+            <div
+              className="relative"
+              onMouseEnter={() => setServicesDropdownOpen(true)}
+              onMouseLeave={() => setServicesDropdownOpen(false)}
+            >
+              <Link
+                href={isAdminHome ? "#layanan" : "/admin#layanan"}
+                className="flex items-center gap-1.5 hover:text-[#5F089E] py-2 transition-colors cursor-pointer"
+                onClick={() => setServicesDropdownOpen(false)}
               >
                 <span>Layanan</span>
-                <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180" />
-              </button>
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    servicesDropdownOpen ? "rotate-180 text-[#5F089E]" : ""
+                  }`}
+                />
+              </Link>
 
-              <div className="absolute left-0 top-full pt-2 w-64 opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200 z-50">
-                <div className="bg-white rounded-2xl shadow-xl border border-purple-100 p-2 space-y-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onNavigateTab("Ringkasan");
-                      setServicesDropdownOpen(false);
-                    }}
-                    className="w-full text-left p-2.5 rounded-xl hover:bg-purple-50 transition-colors flex items-center gap-3 cursor-pointer"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-purple-100 text-[#5F089E] flex items-center justify-center shrink-0">
-                      <GraduationCap className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <span className="text-xs font-bold text-slate-800 block">
-                        Statistik Kelulusan
-                      </span>
-                      <span className="text-[10px] text-slate-500">
-                        Ringkasan angka & sebaran
-                      </span>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onNavigateTab("Direktori Alumni");
-                      setServicesDropdownOpen(false);
-                    }}
-                    className="w-full text-left p-2.5 rounded-xl hover:bg-purple-50 transition-colors flex items-center gap-3 cursor-pointer"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                      <UserCheck className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <span className="text-xs font-bold text-slate-800 block">
-                        Direktori Alumni
-                      </span>
-                      <span className="text-[10px] text-slate-500">
-                        Database alumni & sertifikat
-                      </span>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onNavigateTab("AI Strategi Jurusan");
-                      setServicesDropdownOpen(false);
-                    }}
-                    className="w-full text-left p-2.5 rounded-xl hover:bg-purple-50 transition-colors flex items-center gap-3 cursor-pointer"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
-                      <Bot className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <span className="text-xs font-bold text-slate-800 block">
-                        AI Strategi Jurusan
-                      </span>
-                      <span className="text-[10px] text-slate-500">
-                        Prediksi & rekomendasi PTN
-                      </span>
-                    </div>
-                  </button>
+              {servicesDropdownOpen && (
+                <div className="absolute top-full left-0 w-64 pt-2 animate-in fade-in slide-in-from-top-2 duration-150 z-50">
+                  <div className="bg-white rounded-2xl shadow-xl shadow-purple-950/10 border border-purple-100 p-2 space-y-1">
+                    <Link
+                      href={isAdminHome ? "#layanan" : "/admin#layanan"}
+                      className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-purple-50 text-slate-700 hover:text-[#5F089E] text-xs font-semibold transition-colors"
+                      onClick={() => setServicesDropdownOpen(false)}
+                    >
+                      <span>Pemetaan Profil Nilai</span>
+                      <ArrowUpRight className="w-3.5 h-3.5 opacity-50" />
+                    </Link>
+                    <Link
+                      href={isAdminHome ? "#layanan" : "/admin#layanan"}
+                      className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-purple-50 text-slate-700 hover:text-[#5F089E] text-xs font-semibold transition-colors"
+                      onClick={() => setServicesDropdownOpen(false)}
+                    >
+                      <span>Kelolosan Seleksi PTN</span>
+                      <ArrowUpRight className="w-3.5 h-3.5 opacity-50" />
+                    </Link>
+                    <Link
+                      href="/admin/alumni?tab=direktori"
+                      className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-purple-50 text-slate-700 hover:text-[#5F089E] text-xs font-semibold transition-colors"
+                      onClick={() => setServicesDropdownOpen(false)}
+                    >
+                      <span>Data Kelulusan &amp; Kampus</span>
+                      <ArrowUpRight className="w-3.5 h-3.5 opacity-50" />
+                    </Link>
+                    <Link
+                      href={isAdminHome ? "#layanan" : "/admin#layanan"}
+                      className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-purple-50 text-slate-700 hover:text-[#5F089E] text-xs font-semibold transition-colors"
+                      onClick={() => setServicesDropdownOpen(false)}
+                    >
+                      <span>Perkembangan &amp; Karir Alumni</span>
+                      <ArrowUpRight className="w-3.5 h-3.5 opacity-50" />
+                    </Link>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             <Link
-              href="/#tim-pengembang"
+              href="/tim-pengembang"
               className="hover:text-[#5F089E] transition-colors"
             >
               Tim Pengembang
@@ -188,7 +168,7 @@ export default function AdminNavbar({
               </div>
               <div className="flex flex-col leading-tight">
                 <span className="text-xs font-bold text-slate-900">
-                  {role === "admin" ? "Admin Smarihasta" : "Siswa Smarihasta"}
+                  {role === "admin" ? "Admin" : "Siswa"}
                 </span>
                 <span className="text-[10px] text-slate-500 font-medium">
                   SMAN 8 Malang
@@ -241,44 +221,28 @@ export default function AdminNavbar({
 
           <div className="space-y-1">
             <Link
-              href="/"
+              href="/admin"
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2 text-sm font-medium text-slate-700 hover:bg-purple-50 rounded-lg"
             >
               Beranda
             </Link>
-            <button
-              type="button"
-              onClick={() => {
-                onNavigateTab("Ringkasan");
-                setMobileMenuOpen(false);
-              }}
-              className="w-full text-left px-3 py-2 text-sm font-medium text-slate-700 hover:bg-purple-50 rounded-lg"
-            >
-              Statistik Ringkasan
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onNavigateTab("Direktori Alumni");
-                setMobileMenuOpen(false);
-              }}
-              className="w-full text-left px-3 py-2 text-sm font-medium text-slate-700 hover:bg-purple-50 rounded-lg"
-            >
-              Direktori Alumni
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onNavigateTab("AI Strategi Jurusan");
-                setMobileMenuOpen(false);
-              }}
-              className="w-full text-left px-3 py-2 text-sm font-medium text-slate-700 hover:bg-purple-50 rounded-lg"
-            >
-              AI Strategi Jurusan
-            </button>
             <Link
-              href="/#tim-pengembang"
+              href={isAdminHome ? "#tentang" : "/admin#tentang"}
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 text-sm font-medium text-slate-700 hover:bg-purple-50 rounded-lg"
+            >
+              Tentang Kami
+            </Link>
+            <Link
+              href={isAdminHome ? "#layanan" : "/admin#layanan"}
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 text-sm font-medium text-slate-700 hover:bg-purple-50 rounded-lg"
+            >
+              Layanan
+            </Link>
+            <Link
+              href="/tim-pengembang"
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2 text-sm font-medium text-slate-700 hover:bg-purple-50 rounded-lg"
             >
