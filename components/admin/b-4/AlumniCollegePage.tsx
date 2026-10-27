@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 import B4Navbar from "./B4Navbar";
+import B4Tabs from "./B4Tabs";
 import { COLLEGE_ALUMNI, type CollegeAlumni } from "./mockData";
 import "./college.css";
 
 const PAGE_SIZE = 8;
-const upcomingTabs = ["Timeline individu", "Analitik Beasiswa", "Basis Data Beasiswa", "Rekomendasi Beasiswa"];
 const universities = [...new Set(COLLEGE_ALUMNI.map((item) => item.university))];
 const studyPrograms = [...new Set(COLLEGE_ALUMNI.map((item) => item.studyProgram))];
 const admissionPaths = ["SNBP", "SNBT", "Mandiri"];
@@ -80,10 +80,7 @@ export default function AlumniCollegePage() {
         </section>
 
         <div className={"b4-container"}>
-          <nav className={"b4-tabs"} aria-label="Layanan Alumni dan Beasiswa">
-            <Link href="/admin/alumni-perguruan-tinggi" className={"b4-activeTab"} aria-current="page">Alumni di PT</Link>
-            {upcomingTabs.map((tab) => <button key={tab} type="button" disabled title="Halaman ini belum tersedia">{tab}<span className={"b4-srOnly"}> (belum tersedia)</span></button>)}
-          </nav>
+          <B4Tabs active="Alumni di PT" />
 
           <section className={"b4-directory"} aria-label="Daftar alumni di perguruan tinggi">
             <div className={"b4-filters"}>
