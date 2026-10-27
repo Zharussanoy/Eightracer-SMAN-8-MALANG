@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { ChevronDown, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 import B4Navbar from "./B4Navbar";
 import B4Tabs from "./B4Tabs";
-import { COLLEGE_ALUMNI, type CollegeAlumni } from "./mockData";
+import { COLLEGE_ALUMNI } from "./mockData";
 import "./college.css";
 
 const PAGE_SIZE = 8;
@@ -34,14 +34,6 @@ export default function AlumniCollegePage() {
   const [program, setProgram] = useState("");
   const [admission, setAdmission] = useState("");
   const [page, setPage] = useState(1);
-  const [selectedAlumni, setSelectedAlumni] = useState<CollegeAlumni | null>(null);
-  const dialogRef = useRef<HTMLDialogElement>(null);
-
-  useEffect(() => {
-    if (selectedAlumni) dialogRef.current?.showModal();
-    else dialogRef.current?.close();
-  }, [selectedAlumni]);
-
   const filtered = COLLEGE_ALUMNI.filter((item) =>
     item.name.toLocaleLowerCase("id").includes(query.trim().toLocaleLowerCase("id")) &&
     (!university || item.university === university) &&
@@ -109,8 +101,8 @@ export default function AlumniCollegePage() {
                       <tr key={alumni.id}>
                         <td>{alumni.name}</td><td>{alumni.university}</td><td>{alumni.studyProgram}</td>
                         <td>{alumni.admissionPath}</td><td>{alumni.latestStatus}</td>
-                        <td><button type="button" className={"b4-detailButton"} onClick={() => setSelectedAlumni(alumni)}
-                          aria-label={`Lihat detail ${alumni.name}`}>Lihat Detail</button></td>
+                        <td><Link href="/admin/alumni-perguruan-tinggi/informasi-detail" className={"b4-detailButton"}
+                          aria-label={`Lihat detail ${alumni.name}`}>Lihat Detail</Link></td>
                       </tr>
                     ))}
                     {visibleRows.length === 0 && <tr><td colSpan={6} className={"b4-emptyState"}>Tidak ada alumni yang cocok dengan pencarian dan filter.<button type="button" onClick={resetFilters}>Reset filter</button></td></tr>}
@@ -134,17 +126,7 @@ export default function AlumniCollegePage() {
         </div>
       </main>
 
-      <dialog ref={dialogRef} className={"b4-detailDialog"} aria-labelledby="b4-detail-title" onClose={() => setSelectedAlumni(null)}
-        onClick={(event) => { if (event.target === event.currentTarget) setSelectedAlumni(null); }}>
-        {selectedAlumni && <div className={"b4-dialogContent"}>
-          <div className={"b4-dialogHeading"}><h2 id="b4-detail-title">Detail Alumni</h2><button type="button" aria-label="Tutup detail" onClick={() => setSelectedAlumni(null)} autoFocus><X size={22} /></button></div>
-          <p className={"b4-dialogNote"}>Ringkasan sementara · halaman detail akan mengikuti desain berikutnya.</p>
-          <dl>
-            {[["Nama alumni", selectedAlumni.name], ["Perguruan tinggi", selectedAlumni.university], ["Program studi", selectedAlumni.studyProgram], ["Jalur masuk", selectedAlumni.admissionPath], ["Status terakhir", selectedAlumni.latestStatus]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
-          </dl>
-          <button type="button" className={"b4-closeDialog"} onClick={() => setSelectedAlumni(null)}>Tutup</button>
-        </div>}
-      </dialog>
+
     </div>
   );
 }

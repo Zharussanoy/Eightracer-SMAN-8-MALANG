@@ -66,7 +66,7 @@
 .b4-table th:nth-child(5) { width: 19%; }
 .b4-table th:last-child { width: 10%; }
 .b4-table tbody tr:hover, .b4-table tbody tr:focus-within { background: var(--b4-yellow); }
-.b4-detailButton { background: white; color: var(--b4-purple); border: 1px solid var(--b4-border); border-radius: 13px; padding: 3px 12px; white-space: nowrap; font-weight: 700 !important; line-height: 1.6; }
+.b4-detailButton { display: inline-flex; align-items: center; justify-content: center; background: white; color: var(--b4-purple); border: 1px solid var(--b4-border); border-radius: 13px; padding: 3px 12px; white-space: nowrap; font-weight: 700 !important; line-height: 1.6; text-decoration: none; }
 .b4-table tbody tr:hover .b4-detailButton, .b4-detailButton:focus-visible { background: var(--b4-purple); color: white; }
 .b4-tableFooter { position: relative; display: flex; align-items: center; min-height: 83px; padding: 16px 11px; border-top: 1px solid #bdbdbd; background: var(--b4-lilac); gap: 20px; }
 .b4-tableFooter p { margin: 0; font-size: 14px; font-weight: 500; }
@@ -153,6 +153,56 @@
 .b4-manageForm > label { display: grid; gap: 5px; color: #555; font-size: 13px; }
 .b4-manageForm input, .b4-manageForm select { height: 42px; padding: 0 11px; border: 1px solid #cbb5d8; border-radius: 8px; color: #222; background: white; }
 .b4-manageForm .b4-closeDialog { justify-self: end; margin-top: 4px; }
+.b4-alumniDetail { margin: 32px 0 30px; padding: 30px 32px 25px; border: 1px solid var(--b4-border); border-radius: 11px; background: var(--b4-lilac); }
+.b4-detailProfile { display: flex; align-items: center; gap: 25px; min-height: 119px; padding-bottom: 17px; border-bottom: 1px solid #c8bacd; }
+.b4-detailPortrait { width: 100px; height: 100px; flex: 0 0 100px; overflow: hidden; border-radius: 15px; background: #ddc6e7; box-shadow: 0 3px 10px #32133d26; }
+.b4-detailPortrait svg { display: block; width: 100%; height: 100%; }
+.b4-detailProfile h2 { margin: 0 0 5px; font-size: clamp(25px, 3vw, 34px); line-height: 1.2; font-weight: 800; }
+.b4-detailProfile p { margin: 0; font-size: 14px; }
+.b4-detailTopGrid { display: grid; grid-template-columns: .96fr 1.05fr; gap: 14px; margin-top: 27px; }
+.b4-detailPanel { min-width: 0; padding: 21px 40px; border: 1px solid #c9a9dc; border-radius: 11px; background: white; }
+.b4-detailPanel > h2 { margin: 0 0 10px; padding-bottom: 7px; border-bottom: 1px solid #c9c4cb; font-size: 20px; line-height: 1.35; font-weight: 750; }
+.b4-alumniInfo dl { display: grid; gap: 10px; margin: 0; }
+.b4-infoRow { display: grid; grid-template-columns: minmax(0, 1.03fr) 10px minmax(0, 1.15fr); align-items: baseline; gap: 10px; font-size: 15px; line-height: 1.35; }
+.b4-infoRow dt, .b4-infoRow dd { margin: 0; }
+.b4-infoRow dd { overflow-wrap: anywhere; }
+.b4-progressForm { padding: 18px 40px 10px; }
+.b4-progressForm > h2 { margin-bottom: 10px; }
+.b4-progressFields { display: grid; grid-template-columns: 1fr 1fr; align-items: start; gap: 17px 29px; }
+.b4-formField { display: grid; min-width: 0; min-inline-size: 0; gap: 5px; margin: 0; padding: 0; border: 0; color: #171717; font-size: 10px; }
+.b4-formField > span:first-child, .b4-formField legend { min-height: 14px; padding: 0; }
+.b4-required { color: #d10022; font-weight: 700; }
+.b4-inputWrap, .b4-currencyField { position: relative; display: flex; align-items: center; height: 40px; min-width: 0; overflow: hidden; border: 1px solid var(--b4-border); border-radius: 11px; background: white; }
+.b4-inputWrap select { width: 100%; height: 100%; padding: 0 35px 0 11px; appearance: none; border: 0; outline: 0; color: #333; background: transparent; font-size: 12px; }
+.b4-inputWrap > svg { position: absolute; right: 10px; pointer-events: none; color: #777; }
+.b4-formField > input { width: 100%; height: 40px; padding: 0 11px; border: 1px solid var(--b4-border); border-radius: 11px; outline: 0; color: #333; background: white; font-size: 12px; }
+.b4-radioChoices { display: flex; gap: 8px; height: 40px; }
+.b4-radioChoice { display: flex; min-width: 0; align-items: center; gap: 6px; padding: 0 10px; border: 1px solid var(--b4-border); border-radius: 11px; color: #333; background: white; font-size: 11px; white-space: nowrap; }
+.b4-radioChoice input { width: 14px; height: 14px; margin: 0; accent-color: var(--b4-purple); }
+.b4-radioSelected { background: #f0e7f6; }
+.b4-currencyField { gap: 0; }
+.b4-currencyField > span { display: grid; height: 100%; place-items: center; padding: 0 12px; border-right: 1px solid #d6c8e0; background: #f1e9f5; font-size: 12px; }
+.b4-currencyField input { width: 100%; min-width: 0; height: 100%; padding: 0 9px; border: 0; outline: 0; color: #333; background: transparent; font-size: 12px; }
+.b4-currencyField small { padding-right: 9px; color: #333; font-size: 11px; white-space: nowrap; }
+.b4-formActions { display: flex; min-height: 42px; align-items: end; justify-content: space-between; gap: 10px; margin-top: 15px; }
+.b4-formActions > p { flex: 1; margin: 0; color: var(--b4-purple); font-size: 10px; line-height: 1.35; }
+.b4-formActions > div { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.b4-formActions button { display: inline-flex; min-height: 38px; align-items: center; justify-content: center; gap: 6px; padding: 0 12px; border: 1px solid var(--b4-border); border-radius: 12px; font-size: 13px !important; white-space: nowrap; }
+.b4-saveProgress { color: white; background: var(--b4-purple); }
+.b4-syncProgress { color: var(--b4-purple); background: white; }
+.b4-historyPanel { margin-top: 10px; padding: 20px 40px 20px; }
+.b4-historyPanel > h2 { margin-bottom: 25px; }
+.b4-historyTableWrap { overflow-x: auto; border: 1px solid #c9a9dc; border-radius: 10px; }
+.b4-historyTable { width: 100%; min-width: 850px; border-collapse: collapse; text-align: center; }
+.b4-historyTable th { height: 40px; padding: 8px 13px; color: #171717; background: #e7d9ef; font-size: 14px; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+.b4-historyTable td { height: 63px; padding: 10px 13px; border-top: 1px solid #bdbdbd; font-size: 14px; }
+.b4-historyTable th:first-child, .b4-historyTable td:first-child { text-align: left; padding-left: 28px; }
+.b4-historyActions { text-align: center; white-space: nowrap; }
+.b4-historyActions button { display: inline-grid; width: 28px; height: 34px; place-items: center; margin: 0 3px; padding: 0; border: 0; border-radius: 6px; color: #666; background: transparent; vertical-align: middle; }
+.b4-historyActions button:hover { color: var(--b4-purple); background: #f2e8f7; }
+.b4-historyActions button:last-child:hover { color: #b42318; background: #fff0ed; }
+.b4-historyEmpty { color: #777; text-align: center !important; }
+.b4-detailDemoNote { margin: 10px 0 0; color: #777; font-size: 10px; }
 
 @media (min-width: 1441px) { .b4-container { max-width: 1280px; } }
 @media (max-width: 1150px) {
@@ -176,6 +226,9 @@
   .b4-servicesMenu { position: static; width: 100%; margin-top: 8px; box-shadow: none; }
   .b4-profile { margin-left: 0; }
   .b4-profile > div { display: none; }
+  .b4-alumniDetail { padding: 22px; }
+  .b4-detailTopGrid { grid-template-columns: 1fr; }
+  .b4-historyPanel { padding-inline: 24px; }
   .b4-filters { grid-template-columns: 1fr 1fr; }
   .b4-timelineFilters { grid-template-columns: 1fr 1fr; }
   .b4-tableFooter { justify-content: space-between; }
@@ -230,4 +283,24 @@
   .b4-semesterNote p { font-size: 12px; }
   .b4-manageActions { align-items: flex-start; flex-direction: column; padding: 16px 14px 20px; }
   .b4-manageActions button { align-self: flex-end; }
+}
+
+@media (max-width: 540px) {
+  .b4-alumniDetail { margin-top: 24px; padding: 16px; }
+  .b4-detailProfile { min-height: 91px; gap: 14px; }
+  .b4-detailPortrait { width: 76px; height: 76px; flex-basis: 76px; }
+  .b4-detailProfile h2 { font-size: 22px; }
+  .b4-detailProfile p { font-size: 12px; }
+  .b4-detailTopGrid { gap: 12px; margin-top: 16px; }
+  .b4-detailPanel { padding: 17px 16px; }
+  .b4-detailPanel > h2 { font-size: 18px; }
+  .b4-infoRow { grid-template-columns: minmax(0, .95fr) 8px minmax(0, 1.05fr); gap: 6px; font-size: 12px; }
+  .b4-alumniInfo dl { gap: 9px; }
+  .b4-progressFields { gap: 13px 10px; }
+  .b4-radioChoices { gap: 4px; }
+  .b4-radioChoice { gap: 4px; padding-inline: 6px; font-size: 9px; }
+  .b4-formActions { align-items: stretch; flex-direction: column; }
+  .b4-formActions > div { align-self: flex-end; }
+  .b4-historyPanel { margin-top: 12px; padding: 17px 16px; }
+  .b4-historyPanel > h2 { margin-bottom: 16px; }
 }
