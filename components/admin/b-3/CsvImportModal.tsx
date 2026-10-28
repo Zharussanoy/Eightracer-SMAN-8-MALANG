@@ -11,7 +11,7 @@ import {
   ArrowRight,
   ChevronLeft,
 } from "lucide-react";
-import { AlumniItem } from "@/components/admin/types";
+import { AlumniItem } from "./types";
 import { SAMPLE_IMPORT_ALUMNI } from "./mockData";
 
 interface CsvImportModalProps {

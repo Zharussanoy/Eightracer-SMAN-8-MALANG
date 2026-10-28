@@ -1,4 +1,4 @@
-import { AlumniItem, CertificateItem } from "@/components/admin/types";
+import { AlumniItem, CertificateItem } from "./types";
 
 export const INITIAL_ALUMNI: AlumniItem[] = [
   {

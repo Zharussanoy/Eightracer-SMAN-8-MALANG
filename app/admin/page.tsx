@@ -10,7 +10,7 @@ import AlumniTestimonialsSection from "@/components/AlumniTestimonialsSection";
 import AboutSection from "@/components/AboutSection";
 import CtaSection from "@/components/CtaSection";
 import Footer from "@/components/Footer";
-import { AdminRole, AdminTab } from "@/components/admin/types";
+import { AdminRole, AdminTab } from "@/components/admin/b-3/types";
 
 function AdminLandingContent() {
   const router = useRouter();

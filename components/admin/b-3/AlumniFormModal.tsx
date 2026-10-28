@@ -10,7 +10,7 @@ import {
   CheckSquare,
   Square,
 } from "lucide-react";
-import { AlumniItem, CertificateItem } from "@/components/admin/types";
+import { AlumniItem, CertificateItem } from "./types";
 import { AVAILABLE_CERTIFICATES } from "./mockData";
 
 interface AlumniFormModalProps {

@@ -12,7 +12,7 @@ import {
   Shield,
   ArrowUpRight,
 } from "lucide-react";
-import { AdminRole, AdminTab } from "./types";
+import { AdminRole, AdminTab } from "./b-3/types";
 
 interface AdminNavbarProps {
   role?: AdminRole;

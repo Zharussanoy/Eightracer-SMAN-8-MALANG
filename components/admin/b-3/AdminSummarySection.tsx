@@ -7,7 +7,7 @@ import {
   Users,
   ClipboardList,
 } from "lucide-react";
-import { AdminTab } from "@/components/admin/types";
+import { AdminTab } from "./types";
 
 interface AdminSummarySectionProps {
   onNavigateTab: (tab: AdminTab) => void;

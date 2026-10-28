@@ -5,15 +5,15 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 import AdminNavbar from "@/components/admin/AdminNavbar";
-import AdminHero from "@/components/admin/AdminHero";
-import AdminTabNav from "@/components/admin/AdminTabNav";
+import AdminHero from "@/components/admin/b-3/AdminHero";
+import AdminTabNav from "@/components/admin/b-3/AdminTabNav";
 import AdminSummarySection from "@/components/admin/b-3/AdminSummarySection";
 import AdminAlumniTable from "@/components/admin/b-3/AdminAlumniTable";
 import AdminAiStrategiSection from "@/components/admin/b-3/AdminAiStrategiSection";
 import AlumniFormModal from "@/components/admin/b-3/AlumniFormModal";
 import CsvImportModal from "@/components/admin/b-3/CsvImportModal";
 
-import { AdminRole, AdminTab, AlumniItem } from "@/components/admin/types";
+import { AdminRole, AdminTab, AlumniItem } from "@/components/admin/b-3/types";
 import { INITIAL_ALUMNI } from "@/components/admin/b-3/mockData";
 
 function AdminDashboardContent() {

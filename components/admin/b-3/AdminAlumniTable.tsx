@@ -15,7 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { AlumniItem, AdminRole } from "@/components/admin/types";
+import { AlumniItem, AdminRole } from "./types";
 
 interface AdminAlumniTableProps {
   role: AdminRole;

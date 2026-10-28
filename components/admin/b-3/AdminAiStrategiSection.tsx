@@ -1,7 +1,7 @@
 "use client";
 
 import { Bot, Sparkles, ArrowRight } from "lucide-react";
-import { AdminTab } from "@/components/admin/types";
+import { AdminTab } from "./types";
 
 interface AdminAiStrategiSectionProps {
   onNavigateTab: (tab: AdminTab) => void;
