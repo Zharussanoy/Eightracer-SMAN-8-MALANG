@@ -5,19 +5,24 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Menu, X, ArrowUpRight } from "lucide-react";
+import { useUser } from "@/context/UserContext";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
   const pathname = usePathname();
+  const { isLoggedIn, currentUser, getDisplayRole } = useUser();
+  const displayRole = getDisplayRole();
 
   const isHome = pathname === "/";
   const isTeam = pathname === "/tim-pengembang";
+  const isProfile = pathname === "/profile";
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-purple-100 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
+          {/* Logo Eightracer */}
           <Link href="/" className="flex items-center gap-4 group">
             <div className="w-12 h-12 relative rounded-2xl overflow-hidden shadow-md shadow-purple-900/20 group-hover:scale-105 transition-transform flex items-center justify-center bg-[#5F089E] shrink-0">
               <Image
@@ -38,17 +43,19 @@ export default function Navbar() {
             </div>
           </Link>
 
+          {/* Navigasi Utama: HANYA 1. Beranda, 2. Tentang Kami, 3. Layanan, 4. Tim Pengembang */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+            {/* 1. Beranda */}
             <Link
               href="/"
-              className={`transition-colors ${isHome
-                ? "text-[#5F089E] font-semibold"
-                : "hover:text-[#5F089E]"
-                }`}
+              className={`transition-colors ${
+                isHome ? "text-[#5F089E] font-semibold" : "hover:text-[#5F089E]"
+              }`}
             >
               Beranda
             </Link>
 
+            {/* 2. Tentang Kami */}
             <Link
               href={isHome ? "#tentang" : "/#tentang"}
               className="hover:text-[#5F089E] transition-colors"
@@ -56,6 +63,7 @@ export default function Navbar() {
               Tentang Kami
             </Link>
 
+            {/* 3. Layanan */}
             <div
               className="relative"
               onMouseEnter={() => setServicesDropdownOpen(true)}
@@ -68,13 +76,14 @@ export default function Navbar() {
               >
                 <span>Layanan</span>
                 <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-200 ${servicesDropdownOpen ? "rotate-180 text-[#5F089E]" : ""
-                    }`}
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    servicesDropdownOpen ? "rotate-180 text-[#5F089E]" : ""
+                  }`}
                 />
               </Link>
 
               {servicesDropdownOpen && (
-                <div className="absolute top-full left-0 w-64 pt-2 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="absolute top-full left-0 w-64 pt-2 animate-in fade-in slide-in-from-top-2 duration-150 z-50">
                   <div className="bg-white rounded-2xl shadow-xl shadow-purple-950/10 border border-purple-100 p-2 space-y-1">
                     <Link
                       href={isHome ? "#layanan" : "/#layanan"}
@@ -93,11 +102,11 @@ export default function Navbar() {
                       <ArrowUpRight className="w-3.5 h-3.5 opacity-50" />
                     </Link>
                     <Link
-                      href={isHome ? "#layanan" : "/#layanan"}
+                      href="/admin/alumni?tab=direktori"
                       className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-purple-50 text-slate-700 hover:text-[#5F089E] text-xs font-semibold transition-colors"
                       onClick={() => setServicesDropdownOpen(false)}
                     >
-                      <span>Data Kelulusan & Kampus</span>
+                      <span>Data Kelulusan &amp; Kampus</span>
                       <ArrowUpRight className="w-3.5 h-3.5 opacity-50" />
                     </Link>
                     <Link
@@ -105,7 +114,7 @@ export default function Navbar() {
                       className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-purple-50 text-slate-700 hover:text-[#5F089E] text-xs font-semibold transition-colors"
                       onClick={() => setServicesDropdownOpen(false)}
                     >
-                      <span>Perkembangan & Karir Alumni</span>
+                      <span>Perkembangan &amp; Karir Alumni</span>
                       <ArrowUpRight className="w-3.5 h-3.5 opacity-50" />
                     </Link>
                   </div>
@@ -113,31 +122,69 @@ export default function Navbar() {
               )}
             </div>
 
+            {/* 4. Tim Pengembang */}
             <Link
               href="/tim-pengembang"
-              className={`transition-colors ${isTeam
-                ? "text-[#5F089E] font-semibold"
-                : "hover:text-[#5F089E]"
-                }`}
+              className={`transition-colors ${
+                isTeam ? "text-[#5F089E] font-semibold" : "hover:text-[#5F089E]"
+              }`}
             >
               Tim Pengembang
             </Link>
           </nav>
 
-          <div className="hidden md:flex items-center gap-4">
-            <Link
-              href="/login"
-              className="text-sm font-semibold text-slate-700 hover:text-[#5F089E] px-4 py-2 transition-colors"
-            >
-              Masuk
-            </Link>
-            <Link
-              href="/register"
-              className="text-sm font-semibold text-white bg-[#5F089E] hover:bg-[#4d0680] active:bg-[#3d0566] px-6 py-2.5 rounded-full shadow-md shadow-purple-900/25 hover:shadow-lg transition-all transform hover:-translate-y-0.5"
-            >
-              Daftar
-            </Link>
-          </div>
+          {/* Sudut Kanan Atas: Login jika belum login, Profile jika sudah login */}
+          {isLoggedIn ? (
+            <div className="hidden md:flex items-center gap-3">
+              <Link
+                href="/profile"
+                className={`flex items-center gap-2.5 p-1.5 pl-3 pr-2 rounded-full border transition-all cursor-pointer group ${
+                  isProfile
+                    ? "bg-purple-100/70 border-purple-300 ring-2 ring-purple-500/20 shadow-xs"
+                    : "bg-slate-50/80 hover:bg-purple-50/70 border-slate-200/90 hover:border-purple-300"
+                }`}
+                title="Buka Halaman Profil Pengguna"
+              >
+                {/* Badge Role */}
+                <span
+                  className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border flex items-center gap-1.5 ${displayRole.badgeColor}`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${displayRole.dotColor}`} />
+                  {displayRole.label}
+                </span>
+
+                {/* Nama Pengguna */}
+                <span className="text-xs font-bold text-slate-800 max-w-[120px] truncate group-hover:text-[#5F089E] transition-colors">
+                  {currentUser.name.split(" ")[0]}
+                </span>
+
+                {/* Avatar Pengguna */}
+                <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white shadow-2xs relative shrink-0">
+                  <Image
+                    src={currentUser.avatar}
+                    alt={currentUser.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              </Link>
+            </div>
+          ) : (
+            <div className="hidden md:flex items-center gap-4">
+              <Link
+                href="/login"
+                className="text-sm font-semibold text-slate-700 hover:text-[#5F089E] px-4 py-2 transition-colors"
+              >
+                Masuk
+              </Link>
+              <Link
+                href="/register"
+                className="text-sm font-semibold text-white bg-[#5F089E] hover:bg-[#4d0680] active:bg-[#3d0566] px-6 py-2.5 rounded-full shadow-md shadow-purple-900/25 hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+              >
+                Daftar
+              </Link>
+            </div>
+          )}
 
           {/* Mobile menu button */}
           <div className="flex md:hidden">
@@ -160,14 +207,51 @@ export default function Navbar() {
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-purple-100 bg-white px-4 pt-4 pb-6 space-y-4 animate-in slide-in-from-top-2 duration-150">
+          {/* Card Profil jika sudah login */}
+          {isLoggedIn && (
+            <Link
+              href="/profile"
+              onClick={() => setMobileMenuOpen(false)}
+              className="p-3 bg-purple-50/70 hover:bg-purple-100/70 rounded-2xl border border-purple-100 flex items-center justify-between transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="relative w-10 h-10 rounded-full overflow-hidden border border-purple-300 shrink-0">
+                  <Image
+                    src={currentUser.avatar}
+                    alt={currentUser.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-slate-900 truncate">
+                    {currentUser.name}
+                  </p>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-md border inline-block mt-0.5 ${displayRole.badgeColor}`}
+                  >
+                    {displayRole.label}
+                  </span>
+                </div>
+              </div>
+
+              <span className="text-xs font-bold text-[#5F089E] flex items-center gap-1">
+                Profil
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </span>
+            </Link>
+          )}
+
+          {/* Navigasi Utama */}
           <div className="flex flex-col space-y-2 font-medium text-slate-700">
             <Link
               href="/"
               onClick={() => setMobileMenuOpen(false)}
-              className={`px-3 py-2 rounded-lg transition-colors ${isHome
-                ? "text-purple-700 font-semibold bg-purple-50"
-                : "hover:bg-purple-50"
-                }`}
+              className={`px-3 py-2 rounded-lg transition-colors ${
+                isHome
+                  ? "text-purple-700 font-semibold bg-purple-50"
+                  : "hover:bg-purple-50"
+              }`}
             >
               Beranda
             </Link>
@@ -188,30 +272,35 @@ export default function Navbar() {
             <Link
               href="/tim-pengembang"
               onClick={() => setMobileMenuOpen(false)}
-              className={`px-3 py-2 rounded-lg transition-colors ${isTeam
-                ? "text-purple-700 font-semibold bg-purple-50"
-                : "hover:bg-purple-50"
-                }`}
+              className={`px-3 py-2 rounded-lg transition-colors ${
+                isTeam
+                  ? "text-purple-700 font-semibold bg-purple-50"
+                  : "hover:bg-purple-50"
+              }`}
             >
               Tim Pengembang
             </Link>
           </div>
-          <div className="pt-4 border-t border-purple-100 flex flex-col gap-2">
-            <Link
-              href="/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full text-center py-2.5 rounded-full font-semibold text-[#5F089E] border border-[#5F089E]/30 hover:bg-purple-50 transition-colors"
-            >
-              Masuk
-            </Link>
-            <Link
-              href="/register"
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full text-center py-2.5 rounded-full font-semibold text-white bg-[#5F089E] hover:bg-[#4d0680] transition-colors shadow-md shadow-purple-900/20"
-            >
-              Daftar Sekarang
-            </Link>
-          </div>
+
+          {/* Tombol Masuk & Daftar jika belum login */}
+          {!isLoggedIn && (
+            <div className="pt-4 border-t border-purple-100 flex flex-col gap-2">
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full text-center py-2.5 rounded-full font-semibold text-[#5F089E] border border-[#5F089E]/30 hover:bg-purple-50 transition-colors"
+              >
+                Masuk
+              </Link>
+              <Link
+                href="/register"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full text-center py-2.5 rounded-full font-semibold text-white bg-[#5F089E] hover:bg-[#4d0680] transition-colors shadow-md shadow-purple-900/20"
+              >
+                Daftar Sekarang
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </header>

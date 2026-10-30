@@ -161,6 +161,7 @@ function MemberCard({ member }: { member: Member }) {
         {/* Member Photo Area with Avatar Fallback */}
         <div className="absolute inset-x-0 bottom-16 top-6 flex items-center justify-center overflow-hidden">
           {member.image ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={member.image}
               alt={member.name}

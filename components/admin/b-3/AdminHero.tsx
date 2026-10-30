@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Sparkles, ArrowRight, Bot } from "lucide-react";
+import { ArrowRight, Bot } from "lucide-react";
 import { AdminTab } from "./types";
 
 interface AdminHeroProps {
