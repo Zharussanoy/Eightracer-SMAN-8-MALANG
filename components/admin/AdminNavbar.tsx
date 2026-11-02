@@ -10,9 +10,12 @@ import {
   X,
   UserCheck,
   Shield,
+  GraduationCap,
+  BookOpen,
   ArrowUpRight,
 } from "lucide-react";
 import { AdminRole, AdminTab } from "./b-3/types";
+import { useUser } from "@/context/UserContext";
 
 interface AdminNavbarProps {
   role?: AdminRole;
@@ -23,12 +26,35 @@ interface AdminNavbarProps {
 export default function AdminNavbar({
   role = "admin",
   onRoleChange = () => {},
-  onNavigateTab = () => {},
+  onNavigateTab,
 }: AdminNavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
   const pathname = usePathname();
   const isAdminHome = pathname === "/admin";
+  const { currentUser, switchRole } = useUser();
+
+  const handleRoleSelect = (r: AdminRole) => {
+    onRoleChange(r);
+    if (r === "siswa") switchRole("siswa_aktif");
+    else if (r === "alumni") switchRole("siswa_alumni");
+    else if (r === "guru") switchRole("guru");
+    else if (r === "admin") switchRole("admin");
+  };
+
+  const getRoleLabel = (r: AdminRole) => {
+    switch (r) {
+      case "admin":
+        return "Admin";
+      case "alumni":
+        return "Alumni";
+      case "guru":
+        return "Guru";
+      case "siswa":
+      default:
+        return "Siswa";
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-purple-100 transition-all">
@@ -110,7 +136,10 @@ export default function AdminNavbar({
                     <Link
                       href="/admin/alumni?tab=direktori"
                       className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-purple-50 text-slate-700 hover:text-[#5F089E] text-xs font-semibold transition-colors"
-                      onClick={() => setServicesDropdownOpen(false)}
+                      onClick={() => {
+                        setServicesDropdownOpen(false);
+                        if (onNavigateTab) onNavigateTab("Direktori Alumni");
+                      }}
                     >
                       <span>Data Kelulusan &amp; Kampus</span>
                       <ArrowUpRight className="w-3.5 h-3.5 opacity-50" />
@@ -136,45 +165,83 @@ export default function AdminNavbar({
             </Link>
           </nav>
 
-          <div className="hidden sm:flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-3">
+            {/* Simulator Role (4 Kategori: Siswa, Alumni, Guru, Admin) */}
             <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
               <button
                 type="button"
-                onClick={() => onRoleChange("siswa")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${role === "siswa"
-                  ? "bg-white text-blue-700 shadow-2xs"
-                  : "text-slate-500 hover:text-slate-800"
-                  }`}
+                onClick={() => handleRoleSelect("siswa")}
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  role === "siswa"
+                    ? "bg-white text-purple-700 shadow-2xs"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
               >
                 <UserCheck className="w-3.5 h-3.5" />
                 <span>Siswa</span>
               </button>
               <button
                 type="button"
-                onClick={() => onRoleChange("admin")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${role === "admin"
-                  ? "bg-[#5F089E] text-white shadow-2xs"
-                  : "text-slate-500 hover:text-slate-800"
-                  }`}
+                onClick={() => handleRoleSelect("alumni")}
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  role === "alumni"
+                    ? "bg-emerald-600 text-white shadow-2xs"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                <GraduationCap className="w-3.5 h-3.5" />
+                <span>Alumni</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRoleSelect("guru")}
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  role === "guru"
+                    ? "bg-blue-600 text-white shadow-2xs"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Guru</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRoleSelect("admin")}
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  role === "admin"
+                    ? "bg-[#5F089E] text-white shadow-2xs"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
               >
                 <Shield className="w-3.5 h-3.5" />
                 <span>Admin</span>
               </button>
             </div>
 
-            <div className="flex items-center gap-3 pl-2 border-l border-slate-200">
-              <div className="w-10 h-10 bg-slate-200 text-slate-700 font-bold rounded-full flex items-center justify-center text-sm shadow-inner shrink-0 border border-slate-300">
-                {role === "admin" ? "AS" : "SS"}
-              </div>
-              <div className="flex flex-col leading-tight">
-                <span className="text-xs font-bold text-slate-900">
-                  {role === "admin" ? "Admin" : "Siswa"}
+            {/* Tombol Profil Clickable */}
+            <Link
+              href="/profile"
+              className="flex items-center gap-2.5 p-1 pl-2.5 pr-1.5 rounded-full border border-slate-200/90 hover:border-purple-300 hover:bg-purple-50/70 transition-all cursor-pointer group"
+              title="Buka Halaman Profil Pengguna"
+            >
+              <div className="flex flex-col text-left leading-tight">
+                <span className="text-[11px] font-bold text-slate-800 group-hover:text-[#5F089E] transition-colors">
+                  {currentUser.name.split(" ")[0]}
                 </span>
-                <span className="text-[10px] text-slate-500 font-medium">
-                  SMAN 8 Malang
+                <span className="text-[9px] font-extrabold text-[#5F089E] uppercase">
+                  {getRoleLabel(role)}
                 </span>
               </div>
-            </div>
+
+              <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white shadow-2xs relative shrink-0">
+                <Image
+                  src={currentUser.avatar}
+                  alt={currentUser.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            </Link>
           </div>
 
           <button
@@ -193,26 +260,76 @@ export default function AdminNavbar({
 
       {mobileMenuOpen && (
         <div className="lg:hidden bg-white border-b border-purple-100 px-4 pt-3 pb-6 space-y-4 animate-in slide-in-from-top-2">
-          <div className="flex items-center justify-between p-3 rounded-xl bg-purple-50/60 border border-purple-100">
-            <span className="text-xs font-bold text-slate-700">Pilih Mode Tampilan:</span>
-            <div className="flex items-center bg-white p-1 rounded-lg border border-slate-200">
+          {/* Card Profil di Mobile */}
+          <Link
+            href="/profile"
+            onClick={() => setMobileMenuOpen(false)}
+            className="p-3 bg-purple-50/70 hover:bg-purple-100/70 rounded-2xl border border-purple-100 flex items-center justify-between transition-colors cursor-pointer"
+          >
+            <div className="flex items-center gap-3">
+              <div className="relative w-10 h-10 rounded-full overflow-hidden border border-purple-300 shrink-0">
+                <Image
+                  src={currentUser.avatar}
+                  alt={currentUser.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-slate-900 truncate">
+                  {currentUser.name}
+                </p>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md border inline-block mt-0.5 bg-purple-100 text-purple-800">
+                  {getRoleLabel(role)}
+                </span>
+              </div>
+            </div>
+
+            <span className="text-xs font-bold text-[#5F089E] flex items-center gap-1">
+              Profil
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </span>
+          </Link>
+
+          {/* Simulator Role di Mobile */}
+          <div className="p-3 rounded-xl bg-purple-50/60 border border-purple-100 space-y-2">
+            <span className="text-xs font-bold text-slate-700 block">
+              Pilih Role Fitur B3:
+            </span>
+            <div className="grid grid-cols-4 gap-1 bg-white p-1 rounded-lg border border-slate-200">
               <button
                 type="button"
-                onClick={() => onRoleChange("siswa")}
-                className={`px-3 py-1 rounded text-xs font-bold ${role === "siswa"
-                  ? "bg-blue-600 text-white"
-                  : "text-slate-600"
-                  }`}
+                onClick={() => handleRoleSelect("siswa")}
+                className={`py-1.5 rounded text-xs font-bold text-center ${
+                  role === "siswa" ? "bg-purple-600 text-white" : "text-slate-600"
+                }`}
               >
                 Siswa
               </button>
               <button
                 type="button"
-                onClick={() => onRoleChange("admin")}
-                className={`px-3 py-1 rounded text-xs font-bold ${role === "admin"
-                  ? "bg-[#5F089E] text-white"
-                  : "text-slate-600"
-                  }`}
+                onClick={() => handleRoleSelect("alumni")}
+                className={`py-1.5 rounded text-xs font-bold text-center ${
+                  role === "alumni" ? "bg-emerald-600 text-white" : "text-slate-600"
+                }`}
+              >
+                Alumni
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRoleSelect("guru")}
+                className={`py-1.5 rounded text-xs font-bold text-center ${
+                  role === "guru" ? "bg-blue-600 text-white" : "text-slate-600"
+                }`}
+              >
+                Guru
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRoleSelect("admin")}
+                className={`py-1.5 rounded text-xs font-bold text-center ${
+                  role === "admin" ? "bg-[#5F089E] text-white" : "text-slate-600"
+                }`}
               >
                 Admin
               </button>
@@ -248,20 +365,6 @@ export default function AdminNavbar({
             >
               Tim Pengembang
             </Link>
-          </div>
-
-          <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
-            <div className="w-10 h-10 bg-slate-200 text-slate-700 font-bold rounded-full flex items-center justify-center text-sm shadow-inner shrink-0">
-              {role === "admin" ? "AS" : "SS"}
-            </div>
-            <div>
-              <span className="text-xs font-bold text-slate-900 block">
-                {role === "admin" ? "Admin Smarihasta" : "Siswa Smarihasta"}
-              </span>
-              <span className="text-[10px] text-slate-500">
-                Mode: {role === "admin" ? "Administrator" : "Siswa (Read-only)"}
-              </span>
-            </div>
           </div>
         </div>
       )}

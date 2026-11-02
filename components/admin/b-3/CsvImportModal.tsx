@@ -6,7 +6,6 @@ import {
   Upload,
   FileSpreadsheet,
   Download,
-  FileText,
   CheckCircle2,
   ArrowRight,
   ChevronLeft,
@@ -95,8 +94,9 @@ export default function CsvImportModal({
                   const input = document.createElement("input");
                   input.type = "file";
                   input.accept = ".csv";
-                  input.onchange = (e: any) => {
-                    const file = e.target.files?.[0];
+                  input.onchange = (e: Event) => {
+                    const target = e.target as HTMLInputElement | null;
+                    const file = target?.files?.[0];
                     if (file) {
                       handleFileSelected(file.name);
                     }

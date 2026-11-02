@@ -1,6 +1,13 @@
-export type AdminRole = "admin" | "siswa";
+export type AdminRole = "admin" | "siswa" | "alumni" | "guru";
 
-export type AdminTab = "Ringkasan" | "Direktori Alumni" | "AI Strategi Jurusan";
+export type AdminTab =
+  | "Ringkasan"
+  | "Direktori Alumni"
+  | "AI Strategi Jurusan"
+  | "Formulir Pendataan";
+
+export type B3Role = AdminRole;
+export type B3Tab = AdminTab;
 
 export interface AlumniItem {
   id: string;

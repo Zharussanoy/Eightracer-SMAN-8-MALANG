@@ -2,7 +2,6 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
 
 import AdminNavbar from "@/components/admin/AdminNavbar";
 import AdminHero from "@/components/admin/b-3/AdminHero";
@@ -10,17 +9,19 @@ import AdminTabNav from "@/components/admin/b-3/AdminTabNav";
 import AdminSummarySection from "@/components/admin/b-3/AdminSummarySection";
 import AdminAlumniTable from "@/components/admin/b-3/AdminAlumniTable";
 import AdminAiStrategiSection from "@/components/admin/b-3/AdminAiStrategiSection";
+import AdminFormSection from "@/components/admin/b-3/AdminFormSection";
 import AlumniFormModal from "@/components/admin/b-3/AlumniFormModal";
 import CsvImportModal from "@/components/admin/b-3/CsvImportModal";
 
 import { AdminRole, AdminTab, AlumniItem } from "@/components/admin/b-3/types";
 import { INITIAL_ALUMNI } from "@/components/admin/b-3/mockData";
+import { useUser, PresetKey } from "@/context/UserContext";
 
 function AdminDashboardContent() {
   const searchParams = useSearchParams();
+  const { switchRole } = useUser();
 
-  const [role, setRole] = useState<AdminRole>("admin");
-
+  const [role, setRole] = useState<AdminRole>("alumni");
   const [activeTab, setActiveTab] = useState<AdminTab>("Ringkasan");
 
   const [alumniList, setAlumniList] = useState<AlumniItem[]>(INITIAL_ALUMNI);
@@ -28,24 +29,58 @@ function AdminDashboardContent() {
 
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingAlumni, setEditingAlumni] = useState<AlumniItem | null>(null);
-
   const [showImportModal, setShowImportModal] = useState(false);
 
+  // Sync role & tab with query params
   useEffect(() => {
-    const roleParam = searchParams.get("role");
-    if (roleParam === "siswa") {
-      setRole("siswa");
-    } else if (roleParam === "admin") {
-      setRole("admin");
+    const roleParam = searchParams.get("role") as AdminRole | null;
+    if (
+      roleParam === "siswa" ||
+      roleParam === "alumni" ||
+      roleParam === "guru" ||
+      roleParam === "admin"
+    ) {
+      const timer = setTimeout(() => {
+        setRole(roleParam);
+        const mapPreset: Record<AdminRole, PresetKey> = {
+          siswa: "siswa_aktif",
+          alumni: "siswa_alumni",
+          guru: "guru",
+          admin: "admin",
+        };
+        switchRole(mapPreset[roleParam]);
+      }, 0);
+      return () => clearTimeout(timer);
     }
 
     const tabParam = searchParams.get("tab");
     if (tabParam === "direktori") {
-      setActiveTab("Direktori Alumni");
+      const timer = setTimeout(() => setActiveTab("Direktori Alumni"), 0);
+      return () => clearTimeout(timer);
     } else if (tabParam === "ai") {
-      setActiveTab("AI Strategi Jurusan");
+      const timer = setTimeout(() => setActiveTab("AI Strategi Jurusan"), 0);
+      return () => clearTimeout(timer);
+    } else if (
+      tabParam === "pendataan" ||
+      tabParam === "form" ||
+      tabParam === "formulir"
+    ) {
+      const timer = setTimeout(() => setActiveTab("Formulir Pendataan"), 0);
+      return () => clearTimeout(timer);
     }
-  }, [searchParams]);
+  }, [searchParams, switchRole]);
+
+  // Handle role change from navbar
+  const handleRoleChange = (newRole: AdminRole) => {
+    setRole(newRole);
+    if (
+      activeTab === "Formulir Pendataan" &&
+      newRole !== "alumni" &&
+      newRole !== "admin"
+    ) {
+      setActiveTab("Ringkasan");
+    }
+  };
 
   const handleSelectAll = () => {
     if (selectedIds.length === alumniList.length) {
@@ -99,28 +134,34 @@ function AdminDashboardContent() {
     setAlumniList((prev) => [...newRows, ...prev]);
   };
 
+  // Adapter role untuk AdminAlumniTable yang menerima "admin" | "siswa"
+  const tableRole = role === "admin" ? "admin" : "siswa";
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans text-slate-800">
       <AdminNavbar
         role={role}
-        onRoleChange={setRole}
+        onRoleChange={handleRoleChange}
         onNavigateTab={setActiveTab}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
         <AdminHero onNavigateTab={setActiveTab} />
+
         <AdminTabNav
           activeTab={activeTab}
           onTabChange={setActiveTab}
           alumniCount={alumniList.length}
+          role={role}
         />
 
         {activeTab === "Ringkasan" && (
           <AdminSummarySection onNavigateTab={setActiveTab} />
         )}
+
         {activeTab === "Direktori Alumni" && (
           <AdminAlumniTable
-            role={role}
+            role={tableRole}
             alumniList={alumniList}
             selectedIds={selectedIds}
             onToggleSelect={handleToggleSelect}
@@ -134,6 +175,10 @@ function AdminDashboardContent() {
 
         {activeTab === "AI Strategi Jurusan" && (
           <AdminAiStrategiSection onNavigateTab={setActiveTab} />
+        )}
+
+        {activeTab === "Formulir Pendataan" && (
+          <AdminFormSection role={role} />
         )}
       </main>
 
@@ -152,15 +197,15 @@ function AdminDashboardContent() {
 
       <footer className="mt-auto py-6 border-t border-slate-200 bg-white text-center text-xs text-slate-400">
         <p>
-          &copy; {new Date().getFullYear()} Eightracer SMAN 8 Malang. Sistem Informasi
-          Kelulusan &amp; Direktori Alumni Terpadu.
+          &copy; {new Date().getFullYear()} Eightracer SMAN 8 Malang &bull; Fitur Tim B3.
+          Sistem Informasi Kelulusan &amp; Direktori Alumni Terpadu.
         </p>
       </footer>
     </div>
   );
 }
 
-export default function AdminPage() {
+export default function AdminAlumniPage() {
   return (
     <Suspense
       fallback={

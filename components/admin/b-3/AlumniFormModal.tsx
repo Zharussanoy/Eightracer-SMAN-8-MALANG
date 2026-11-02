@@ -10,7 +10,7 @@ import {
   CheckSquare,
   Square,
 } from "lucide-react";
-import { AlumniItem, CertificateItem } from "./types";
+import { AlumniItem } from "./types";
 import { AVAILABLE_CERTIFICATES } from "./mockData";
 
 interface AlumniFormModalProps {
@@ -41,32 +41,35 @@ export default function AlumniFormModal({
   const [customCertInput, setCustomCertInput] = useState("");
 
   useEffect(() => {
-    if (initialData) {
-      setFormNama(initialData.nama);
-      setFormNisn(initialData.nisn);
-      setFormKampus(initialData.kampus);
-      setFormJurusan(initialData.jurusan);
-      setFormJalur(initialData.jalur);
-      setFormPilihanKe(initialData.pilihanKe || "Pilihan 1");
-      setFormStatusPenerimaan(initialData.statusPenerimaan || "Lolos / Diterima");
-      setFormJenjang(initialData.jenjang || "S1");
-      setFormNilaiRapor(String(initialData.nilai));
-      setFormSkorUtbk(initialData.skorUtbk ? String(initialData.skorUtbk) : "");
-      setFormSelectedCerts(initialData.sertifikat || []);
-      setFormIsKipk(initialData.isKipk || false);
-    } else {
-      setFormNama("");
-      setFormNisn("");
-      setFormKampus("Universitas Brawijaya");
-      setFormJurusan("Kedokteran");
-      setFormJalur("SNBP");
-      setFormPilihanKe("Pilihan 1");
-      setFormStatusPenerimaan("Lolos / Diterima");
-      setFormJenjang("S1");
-      setFormNilaiRapor("92.80");
-      setFormSkorUtbk("");
-      setFormIsKipk(false);
-    }
+    const timer = setTimeout(() => {
+      if (initialData) {
+        setFormNama(initialData.nama);
+        setFormNisn(initialData.nisn);
+        setFormKampus(initialData.kampus);
+        setFormJurusan(initialData.jurusan);
+        setFormJalur(initialData.jalur);
+        setFormPilihanKe(initialData.pilihanKe || "Pilihan 1");
+        setFormStatusPenerimaan(initialData.statusPenerimaan || "Lolos / Diterima");
+        setFormJenjang(initialData.jenjang || "S1");
+        setFormNilaiRapor(String(initialData.nilai));
+        setFormSkorUtbk(initialData.skorUtbk ? String(initialData.skorUtbk) : "");
+        setFormSelectedCerts(initialData.sertifikat || []);
+        setFormIsKipk(initialData.isKipk || false);
+      } else {
+        setFormNama("");
+        setFormNisn("");
+        setFormKampus("Universitas Brawijaya");
+        setFormJurusan("Kedokteran");
+        setFormJalur("SNBP");
+        setFormPilihanKe("Pilihan 1");
+        setFormStatusPenerimaan("Lolos / Diterima");
+        setFormJenjang("S1");
+        setFormNilaiRapor("92.80");
+        setFormSkorUtbk("");
+        setFormIsKipk(false);
+      }
+    }, 0);
+    return () => clearTimeout(timer);
   }, [initialData, isOpen]);
 
   if (!isOpen) return null;
@@ -124,7 +127,7 @@ export default function AlumniFormModal({
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-5 overflow-y-auto">
       <div className="bg-[#F8FAFC] rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl w-full max-w-5xl max-h-[94vh] sm:max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        {/* Header Modal Sesuai Gambar 2 */}
+        {/* Header Modal */}
         <div className="bg-white px-4 sm:px-8 py-4 sm:py-5 border-b border-slate-200/80">
           <div className="flex items-start justify-between">
             <div>
@@ -140,116 +143,116 @@ export default function AlumniFormModal({
                 Lengkapi riwayat pendaftaran perguruan tinggi dan sertifikat yang digunakan.
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="hidden sm:inline-block px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold border border-blue-100">
-                Profil: {formNama || "Data Siswa"}
-              </span>
-              <button
-                type="button"
-                onClick={onClose}
-                className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center cursor-pointer transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 sm:p-8 space-y-5 sm:space-y-6 overflow-y-auto flex-1 custom-scrollbar">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
-          <div className="lg:col-span-7 space-y-5 sm:space-y-6">
-            <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-4 sm:space-y-5">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                    <School className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <span className="text-sm font-bold text-slate-900 block">
-                      Data Pendaftaran Perguruan Tinggi
-                    </span>
-                    <span className="text-[11px] text-slate-500">
-                      Informasi tujuan dan hasil seleksi
-                    </span>
-                  </div>
-                </div>
-                <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-bold">
-                  Langkah 1 dari 2
-                </span>
+        {/* Body Modal 2 Kolom Sesuai Desain */}
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+            {/* KOLOM KIRI: Data Pendaftaran PTN */}
+            <div className="lg:col-span-7 bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-7 border border-slate-200/80 shadow-2xs space-y-5">
+              <div className="flex items-center gap-2 pb-3 border-b border-slate-100 text-slate-900 font-bold text-sm sm:text-base">
+                <School className="w-5 h-5 text-blue-600" />
+                <h3>Data Pendaftaran PTN</h3>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Nama Siswa / Alumni *
+                    Nama Lengkap Siswa
                   </label>
                   <input
                     type="text"
                     required
+                    placeholder="Contoh: Muhammad Kevin"
                     value={formNama}
                     onChange={(e) => setFormNama(e.target.value)}
-                    placeholder="Nama lengkap alumni"
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all"
+                    className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
                   />
                 </div>
+
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    NISN *
+                    NISN Siswa
                   </label>
                   <input
                     type="text"
                     required
+                    placeholder="Contoh: 0054819283"
                     value={formNisn}
                     onChange={(e) => setFormNisn(e.target.value)}
-                    placeholder="Nomor Induk Siswa Nasional"
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-mono font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all"
+                    className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Perguruan Tinggi *
-                  </label>
-                  <select
-                    value={formKampus}
-                    onChange={(e) => setFormKampus(e.target.value)}
-                    className="w-full px-3 py-2.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all cursor-pointer"
-                  >
-                    <option value="Universitas Gadjah Mada">Universitas Gadjah Mada</option>
-                    <option value="Universitas Brawijaya">Universitas Brawijaya</option>
-                    <option value="Institut Teknologi Bandung">Institut Teknologi Bandung</option>
-                    <option value="Universitas Negeri Malang">Universitas Negeri Malang</option>
-                    <option value="ITS Surabaya">ITS Surabaya</option>
-                    <option value="Universitas Airlangga">Universitas Airlangga</option>
-                    <option value="Universitas Indonesia">Universitas Indonesia</option>
-                    <option value="Universitas Diponegoro">Universitas Diponegoro</option>
-                  </select>
-                </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Perguruan Tinggi (PTN)
+                </label>
+                <select
+                  value={formKampus}
+                  onChange={(e) => setFormKampus(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
+                >
+                  <option value="Universitas Brawijaya">Universitas Brawijaya (UB)</option>
+                  <option value="Institut Teknologi Sepuluh Nopember">Institut Teknologi Sepuluh Nopember (ITS)</option>
+                  <option value="Universitas Gadjah Mada">Universitas Gadjah Mada (UGM)</option>
+                  <option value="Institut Teknologi Bandung">Institut Teknologi Bandung (ITB)</option>
+                  <option value="Universitas Negeri Malang">Universitas Negeri Malang (UM)</option>
+                  <option value="Universitas Airlangga">Universitas Airlangga (UNAIR)</option>
+                  <option value="Universitas Indonesia">Universitas Indonesia (UI)</option>
+                  <option value="Universitas Diponegoro">Universitas Diponegoro (UNDIP)</option>
+                </select>
+              </div>
 
-                <div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="sm:col-span-2">
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Program Studi *
+                    Program Studi
                   </label>
                   <input
                     type="text"
                     required
+                    placeholder="Contoh: Teknik Elektro"
                     value={formJurusan}
                     onChange={(e) => setFormJurusan(e.target.value)}
-                    placeholder="e.g. Kedokteran"
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all"
+                    className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Jalur Pendaftaran *
+                    Jenjang
+                  </label>
+                  <select
+                    value={formJenjang}
+                    onChange={(e) => setFormJenjang(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
+                  >
+                    <option value="S1">S1</option>
+                    <option value="D4">D4</option>
+                    <option value="D3">D3</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    Jalur Seleksi
                   </label>
                   <select
                     value={formJalur}
                     onChange={(e) => setFormJalur(e.target.value as "SNBP" | "SNBT" | "Mandiri")}
-                    className="w-full px-3 py-2.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all cursor-pointer"
+                    className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
                   >
                     <option value="SNBP">SNBP</option>
                     <option value="SNBT">SNBT</option>
@@ -259,181 +262,164 @@ export default function AlumniFormModal({
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Pilihan Ke *
+                    Pilihan Ke-
                   </label>
                   <select
                     value={formPilihanKe}
                     onChange={(e) => setFormPilihanKe(e.target.value)}
-                    className="w-full px-3 py-2.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all cursor-pointer"
+                    className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
                   >
                     <option value="Pilihan 1">Pilihan 1</option>
                     <option value="Pilihan 2">Pilihan 2</option>
-                    <option value="Pilihan 3">Pilihan 3</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Status Penerimaan *
+                    Status Penerimaan
                   </label>
                   <select
                     value={formStatusPenerimaan}
                     onChange={(e) => setFormStatusPenerimaan(e.target.value)}
-                    className="w-full px-3 py-2.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all cursor-pointer"
+                    className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
                   >
                     <option value="Lolos / Diterima">Lolos / Diterima</option>
                     <option value="Tidak Lolos">Tidak Lolos</option>
-                    <option value="Cadangan">Cadangan</option>
                   </select>
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Jenjang *
-                  </label>
-                  <select
-                    value={formJenjang}
-                    onChange={(e) => setFormJenjang(e.target.value)}
-                    className="w-full px-3 py-2.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all cursor-pointer"
-                  >
-                    <option value="S1">S1</option>
-                    <option value="D4">D4</option>
-                    <option value="D3">D3</option>
-                  </select>
+              {/* Rapor & Skor UTBK */}
+              <div className="pt-2 border-t border-slate-100">
+                <div className="flex items-center gap-2 pb-3 text-slate-900 font-bold text-sm">
+                  <TrendingUp className="w-4 h-4 text-emerald-600" />
+                  <h4>Nilai Akademik Penunjang</h4>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Rata-Rata Nilai Rapor
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="92.80"
+                      value={formNilaiRapor}
+                      onChange={(e) => setFormNilaiRapor(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
+                    />
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      Rata-rata semester 1 sampai 5
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Skor UTBK (Jika Ada)
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="Kosongkan jika SNBP"
+                      value={formSkorUtbk}
+                      onChange={(e) => setFormSkorUtbk(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
+                    />
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      Opsional khusus pendaftar jalur SNBT
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
-              <div className="flex items-center gap-3 pb-2 border-b border-slate-100">
-                <div className="w-9 h-9 rounded-xl bg-purple-50 text-[#5F089E] flex items-center justify-center shrink-0">
-                  <TrendingUp className="w-5 h-5" />
+            {/* KOLOM KANAN: Sertifikat Penunjang */}
+            <div className="lg:col-span-5 bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-7 border border-slate-200/80 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2 text-slate-900 font-bold text-sm sm:text-base">
+                  <Award className="w-5 h-5 text-amber-500" />
+                  <h3>Sertifikat Penunjang</h3>
                 </div>
-                <div>
-                  <span className="text-sm font-bold text-slate-900 block">
-                    Nilai Pendaftaran
-                  </span>
-                  <span className="text-[11px] text-slate-500">
-                    Isi nilai yang digunakan pada jalur pilihan
-                  </span>
-                </div>
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                  {formSelectedCerts.length} Dipilih
+                </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Rata-rata Nilai Rapor *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    value={formNilaiRapor}
-                    onChange={(e) => setFormNilaiRapor(e.target.value)}
-                    placeholder="92.80"
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-bold focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all"
-                  />
-                  <span className="text-[10px] text-slate-400 block mt-1">
-                    Gunakan skala nilai 0-100
-                  </span>
-                </div>
+              <p className="text-xs text-slate-500">
+                Pilih portofolio kejuaraan yang dilampirkan siswa saat mendaftar SNBP/Prestasi:
+              </p>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Skor UTBK (opsional)
-                  </label>
-                  <input
-                    type="number"
-                    value={formSkorUtbk}
-                    onChange={(e) => setFormSkorUtbk(e.target.value)}
-                    placeholder={formJalur === "SNBP" ? "Tidak digunakan pada jalur SNBP" : "Contoh: 685"}
-                    disabled={formJalur === "SNBP"}
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all disabled:opacity-50"
-                  />
-                  <span className="text-[10px] text-slate-400 block mt-1">
-                    Wajib untuk jalur SNBT
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-5 space-y-5 sm:space-y-6">
-            <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
-              <div className="flex items-center gap-3 pb-2 border-b border-slate-100">
-                <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                  <Award className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-sm font-bold text-slate-900 block">
-                    Sertifikat Prestasi
-                  </span>
-                  <span className="text-[11px] text-slate-500">
-                    Pilih sertifikat yang digunakan
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+              {/* Daftar Pilihan Sertifikat Checklist */}
+              <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                 {AVAILABLE_CERTIFICATES.map((cert) => {
                   const isChecked = formSelectedCerts.includes(cert.title);
                   return (
                     <div
                       key={cert.id}
                       onClick={() => handleToggleCert(cert.title)}
-                      className={`p-3 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${isChecked
-                        ? "bg-blue-50/70 border-blue-400 text-blue-900 shadow-2xs"
-                        : "bg-slate-50/50 border-slate-200 hover:bg-slate-50 text-slate-700"
-                        }`}
+                      className={`p-3 rounded-xl border text-left cursor-pointer transition-all flex items-start gap-3 ${
+                        isChecked
+                          ? "bg-blue-50/70 border-blue-300 text-blue-950"
+                          : "bg-slate-50/60 hover:bg-slate-100/70 border-slate-200 text-slate-700"
+                      }`}
                     >
-                      <div className="mt-0.5">
+                      <div className="mt-0.5 shrink-0">
                         {isChecked ? (
                           <CheckSquare className="w-4 h-4 text-blue-600" />
                         ) : (
                           <Square className="w-4 h-4 text-slate-400" />
                         )}
                       </div>
-                      <div className="flex-1">
-                        <span className="text-xs font-bold block leading-snug">
+                      <div className="text-xs min-w-0">
+                        <span className="font-bold block leading-snug">
                           {cert.title}
                         </span>
-                        <span className="text-[10px] text-slate-500 block mt-0.5">
+                        <span className="text-[10px] text-slate-500 mt-0.5 block truncate">
                           {cert.organizer}
                         </span>
                       </div>
                     </div>
                   );
                 })}
+
+                {/* Custom Certificates */}
+                {formSelectedCerts
+                  .filter(
+                    (title) =>
+                      !AVAILABLE_CERTIFICATES.some((c) => c.title === title)
+                  )
+                  .map((customTitle, idx) => (
+                    <div
+                      key={`custom-${idx}`}
+                      onClick={() => handleToggleCert(customTitle)}
+                      className="p-3 rounded-xl border bg-purple-50 border-purple-200 text-purple-900 text-left cursor-pointer transition-all flex items-start gap-3"
+                    >
+                      <div className="mt-0.5 shrink-0">
+                        <CheckSquare className="w-4 h-4 text-[#5F089E]" />
+                      </div>
+                      <div className="text-xs min-w-0">
+                        <span className="font-bold block leading-snug">
+                          {customTitle}
+                        </span>
+                        <span className="text-[10px] text-purple-600 mt-0.5 block">
+                          Sertifikat Tambahan (Kustom)
+                        </span>
+                      </div>
+                    </div>
+                  ))}
               </div>
 
-              {formSelectedCerts
-                .filter((certTitle) => !AVAILABLE_CERTIFICATES.some((ac) => ac.title === certTitle))
-                .map((customTitle, idx) => (
-                  <div
-                    key={`custom-${idx}`}
-                    onClick={() => handleToggleCert(customTitle)}
-                    className="p-3 rounded-xl border flex items-start gap-3 cursor-pointer transition-all bg-blue-50/70 border-blue-400 text-blue-900 shadow-2xs mt-2.5"
-                  >
-                    <div className="mt-0.5">
-                      <CheckSquare className="w-4 h-4 text-blue-600" />
-                    </div>
-                    <div className="flex-1">
-                      <span className="text-xs font-bold block leading-snug">{customTitle}</span>
-                      <span className="text-[10px] text-slate-500 block mt-0.5">Sertifikat Tambahan</span>
-                    </div>
-                  </div>
-                ))}
-
-              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100">
+              {/* Input Tambah Sertifikat Baru */}
+              <div className="pt-2 flex items-center gap-2">
                 <input
                   type="text"
+                  placeholder="Ketik nama sertifikat lain..."
                   value={customCertInput}
                   onChange={(e) => setCustomCertInput(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") handleAddCustomCert(e);
                   }}
-                  placeholder="Ketik sertifikat lain (ex: Juara 1 FLS2N)"
-                  className="flex-1 px-3 py-2.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all"
+                  className="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs bg-slate-50 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20"
                 />
                 <button
                   type="button"
@@ -448,10 +434,11 @@ export default function AlumniFormModal({
               <div className="pt-2 border-t border-slate-100">
                 <label
                   onClick={() => setFormIsKipk(!formIsKipk)}
-                  className={`p-3 rounded-xl border flex items-center gap-3 cursor-pointer transition-all ${formIsKipk
-                    ? "bg-emerald-50 border-emerald-300 text-emerald-900"
-                    : "bg-slate-50 border-slate-200 text-slate-700"
-                    }`}
+                  className={`p-3 rounded-xl border flex items-center gap-3 cursor-pointer transition-all ${
+                    formIsKipk
+                      ? "bg-emerald-50 border-emerald-300 text-emerald-900"
+                      : "bg-slate-50 border-slate-200 text-slate-700"
+                  }`}
                 >
                   {formIsKipk ? (
                     <CheckSquare className="w-4 h-4 text-emerald-600" />
@@ -482,7 +469,6 @@ export default function AlumniFormModal({
               </button>
             </div>
           </div>
-        </div>
         </form>
       </div>
     </div>
