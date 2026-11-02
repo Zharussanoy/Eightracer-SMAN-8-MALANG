@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { UserProvider } from "@/context/UserContext";
+import Navbar from "@/components/shared/Navbar";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-sans",
@@ -33,7 +34,11 @@ export default function RootLayout({
     <html lang="id" className={`${plusJakartaSans.variable} font-sans h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-white text-slate-900 selection:bg-purple-100 selection:text-purple-900">
         <UserProvider>
-          {children}
+          {/* Universal Navbar aktif di SEMUA halaman */}
+          <Navbar />
+          <div className="flex-1 flex flex-col">
+            {children}
+          </div>
         </UserProvider>
       </body>
     </html>

@@ -1,6 +1,6 @@
 "use client";
 
-import AiStrategiJurusan from "./ai-strategi-jurusan/AiStrategiJurusan";
+import AiStrategiJurusan from "../ai-strategi-jurusan/AiStrategiJurusan";
 import type { AdminTab } from "./types";
 
 interface AdminAiStrategiSectionProps {

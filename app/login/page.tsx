@@ -36,7 +36,7 @@ export default function LoginPage() {
 
       login(preset);
       setIsLoading(false);
-      router.push(preset === 'admin' ? '/admin' : '/profile');
+      if (preset === 'admin') router.push('/admin'); else if (preset === 'guru') router.push('/guru'); else if (preset === 'siswa_alumni') router.push('/alumni'); else router.push('/siswa');
     }, 900);
   };
 

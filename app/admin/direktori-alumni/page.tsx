@@ -3,25 +3,25 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-import AdminNavbar from "@/components/admin/AdminNavbar";
-import AdminHero from "@/components/admin/b-3/AdminHero";
-import AdminTabNav from "@/components/admin/b-3/AdminTabNav";
-import AdminSummarySection from "@/components/admin/b-3/AdminSummarySection";
-import AdminAlumniTable from "@/components/admin/b-3/AdminAlumniTable";
-import AdminAiStrategiSection from "@/components/admin/b-3/AdminAiStrategiSection";
-import AdminFormSection from "@/components/admin/b-3/AdminFormSection";
-import AlumniFormModal from "@/components/admin/b-3/AlumniFormModal";
-import CsvImportModal from "@/components/admin/b-3/CsvImportModal";
+import AdminNavbar from "@/components/admin/direktori-alumni/AdminNavbar";
+import AdminHero from "@/components/admin/direktori-alumni/AdminHero";
+import AdminTabNav from "@/components/admin/direktori-alumni/AdminTabNav";
+import AdminSummarySection from "@/components/admin/direktori-alumni/AdminSummarySection";
+import AdminAlumniTable from "@/components/admin/direktori-alumni/AdminAlumniTable";
+import AdminAiStrategiSection from "@/components/admin/direktori-alumni/AdminAiStrategiSection";
+import AdminFormSection from "@/components/admin/direktori-alumni/AdminFormSection";
+import AlumniFormModal from "@/components/admin/direktori-alumni/AlumniFormModal";
+import CsvImportModal from "@/components/admin/direktori-alumni/CsvImportModal";
 
-import { AdminRole, AdminTab, AlumniItem } from "@/components/admin/b-3/types";
-import { INITIAL_ALUMNI } from "@/components/admin/b-3/mockData";
+import { AdminRole, AdminTab, AlumniItem } from "@/components/admin/direktori-alumni/types";
+import { INITIAL_ALUMNI } from "@/components/admin/direktori-alumni/mockData";
 import { useUser, PresetKey } from "@/context/UserContext";
 
 function AdminDashboardContent() {
   const searchParams = useSearchParams();
   const { switchRole } = useUser();
 
-  const [role, setRole] = useState<AdminRole>("alumni");
+  const [role, setRole] = useState<AdminRole>("admin");
   const [activeTab, setActiveTab] = useState<AdminTab>("Ringkasan");
 
   const [alumniList, setAlumniList] = useState<AlumniItem[]>(INITIAL_ALUMNI);
@@ -70,7 +70,6 @@ function AdminDashboardContent() {
     }
   }, [searchParams, switchRole]);
 
-  // Handle role change from navbar
   const handleRoleChange = (newRole: AdminRole) => {
     setRole(newRole);
     if (
@@ -134,7 +133,6 @@ function AdminDashboardContent() {
     setAlumniList((prev) => [...newRows, ...prev]);
   };
 
-  // Adapter role untuk AdminAlumniTable yang menerima "admin" | "siswa"
   const tableRole = role === "admin" ? "admin" : "siswa";
 
   return (
@@ -205,7 +203,7 @@ function AdminDashboardContent() {
   );
 }
 
-export default function AdminAlumniPage() {
+export default function DirektoriAlumniPage() {
   return (
     <Suspense
       fallback={

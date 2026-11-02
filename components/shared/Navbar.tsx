@@ -102,7 +102,7 @@ export default function Navbar() {
                       <ArrowUpRight className="w-3.5 h-3.5 opacity-50" />
                     </Link>
                     <Link
-                      href="/admin/alumni?tab=direktori"
+                      href="/admin/direktori-alumni?tab=direktori"
                       className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-purple-50 text-slate-700 hover:text-[#5F089E] text-xs font-semibold transition-colors"
                       onClick={() => setServicesDropdownOpen(false)}
                     >

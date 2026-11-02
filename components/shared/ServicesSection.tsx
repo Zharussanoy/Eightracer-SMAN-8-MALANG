@@ -38,7 +38,7 @@ const services: ServiceItem[] = [
     description:
       "Akses direktori alumni dan susun strategi pilihan jurusan berdasarkan riwayat penerimaan PTN tahun sebelumnya.",
     icon: <ChartNoAxesCombined className="w-12 h-12 text-slate-700 stroke-[1.6]" />,
-    link: "/admin/alumni?tab=direktori&role=siswa",
+    link: "/alumni?tab=direktori",
   },
   {
     id: "karir-alumni",

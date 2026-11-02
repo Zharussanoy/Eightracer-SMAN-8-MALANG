@@ -4,8 +4,8 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+
+import Footer from "@/components/shared/Footer";
 import { useUser, PresetKey } from "@/context/UserContext";
 import {
   GraduationCap,
@@ -46,7 +46,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F8FAFC] font-sans text-slate-800">
-      <Navbar />
+      
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
         {/* ================= SIMULATOR GANTI ROLE (FITUR B3) ================= */}
@@ -172,7 +172,7 @@ export default function ProfilePage() {
               </button>
 
               <Link
-                href="/admin/alumni"
+                href="/admin/direktori-alumni"
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#5F089E] hover:bg-[#4d0680] text-white font-bold text-xs transition-colors shadow-sm"
               >
                 <span>Buka Direktori Alumni (Fitur B3)</span>
@@ -437,7 +437,7 @@ export default function ProfilePage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
                 <Link
-                  href="/admin/alumni?tab=direktori"
+                  href="/admin/direktori-alumni?tab=direktori"
                   className="p-4 rounded-2xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-950 font-bold text-xs flex flex-col justify-between transition-all group"
                 >
                   <Users className="w-6 h-6 text-[#5F089E] mb-3 group-hover:scale-110 transition-transform" />
@@ -446,7 +446,7 @@ export default function ProfilePage() {
                 </Link>
 
                 <Link
-                  href="/admin/alumni"
+                  href="/admin/direktori-alumni"
                   className="p-4 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-950 font-bold text-xs flex flex-col justify-between transition-all group"
                 >
                   <FileSpreadsheet className="w-6 h-6 text-emerald-600 mb-3 group-hover:scale-110 transition-transform" />
@@ -455,7 +455,7 @@ export default function ProfilePage() {
                 </Link>
 
                 <Link
-                  href="/admin/alumni?tab=ai"
+                  href="/admin/direktori-alumni?tab=ai"
                   className="p-4 rounded-2xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-950 font-bold text-xs flex flex-col justify-between transition-all group"
                 >
                   <Sparkles className="w-6 h-6 text-blue-600 mb-3 group-hover:scale-110 transition-transform" />
