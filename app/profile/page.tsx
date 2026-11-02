@@ -46,10 +46,9 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F8FAFC] font-sans text-slate-800">
-      
+
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
-        {/* ================= SIMULATOR GANTI ROLE (FITUR B3) ================= */}
         <section className="bg-gradient-to-r from-[#390460] via-[#5F089E] to-[#7B1FA2] text-white p-4 sm:p-5 rounded-3xl shadow-lg shadow-purple-950/15 flex flex-col md:flex-row items-center justify-between gap-4 border border-purple-400/30">
           <div className="flex items-center gap-3 text-center md:text-left">
             <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center shrink-0">
@@ -57,7 +56,7 @@ export default function ProfilePage() {
             </div>
             <div>
               <p className="text-sm font-extrabold flex items-center gap-1.5 justify-center md:justify-start">
-                <span>Simulator Role &amp; Profil (Fitur B3)</span>
+                <span>Simulator Role &amp; Profil</span>
                 <span className="text-[10px] px-2 py-0.5 rounded-full font-black bg-amber-400 text-purple-950">
                   LIVE DEMO
                 </span>
@@ -99,8 +98,8 @@ export default function ProfilePage() {
                   type="button"
                   onClick={() => switchRole(key as PresetKey)}
                   className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${active
-                      ? "bg-amber-400 text-purple-950 shadow-md shadow-amber-400/25 scale-105"
-                      : "bg-white/15 hover:bg-white/25 text-white"
+                    ? "bg-amber-400 text-purple-950 shadow-md shadow-amber-400/25 scale-105"
+                    : "bg-white/15 hover:bg-white/25 text-white"
                     }`}
                 >
                   {label}
@@ -172,10 +171,10 @@ export default function ProfilePage() {
               </button>
 
               <Link
-                href="/admin/direktori-alumni"
+                href="/alumni?tab=direktori"
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#5F089E] hover:bg-[#4d0680] text-white font-bold text-xs transition-colors shadow-sm"
               >
-                <span>Buka Direktori Alumni (Fitur B3)</span>
+                <span>Buka Direktori Alumni </span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -254,7 +253,6 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Banner Relevansi dengan Fitur B3 (Alumni SMAN 8) */}
             <div className="bg-gradient-to-r from-purple-50 via-white to-purple-50/50 rounded-3xl p-6 border border-purple-200 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="space-y-1 text-center sm:text-left">
                 <p className="text-sm font-extrabold text-purple-950 flex items-center gap-2 justify-center sm:justify-start">
@@ -424,7 +422,7 @@ export default function ProfilePage() {
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3 text-red-600 font-bold text-lg">
                   <ShieldCheck className="w-6 h-6" />
-                  <h2>Hak Akses Administrator Tim B3</h2>
+                  <h2>Hak Akses Administrator</h2>
                 </div>
                 <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-red-100 text-red-800 border border-red-200">
                   Full Access
@@ -437,7 +435,7 @@ export default function ProfilePage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
                 <Link
-                  href="/admin/direktori-alumni?tab=direktori"
+                  href="/alumni?tab=direktori"
                   className="p-4 rounded-2xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-950 font-bold text-xs flex flex-col justify-between transition-all group"
                 >
                   <Users className="w-6 h-6 text-[#5F089E] mb-3 group-hover:scale-110 transition-transform" />
@@ -446,7 +444,7 @@ export default function ProfilePage() {
                 </Link>
 
                 <Link
-                  href="/admin/direktori-alumni"
+                  href="/alumni?tab=direktori"
                   className="p-4 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-950 font-bold text-xs flex flex-col justify-between transition-all group"
                 >
                   <FileSpreadsheet className="w-6 h-6 text-emerald-600 mb-3 group-hover:scale-110 transition-transform" />
@@ -455,7 +453,7 @@ export default function ProfilePage() {
                 </Link>
 
                 <Link
-                  href="/admin/direktori-alumni?tab=ai"
+                  href="/alumni?tab=ai"
                   className="p-4 rounded-2xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-950 font-bold text-xs flex flex-col justify-between transition-all group"
                 >
                   <Sparkles className="w-6 h-6 text-blue-600 mb-3 group-hover:scale-110 transition-transform" />

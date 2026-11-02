@@ -9,15 +9,15 @@ function AdminLandingWrapper() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // Redirect query tab jika ada (misal: /admin?tab=direktori) ke /admin/direktori-alumni
+    // Redirect jika ada parameter tab (misal: /admin?tab=direktori) ke /alumni
     const tabParam = searchParams.get("tab");
     if (tabParam) {
       const queryString = searchParams.toString();
-      router.replace(`/admin/direktori-alumni?${queryString}`);
+      router.replace(`/alumni?${queryString}`);
     }
   }, [searchParams, router]);
 
-  // Tampilkan landing page utama terlebih dahulu
+  // Tampilkan landing page utama
   return <LandingContent />;
 }
 

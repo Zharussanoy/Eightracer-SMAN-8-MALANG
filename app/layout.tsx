@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { UserProvider } from "@/context/UserContext";
 import Navbar from "@/components/shared/Navbar";
+import DevRoleSwitcher from "@/components/shared/DevRoleSwitcher";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-sans",
@@ -39,6 +40,8 @@ export default function RootLayout({
           <div className="flex-1 flex flex-col">
             {children}
           </div>
+          {/* Dev Mode Role Switcher */}
+          <DevRoleSwitcher />
         </UserProvider>
       </body>
     </html>
