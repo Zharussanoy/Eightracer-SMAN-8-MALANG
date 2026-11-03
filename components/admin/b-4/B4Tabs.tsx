@@ -8,10 +8,10 @@ const tabs = [
   { label: "Timeline individu", href: "/admin/timeline-individu" },
   { label: "Analitik Beasiswa", href: "/admin/analitik-beasiswa" },
   { label: "Basis Data Beasiswa", href: "/admin/basis-data-beasiswa" },
-  { label: "Rekomendasi Beasiswa" },
+  { label: "Rekomendasi Beasiswa", href: "/admin/rekomendasi-beasiswa" },
 ];
 
-export default function B4Tabs({ active }: { active: "Alumni di PT" | "Timeline individu" | "Analitik Beasiswa" | "Basis Data Beasiswa" }) {
+export default function B4Tabs({ active }: { active: "Alumni di PT" | "Timeline individu" | "Analitik Beasiswa" | "Basis Data Beasiswa" | "Rekomendasi Beasiswa" }) {
   const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {

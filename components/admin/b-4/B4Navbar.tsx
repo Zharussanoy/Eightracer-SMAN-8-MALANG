@@ -5,7 +5,9 @@ import Link from "next/link";
 import { ChevronDown, CircleUserRound, Menu, X } from "lucide-react";
 import "./college.css";
 
-export default function B4Navbar() {
+export default function B4Navbar({ role = "admin", name }: { role?: "admin" | "student"; name?: string }) {
+  const home = role === "student" ? "/" : "/admin";
+  const profileName = name ?? (role === "student" ? "Bagas Wijaya" : "Rina Wijayanti");
   const [servicesOpen, setServicesOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
@@ -31,7 +33,7 @@ export default function B4Navbar() {
       }
     }}>
       <div className={"b4-headerInner"}>
-        <Link href="/admin" className={"b4-brand"} aria-label="Eightracer, beranda admin">
+        <Link href={home} className={"b4-brand"} aria-label={`Eightracer, beranda ${role === "student" ? "siswa" : "admin"}`}>
           <span className="b4-brandMark" aria-hidden="true">8</span>
           <span><span className={"b4-brandGold"}>Eight</span>racer</span>
         </Link>
@@ -42,7 +44,7 @@ export default function B4Navbar() {
         </button>
 
         <nav id="b4-main-navigation" aria-label="Navigasi utama" className={`${"b4-mainNav"} ${mobileOpen ? "b4-mobileNavOpen" : ""}`}>
-          <Link href="/admin">Beranda</Link>
+          <Link href={home}>Beranda</Link>
           <div className={"b4-services"} onBlur={(event) => {
             if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setServicesOpen(false);
           }}>
@@ -55,18 +57,18 @@ export default function B4Navbar() {
                 <button type="button" disabled title="Halaman kelompok B1 belum tersedia">Kelompok B1</button>
                 <button type="button" disabled title="Halaman kelompok B2 belum tersedia">Kelompok B2</button>
                 <Link href="/admin/alumni">Kelompok B3</Link>
-                <Link href="/admin/alumni-perguruan-tinggi" aria-current="page" className={"b4-selectedService"}
+                <Link href={role === "student" ? "/siswa/jejak-alumni" : "/admin/alumni-perguruan-tinggi"} className={"b4-selectedService"}
                   onClick={() => { setServicesOpen(false); setMobileOpen(false); }}>Alumni dan Beasiswa</Link>
               </div>
             )}
           </div>
-          <Link href="/admin#tentang">Tentang Kami</Link>
+          <Link href={`${home}#tentang`}>Tentang Kami</Link>
           <Link href="/tim-pengembang">Pengembang</Link>
         </nav>
 
-        <div className={"b4-profile"} aria-label="Profil contoh: Rina Wijayanti, Admin">
+        <div className={"b4-profile"} aria-label={`Profil contoh: ${profileName}, ${role === "student" ? "Siswa" : "Admin"}`}>
           <CircleUserRound size={42} strokeWidth={2} aria-hidden="true" />
-          <div><span>Rina Wijayanti</span><small>Admin</small></div>
+          <div><span>{profileName}</span><small>{role === "student" ? "Siswa" : "Admin"}</small></div>
         </div>
       </div>
     </header>

@@ -101,7 +101,7 @@ export default function AlumniCollegePage() {
                       <tr key={alumni.id}>
                         <td>{alumni.name}</td><td>{alumni.university}</td><td>{alumni.studyProgram}</td>
                         <td>{alumni.admissionPath}</td><td>{alumni.latestStatus}</td>
-                        <td><Link href="/admin/alumni-perguruan-tinggi/informasi-detail" className={"b4-detailButton"}
+                        <td><Link href={`/admin/alumni-perguruan-tinggi/informasi-detail?id=${alumni.id}`} className={"b4-detailButton"}
                           aria-label={`Lihat detail ${alumni.name}`}>Lihat Detail</Link></td>
                       </tr>
                     ))}

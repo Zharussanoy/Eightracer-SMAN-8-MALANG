@@ -15,7 +15,7 @@
 .b4-scholarshipsTable .b4-scholarshipArchived { background: #e7e7e7; }
 .b4-scholarshipsTable tbody tr:hover, .b4-scholarshipsTable tbody tr:focus-within { background: var(--b4-yellow); }
 .b4-scholarshipActions { display: flex; align-items: center; justify-content: center; gap: 10px; }
-.b4-scholarshipActions button { height: 33px; min-width: 74px; padding: 2px 15px; border: 1px solid var(--b4-border); border-radius: 12px; color: var(--b4-purple); background: white; font-weight: 650 !important; line-height: 1.5; }
+.b4-scholarshipActions button, .b4-scholarshipActions a { display: inline-flex; align-items: center; justify-content: center; height: 33px; min-width: 74px; padding: 2px 15px; border: 1px solid var(--b4-border); border-radius: 12px; color: var(--b4-purple); background: white; font-weight: 650 !important; line-height: 1.5; text-decoration: none; }
 .b4-scholarshipActions button:last-child { min-width: 123px; }
 .b4-scholarshipsTable tbody tr:hover .b4-editScholarship, .b4-scholarshipsTable tbody tr:focus-within .b4-editScholarship { color: white; background: var(--b4-purple); }
 .b4-scholarshipActions button:last-child:hover { background: #f5eafb; }

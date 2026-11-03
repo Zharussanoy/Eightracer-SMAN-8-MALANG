@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import TimelineIndividualPage from "@/components/admin/b-4/TimelineIndividualPage";
+import TimelineIndividualPage from "@/components/b4/AdminTimelinePage";
 
 export const metadata: Metadata = {
   title: "Timeline Individu | Eightracer",
