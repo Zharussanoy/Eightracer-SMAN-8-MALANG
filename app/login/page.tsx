@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { User, Lock, Eye, EyeOff } from 'lucide-react';
-import { useUser, PresetKey } from '@/context/UserContext';
+import { useUser } from '@/context/UserContext';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,7 +16,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
 
@@ -26,18 +26,17 @@ export default function LoginPage() {
     }
 
     setIsLoading(true);
-
-    setTimeout(() => {
-      const u = username.toLowerCase();
-      let preset: PresetKey = 'siswa_aktif';
-      if (u.includes('admin')) preset = 'admin';
-      else if (u.includes('guru') || u.includes('bambang') || u.includes('nip')) preset = 'guru';
-      else if (u.includes('alumni') || u.includes('nabila') || u.includes('lulus')) preset = 'siswa_alumni';
-
-      login(preset);
+    try {
+      const profile = await login(username, password);
+      const role = profile.role;
+      router.push('/');
+      
+      
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Login gagal. Periksa username dan kata sandi.');
+    } finally {
       setIsLoading(false);
-      if (preset === 'admin') router.push('/admin'); else if (preset === 'guru') router.push('/guru'); else if (preset === 'siswa_alumni') router.push('/alumni'); else router.push('/siswa');
-    }, 900);
+    }
   };
 
   return (
