@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
 import Footer from "@/components/shared/Footer";
 import { useUser, PresetKey } from "@/context/UserContext";
+import AccountProfile from "@/components/auth/AccountProfile";
 import {
   GraduationCap,
   School,
@@ -26,15 +27,7 @@ import {
 } from "lucide-react";
 
 export default function ProfilePage() {
-  const { currentUser, currentPreset, switchRole, getDisplayRole, isLoggedIn, login, logout } = useUser();
-  useEffect(() => {
-    if (!isLoggedIn) {
-      const timer = setTimeout(() => {
-        login();
-      }, 0);
-      return () => clearTimeout(timer);
-    }
-  }, [isLoggedIn, login]);
+  const { currentUser, currentPreset, switchRole, getDisplayRole, isLoggedIn, authStatus } = useUser();
 
   const displayRole = getDisplayRole();
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -43,6 +36,8 @@ export default function ProfilePage() {
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 2500);
   };
+
+  if (isLoggedIn || authStatus !== "anonymous") return <AccountProfile />;
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F8FAFC] font-sans text-slate-800">
@@ -68,23 +63,12 @@ export default function ProfilePage() {
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-2">
-            {isLoggedIn ? (
-              <button
-                type="button"
-                onClick={logout}
-                className="px-3 py-2 rounded-xl text-xs font-bold bg-red-500/25 hover:bg-red-500/35 text-red-100 border border-red-400/30 transition-all cursor-pointer"
-              >
-                Logout
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => login()}
+              <Link
+                href="/login"
                 className="px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/25 hover:bg-emerald-500/35 text-emerald-100 border border-emerald-400/30 transition-all cursor-pointer"
               >
-                Login
-              </button>
-            )}
+                Masuk dengan akun sekolah
+              </Link>
             {[
               { key: "siswa_aktif", label: "1. Siswa Aktif" },
               { key: "siswa_alumni", label: "2. Alumni (Lulus)" },

@@ -8,6 +8,10 @@ export interface UserProfile {
   email: string;
   avatar: string;
   role: "siswa" | "guru" | "admin" | "alumni";
+  backendRole?: "administrator" | "siswa" | "guru";
+  emailVerified?: boolean;
+  schoolStaff?: boolean;
+  schoolRole?: string | null;
   statusSiswa?: "aktif" | "lulus";
   statusPenanda?: UserStatus | null;
   nisn?: string;

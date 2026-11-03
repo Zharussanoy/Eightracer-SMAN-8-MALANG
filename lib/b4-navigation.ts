@@ -16,8 +16,9 @@ export function isB4Page(pathname: string) {
 }
 
 // Pemilihan tujuan menu saja; izin akses tetap harus diperiksa oleh backend.
-export function getB4HomeHref(pathname: string, role: string) {
+export function getB4HomeHref(pathname: string, role: string, schoolStaff?: boolean) {
   if (pathname === "/admin" || pathname.startsWith("/admin/")) return ADMIN_HOME;
   if (pathname === "/siswa" || pathname.startsWith("/siswa/")) return STUDENT_HOME;
-  return role === "admin" || role === "administrator" ? ADMIN_HOME : STUDENT_HOME;
+  if (role === "guru" && schoolStaff === false) return "/profile";
+  return role === "admin" || role === "administrator" || (role === "guru" && schoolStaff) ? ADMIN_HOME : STUDENT_HOME;
 }

@@ -18,7 +18,7 @@ export default function Navbar() {
   const isHome = pathname === "/";
   const isTeam = pathname === "/tim-pengembang";
   const isProfile = pathname === "/profile";
-  const b4Href = getB4HomeHref(pathname, currentUser.role);
+  const b4Href = getB4HomeHref(pathname, currentUser.role, currentUser.schoolStaff);
   const isB4 = isB4Page(pathname);
 
   return (

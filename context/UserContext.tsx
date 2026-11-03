@@ -1,7 +1,10 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from "react";
 import { UserProfile } from "@/types/user";
+import { api, ApiError } from "@/lib/eightracer-api";
+import { toUserProfile, type LoginCredentials } from "@/lib/auth";
+import { useRouter } from "next/navigation";
 
 export const MOCK_USERS: Record<string, UserProfile> = {
     siswa_aktif: {
@@ -70,8 +73,11 @@ interface UserContextType {
     currentUser: UserProfile;
     currentPreset: PresetKey;
     isLoggedIn: boolean;
-    login: (preset?: PresetKey) => void;
-    logout: () => void;
+    authStatus: "loading" | "authenticated" | "anonymous" | "unavailable";
+    authMessage: string;
+    login: (credentials: LoginCredentials) => Promise<UserProfile>;
+    logout: () => Promise<boolean>;
+    refreshSession: () => Promise<void>;
     switchRole: (preset: PresetKey) => void;
     getDisplayRole: () => DisplayRoleInfo;
 }
@@ -79,57 +85,108 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
-    const [currentPreset, setCurrentPreset] = useState<PresetKey>("siswa_aktif");
-    const [currentUser, setCurrentUser] = useState<UserProfile>(MOCK_USERS.siswa_aktif);
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+    const [demoPreset, setDemoPreset] = useState<PresetKey>("siswa_aktif");
+    const [sessionUser, setSessionUser] = useState<UserProfile | null>(null);
+    const [authStatus, setAuthStatus] = useState<UserContextType["authStatus"]>("loading");
+    const [authMessage, setAuthMessage] = useState("");
+    const generation = useRef(0);
+    const mutating = useRef(false);
+    const knownSession = useRef(false);
+    const router = useRouter();
+    const isLoggedIn = authStatus === "authenticated" && sessionUser !== null;
+    const currentUser = sessionUser ?? MOCK_USERS[demoPreset];
+    const currentPreset: PresetKey = sessionUser
+        ? sessionUser.role === "admin" ? "admin" : sessionUser.role === "guru" ? "guru" : "siswa_aktif"
+        : demoPreset;
+
+    const refreshSession = useCallback(async (signal?: AbortSignal) => {
+        if (mutating.current) return;
+        const version = ++generation.current;
+        try {
+            const result = await api.me(signal);
+            if (signal?.aborted || version !== generation.current) return;
+            knownSession.current = true;
+            setSessionUser(toUserProfile(result.user));
+            setAuthStatus("authenticated");
+            setAuthMessage("");
+        } catch (error) {
+            if (signal?.aborted || version !== generation.current) return;
+            if (error instanceof ApiError && error.status === 401) {
+                const expired = knownSession.current || error.sessionExpired;
+                knownSession.current = false;
+                setSessionUser(null);
+                setAuthStatus("anonymous");
+                setAuthMessage(expired ? "Sesi telah berakhir. Silakan masuk lagi." : "");
+                if (expired) router.replace("/login");
+            } else {
+                setAuthStatus("unavailable");
+                setAuthMessage(error instanceof Error ? error.message : "Sesi belum dapat diperiksa. Coba lagi.");
+            }
+        }
+    }, [router]);
 
     useEffect(() => {
-        const timer = setTimeout(() => {
+        const controller = new AbortController();
+        async function restore() {
             try {
-                const savedAuth = localStorage.getItem("eightracer_is_logged_in");
-                if (savedAuth === "true") {
-                    setIsLoggedIn(true);
-                } else if (savedAuth === "false") {
-                    setIsLoggedIn(false);
-                }
-
+                localStorage.removeItem("eightracer_is_logged_in");
                 const saved = localStorage.getItem("eightracer_user_role_preset") as PresetKey | null;
-                if (saved && MOCK_USERS[saved]) {
-                    setCurrentPreset(saved);
-                    setCurrentUser(MOCK_USERS[saved]);
-                }
-            } catch {
-                // Fallback if localStorage is inaccessible
-            }
-        }, 0);
-        return () => clearTimeout(timer);
+                if (saved && MOCK_USERS[saved]) setDemoPreset(saved);
+            } catch { /* Pilihan demo tidak wajib tersimpan. */ }
+            await refreshSession(controller.signal);
+        }
+        void restore();
+        return () => controller.abort();
+    }, [refreshSession]);
+
+    useEffect(() => {
+        const check = () => { if (document.visibilityState === "visible") void refreshSession(); };
+        window.addEventListener("focus", check);
+        document.addEventListener("visibilitychange", check);
+        return () => { window.removeEventListener("focus", check); document.removeEventListener("visibilitychange", check); };
+    }, [refreshSession]);
+
+    const login = useCallback(async (credentials: LoginCredentials) => {
+        mutating.current = true;
+        generation.current++;
+        try {
+            const result = await api.login(credentials);
+            const profile = toUserProfile(result.user);
+            knownSession.current = true;
+            setSessionUser(profile);
+            setAuthStatus("authenticated");
+            setAuthMessage("");
+            return profile;
+        } finally { mutating.current = false; }
     }, []);
 
-    const login = (preset?: PresetKey) => {
-        setIsLoggedIn(true);
-        if (preset && MOCK_USERS[preset]) {
-            setCurrentPreset(preset);
-            setCurrentUser(MOCK_USERS[preset]);
-        }
+    const logout = useCallback(async () => {
+        mutating.current = true;
+        generation.current++;
         try {
-            localStorage.setItem("eightracer_is_logged_in", "true");
-        } catch {
-            // Ignore
+            await api.logout();
+            knownSession.current = false;
+            setAuthMessage("");
+            setSessionUser(null);
+            setAuthStatus("anonymous");
+            return true;
+        } catch (error) {
+            setAuthMessage(error instanceof Error ? error.message : "Keluar dari akun belum berhasil. Periksa koneksi.");
+            if (error instanceof ApiError && error.localSessionCleared) {
+                knownSession.current = false;
+                setSessionUser(null);
+                setAuthStatus("anonymous");
+                return true;
+            }
+            return false;
+        } finally {
+            mutating.current = false;
         }
-    };
-
-    const logout = () => {
-        setIsLoggedIn(false);
-        try {
-            localStorage.setItem("eightracer_is_logged_in", "false");
-        } catch {
-            // Ignore
-        }
-    };
+    }, []);
 
     const switchRole = (preset: PresetKey) => {
-        setCurrentPreset(preset);
-        setCurrentUser(MOCK_USERS[preset]);
+        if (authStatus !== "anonymous") return;
+        setDemoPreset(preset);
         try {
             localStorage.setItem("eightracer_user_role_preset", preset);
         } catch {
@@ -148,7 +205,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         }
         if (currentUser.role === "guru") {
             return {
-                label: "Guru / Wali Kelas",
+                label: currentUser.schoolStaff ? "Guru BK" : "Guru / Wali Kelas",
                 badgeColor: "bg-blue-500/10 text-blue-600 border-blue-200",
                 dotColor: "bg-blue-500",
                 roleType: "guru",
@@ -184,8 +241,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 currentUser,
                 currentPreset,
                 isLoggedIn,
+                authStatus,
+                authMessage,
                 login,
                 logout,
+                refreshSession,
                 switchRole,
                 getDisplayRole,
             }}
@@ -197,21 +257,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
 export function useUser() {
     const context = useContext(UserContext);
-    if (!context) {
-        return {
-            currentUser: MOCK_USERS.siswa_aktif,
-            currentPreset: "siswa_aktif" as PresetKey,
-            isLoggedIn: false,
-            login: () => {},
-            logout: () => {},
-            switchRole: () => {},
-            getDisplayRole: () => ({
-                label: "Siswa",
-                badgeColor: "bg-purple-500/10 text-purple-700 border-purple-200",
-                dotColor: "bg-purple-500",
-                roleType: "siswa" as const,
-            }),
-        };
-    }
+    if (!context) throw new Error("useUser harus berada di dalam UserProvider.");
     return context;
 }

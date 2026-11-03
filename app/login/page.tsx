@@ -1,43 +1,53 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { User, Lock, Eye, EyeOff } from 'lucide-react';
-import { useUser, PresetKey } from '@/context/UserContext';
+import { useUser } from '@/context/UserContext';
+import { ApiError } from '@/lib/eightracer-api';
+import { loginDestination, loginIdentifier } from '@/lib/auth';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useUser();
+  const { login, isLoggedIn, currentUser, authStatus, authMessage, refreshSession } = useUser();
 
-  const [username, setUsername] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const submitting = useRef(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (isLoggedIn) router.replace(loginDestination(currentUser));
+  }, [isLoggedIn, currentUser, router]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting.current || authStatus === 'loading') return;
     setErrorMessage('');
 
-    if (!username.trim() || !password.trim()) {
-      setErrorMessage('Silakan isi username dan kata sandi Anda.');
+    const identity = loginIdentifier(identifier);
+    if (!identity || !password) {
+      setErrorMessage('Isi email yang valid atau NISN 10 digit, lalu kata sandi akun.');
       return;
     }
 
+    submitting.current = true;
     setIsLoading(true);
-
-    setTimeout(() => {
-      const u = username.toLowerCase();
-      let preset: PresetKey = 'siswa_aktif';
-      if (u.includes('admin')) preset = 'admin';
-      else if (u.includes('guru') || u.includes('bambang') || u.includes('nip')) preset = 'guru';
-      else if (u.includes('alumni') || u.includes('nabila') || u.includes('lulus')) preset = 'siswa_alumni';
-
-      login(preset);
+    try {
+      await login({ ...identity, password });
+      setPassword('');
+    } catch (error) {
+      if (error instanceof ApiError) {
+        const fields = Object.values(error.errors).flat().filter((value) => typeof value === 'string');
+        setErrorMessage(fields.length ? fields.join(' ') : error.message);
+      } else setErrorMessage('Login belum berhasil. Silakan coba lagi.');
+    } finally {
+      submitting.current = false;
       setIsLoading(false);
-      if (preset === 'admin') router.push('/admin'); else if (preset === 'guru') router.push('/guru'); else if (preset === 'siswa_alumni') router.push('/alumni'); else router.push('/siswa');
-    }, 900);
+    }
   };
 
   return (
@@ -92,18 +102,21 @@ export default function LoginPage() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ backgroundColor: '#ffffff', borderRadius: '24px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', padding: '40px 32px 48px', position: 'relative', zIndex: 10 }}>
 
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-            <img src="/images/login/Logo.png" alt="Logo" style={{ width: '56px', height: '56px', objectFit: 'contain' }} />
+            <img src="/images/logo.svg" alt="Logo Eightracer" style={{ width: '56px', height: '56px', objectFit: 'contain' }} />
           </div>
 
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>
             <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1E1B2E', margin: 0 }}>Masuk ke Akun Anda</h1>
+            <p style={{ fontSize: '13px', color: '#64748b', marginTop: '10px' }}>Gunakan email atau NISN dan kata sandi akun sekolah.</p>
           </div>
 
-          {errorMessage && (
-            <div style={{ marginBottom: '16px', padding: '8px', backgroundColor: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', color: '#B91C1C', fontSize: '12px', textAlign: 'center' }}>
-              {errorMessage}
+          {(errorMessage || authMessage) && (
+            <div role="alert" style={{ marginBottom: '16px', padding: '8px', backgroundColor: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', color: '#B91C1C', fontSize: '12px', textAlign: 'center' }}>
+              {errorMessage || authMessage}
             </div>
           )}
+          {authStatus === 'loading' && <p role="status" style={{ fontSize: '13px', marginBottom: '12px' }}>Memeriksa sesi akun…</p>}
+          {authStatus === 'unavailable' && <button type="button" onClick={() => void refreshSession()} style={{ color: '#6500ad', marginBottom: '12px' }}>Periksa sesi lagi</button>}
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
@@ -112,9 +125,14 @@ export default function LoginPage() {
               <input
                 type="text"
                 required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Username"
+                name="identifier"
+                aria-label="Email atau NISN"
+                autoComplete="username"
+                maxLength={254}
+                disabled={isLoading}
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder="Email atau NISN"
                 style={{ flex: 1, padding: '14px 12px', backgroundColor: 'transparent', border: 'none', outline: 'none', color: '#1E293B', fontSize: '14px' }}
               />
             </div>
@@ -124,28 +142,33 @@ export default function LoginPage() {
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
+                name="password"
+                aria-label="Kata sandi"
+                autoComplete="current-password"
+                maxLength={256}
+                disabled={isLoading}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Kata Sandi"
                 style={{ flex: 1, padding: '14px 12px', backgroundColor: 'transparent', border: 'none', outline: 'none', color: '#1E293B', fontSize: '14px' }}
               />
-              <div onClick={() => setShowPassword(!showPassword)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+              <button type="button" aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'} aria-pressed={showPassword} onClick={() => setShowPassword(!showPassword)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', border: 0, background: 'transparent' }}>
                 {showPassword ? <EyeOff size={18} color="#9CA3AF" /> : <Eye size={18} color="#9CA3AF" />}
-              </div>
+              </button>
             </div>
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || authStatus === 'loading' || isLoggedIn}
               style={{ width: '100%', marginTop: '8px', padding: '14px', backgroundColor: '#5B0EA6', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', border: 'none', cursor: 'pointer', display: 'flex', justifyContent: 'center' }}
             >
-              {isLoading ? <div style={{ width: '20px', height: '20px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%' }} className="animate-spin" /> : 'Masuk'}
+              {isLoading ? <span role="status">Memeriksa akun…</span> : 'Masuk'}
             </button>
           </form>
         </motion.div>
       </div>
 
-      <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', zIndex: 20, pointerEvents: 'none', display: 'flex', justifyContent: 'center' }}>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', zIndex: 0, pointerEvents: 'none', display: 'flex', justifyContent: 'center' }}>
 
         <img
           src="/images/login/pohon.svg"

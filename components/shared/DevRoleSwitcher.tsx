@@ -94,11 +94,13 @@ const ROLES: RoleOption[] = [
 
 export default function DevRoleSwitcher() {
   const [isOpen, setIsOpen] = useState(false);
-  const { currentPreset, switchRole, getDisplayRole } = useUser();
+  const { currentPreset, switchRole, getDisplayRole, authStatus } = useUser();
   const displayRole = getDisplayRole();
 
   const activeOption =
     ROLES.find((r) => r.preset === currentPreset) || ROLES[3];
+
+  if (authStatus !== "anonymous") return null;
 
   return (
     <aside
