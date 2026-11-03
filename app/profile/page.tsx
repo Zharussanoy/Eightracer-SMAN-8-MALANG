@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-
+import { useRouter } from 'next/navigation';
 import Footer from "@/components/shared/Footer";
 import { useUser, PresetKey } from "@/context/UserContext";
 import {
@@ -26,15 +26,16 @@ import {
 } from "lucide-react";
 
 export default function ProfilePage() {
+  const router = useRouter();
   const { currentUser, currentPreset, switchRole, getDisplayRole, isLoggedIn, login, logout } = useUser();
   useEffect(() => {
     if (!isLoggedIn) {
       const timer = setTimeout(() => {
-        login();
+        router.push('/login');
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [isLoggedIn, login]);
+  }, [isLoggedIn, router]);
 
   const displayRole = getDisplayRole();
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -79,7 +80,7 @@ export default function ProfilePage() {
             ) : (
               <button
                 type="button"
-                onClick={() => login()}
+                onClick={() => router.push('/login')}
                 className="px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/25 hover:bg-emerald-500/35 text-emerald-100 border border-emerald-400/30 transition-all cursor-pointer"
               >
                 Login
