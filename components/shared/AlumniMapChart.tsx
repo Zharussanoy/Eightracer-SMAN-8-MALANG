@@ -155,15 +155,16 @@ export const normalizeProvinceName = (geoName?: string): string => {
 };
 
 export const getProvinceData = (
-  rawName?: string
+  rawName: string | undefined,
+  data: Record<string, ProvinsiData>
 ): { provinceKey: string; data: ProvinsiData } | null => {
   if (!rawName) return null;
   const normalized = normalizeProvinceName(rawName);
-  if (dataPersebaran[normalized]) {
-    return { provinceKey: normalized, data: dataPersebaran[normalized] };
+  if (data[normalized]) {
+    return { provinceKey: normalized, data: data[normalized] };
   }
-  if (dataPersebaran[rawName]) {
-    return { provinceKey: rawName, data: dataPersebaran[rawName] };
+  if (data[rawName]) {
+    return { provinceKey: rawName, data: data[rawName] };
   }
   return null;
 };
@@ -190,6 +191,36 @@ const SVG_HEIGHT = 550;
 
 export default function AlumniMapChart() {
   const [selectedProvince, setSelectedProvince] = useState<string | null>(null);
+
+    const [persebaranData, setPersebaranData] = useState<Record<string, ProvinsiData>>(dataPersebaran);
+    const [isLoadingStatistik, setIsLoadingStatistik] = useState(false);
+
+    useEffect(() => {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL;
+        if (!API_URL) return;
+
+        setIsLoadingStatistik(true);
+        fetch(`${API_URL}/alumni/statistik`, { headers: { Accept: 'application/json' } })
+            .then((res) => (res.ok ? res.json() : Promise.reject(res)))
+            .then((json) => {
+                const mapped: Record<string, ProvinsiData> = {};
+                (json.per_provinsi || []).forEach((prov: any) => {
+                    mapped[prov.provinsi] = {
+                        persentase: prov.persentase ?? 0,
+                        totalAlumni: prov.total_alumni ?? 0,
+                        kampus: (prov.kampus || []).map((k: any) => ({
+                            id: k.perguruan_tinggi_id,
+                            nama: k.nama_pt,
+                            alumni: k.total_alumni,
+                            favorit: k.prodi_favorit || '-',
+                        })),
+                    };
+                });
+                setPersebaranData(Object.keys(mapped).length > 0 ? mapped : dataPersebaran);
+            })
+            .catch(() => setPersebaranData(dataPersebaran))
+            .finally(() => setIsLoadingStatistik(false));
+    }, []);
   const [selectedKampus, setSelectedKampus] = useState<KampusItem | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
@@ -230,7 +261,7 @@ export default function AlumniMapChart() {
 
         const mapped: ProvinceFeatureItem[] = fc.features.map((feat) => {
           const rawName = feat.properties?.provinsi || "";
-          const match = getProvinceData(rawName);
+          const match = getProvinceData(rawName, persebaranData);
           const c = geoCentroid(feat);
           const centerPixel = projection(c) || [SVG_WIDTH / 2, SVG_HEIGHT / 2];
           const pathD = pathGenerator(feat) || "";
@@ -459,7 +490,7 @@ export default function AlumniMapChart() {
 
   const handleProvinceClick = (provName: string) => {
     if (hasDraggedRef.current) return;
-    const match = getProvinceData(provName);
+    const match = getProvinceData(provName, persebaranData);
     if (!match) return;
 
     const targetKey = match.provinceKey;
@@ -486,7 +517,7 @@ export default function AlumniMapChart() {
     setSearchQuery("");
   };
 
-  const currentProvinceData = selectedProvince ? dataPersebaran[selectedProvince] : null;
+  const currentProvinceData = selectedProvince ? persebaranData[selectedProvince] : null;
 
   const sortedKampus = useMemo(() => {
     if (!currentProvinceData) return [];
@@ -808,7 +839,7 @@ export default function AlumniMapChart() {
 
             {/* FITUR 2: ANIMASI RIAK AKTIF (CONTINUOUS RIPPLE EFFECT)    */}
             <g className="ripple-markers">
-              {Object.entries(dataPersebaran).map(([provName, provData]) => {
+              {Object.entries(persebaranData).map(([provName, provData]) => {
                 const coords = PROVINCE_CENTROIDS[provName];
                 if (!coords) return null;
                 const pixel = projection(coords) || [0, 0];
