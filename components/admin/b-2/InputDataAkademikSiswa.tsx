@@ -227,6 +227,49 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
           });
           setNilaiRaporList(Object.values(grouped));
         }
+
+        // Sinkronisasi data Prestasi Siswa dari backend
+        if (resAkademik?.data?.prestasi_murid && resAkademik.data.prestasi_murid.length > 0) {
+          const p = resAkademik.data.prestasi_murid[0];
+          setPrestasiForm({
+            jenisPrestasi: p.jenis_prestasi || "Akademik",
+            namaLomba: p.nama_kompetisi || "",
+            bidang: p.bidang || "Sains",
+            tahun: String(p.tahun || "2024"),
+            periodePrestasi: "1 Kali",
+            tingkat: p.tingkat || "Kabupaten/Kota",
+            penyelenggara: p.penyelenggara || "",
+            peringkat: String(p.peringkat || "1"),
+            dokumen: p.file_bukti_url || "Sertifikat",
+          });
+        }
+
+        // Sinkronisasi data Presensi / Kehadiran dari backend
+        if (resAkademik?.data?.rekap_presensi && resAkademik.data.rekap_presensi.length > 0) {
+          const sem1 = resAkademik.data.rekap_presensi.find((r: any) => r.semester === 1);
+          const sem2 = resAkademik.data.rekap_presensi.find((r: any) => r.semester === 2);
+          setKehadiranForm({
+            semester1: sem1?.persentase_kehadiran ? `${sem1.persentase_kehadiran}%` : "97%",
+            semester2: sem2?.persentase_kehadiran ? `${sem2.persentase_kehadiran}%` : "99%",
+            sakit: sem1?.jumlah_sakit !== undefined ? `${sem1.jumlah_sakit}%` : "0%",
+            izin: sem1?.jumlah_izin !== undefined ? `${sem1.jumlah_izin}%` : "0%",
+            alfa: sem1?.jumlah_alpa !== undefined ? `${sem1.jumlah_alpa}%` : "1%",
+          });
+        }
+
+        // Sinkronisasi data Catatan Karakter dari backend
+        if (resAkademik?.data?.catatan_karakter && resAkademik.data.catatan_karakter.length > 0) {
+          const mappedCatatan: CatatanKarakter[] = resAkademik.data.catatan_karakter.map((ck: any) => ({
+            id: String(ck.id),
+            tanggal: ck.tanggal_pencatatan ? ck.tanggal_pencatatan.slice(0, 10) : "2024-03-10",
+            semester: `S${ck.semester}`,
+            kelas: defaultSiswa.kelas,
+            tipeKatatan: ck.jenis_catatan || "Kedisiplinan",
+            catatan: ck.deskripsi || "",
+            nilaiBobotKuantitatif: ck.poin_disiplin || 85,
+          }));
+          setRiwayatCatatan(mappedCatatan);
+        }
       })
       .finally(() => {
         if (isMounted) setIsLoadingSiswa(false);
@@ -272,16 +315,78 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
         throw new Error("Mohon masukkan minimal 1 nilai rapor semester sebelum menyimpan.");
       }
 
+      // 1. Simpan Nilai Rapor & TKA ke Backend
       await akademikService.storeOrUpdateNilaiRapor({
         siswa_id: siswaId,
         nilai_tka: avgTka,
         nilai_rapor: flatRapor,
       });
 
+      // 2. Simpan Prestasi Siswa ke Backend jika ada input nama lomba
+      if (prestasiForm.namaLomba && prestasiForm.namaLomba.trim()) {
+        await akademikService.storePrestasi({
+          siswa_id: siswaId,
+          jenis_prestasi: prestasiForm.jenisPrestasi || "Akademik",
+          nama_kompetisi: prestasiForm.namaLomba.trim(),
+          bidang: prestasiForm.bidang || "Umum",
+          tingkat: prestasiForm.tingkat || "Kabupaten/Kota",
+          peringkat: prestasiForm.peringkat || "1",
+          tahun: parseInt(prestasiForm.tahun) || new Date().getFullYear(),
+          penyelenggara: prestasiForm.penyelenggara || undefined,
+          file_bukti_url: prestasiForm.dokumen || undefined,
+          status_verifikasi: "diverifikasi",
+        });
+      }
+
+      // 3. Simpan Presensi & Catatan Karakter ke Backend
+      const parsePercent = (val: string) => {
+        const num = parseFloat(String(val).replace("%", "").trim());
+        return isNaN(num) ? 0 : num;
+      };
+
+      const sem1Hadir = Math.round((parsePercent(kehadiranForm.semester1) / 100) * 100);
+      const sem2Hadir = Math.round((parsePercent(kehadiranForm.semester2) / 100) * 100);
+
+      const presensiPayload = [
+        {
+          semester: 1,
+          jumlah_hadir: sem1Hadir > 0 ? sem1Hadir : 95,
+          jumlah_sakit: Math.round(parsePercent(kehadiranForm.sakit)),
+          jumlah_izin: Math.round(parsePercent(kehadiranForm.izin)),
+          jumlah_alpa: Math.round(parsePercent(kehadiranForm.alfa)),
+          persentase_kehadiran: parsePercent(kehadiranForm.semester1) || 97,
+        },
+        {
+          semester: 2,
+          jumlah_hadir: sem2Hadir > 0 ? sem2Hadir : 98,
+          jumlah_sakit: Math.round(parsePercent(kehadiranForm.sakit)),
+          jumlah_izin: Math.round(parsePercent(kehadiranForm.izin)),
+          jumlah_alpa: Math.round(parsePercent(kehadiranForm.alfa)),
+          persentase_kehadiran: parsePercent(kehadiranForm.semester2) || 99,
+        },
+      ];
+
+      const catatanPayload = riwayatCatatan.map((c) => {
+        const semNum = parseInt(c.semester.replace(/\D/g, "")) || 1;
+        return {
+          semester: semNum >= 1 && semNum <= 6 ? semNum : 1,
+          jenis_catatan: c.tipeKatatan || "Kedisiplinan",
+          poin_disiplin: Number(c.nilaiBobotKuantitatif) || 85,
+          deskripsi: c.catatan || "-",
+          tanggal_pencatatan: c.tanggal ? c.tanggal.replace(/\//g, "-") : undefined,
+        };
+      });
+
+      await akademikService.storePresensiKarakter({
+        siswa_id: siswaId,
+        presensi: presensiPayload,
+        catatan_karakter: catatanPayload.length > 0 ? catatanPayload : undefined,
+      });
+
       setIsSaved(true);
       setTimeout(() => setIsSaved(false), 4500);
     } catch (err: any) {
-      console.error("Gagal menyimpan data nilai rapor:", err);
+      console.error("Gagal menyimpan data akademik lengkap:", err);
       setSaveError(err?.message || "Terjadi kesalahan saat menyimpan data ke database.");
     } finally {
       setIsSaving(false);

@@ -228,6 +228,33 @@ export default function SiswaDashboardPage() {
               },
             ]);
           }
+
+          // Sinkronisasi Catatan Karakter jika ada data dari backend
+          if (Array.isArray(resAkademik.data.catatan_karakter) && resAkademik.data.catatan_karakter.length > 0) {
+            const liveCatatans: CatatanSiswaItem[] = resAkademik.data.catatan_karakter.map((ck: any) => ({
+              id: String(ck.id),
+              idCatatan: String(ck.id),
+              idSiswa: String(ck.siswa_id || "1"),
+              semester: ck.semester || 1,
+              jenisCatatan: ck.jenis_catatan || "Kedisiplinan",
+              poinDisiplin: ck.poin_disiplin ? `+${ck.poin_disiplin}` : "+5",
+              deskripsiCatatan: ck.deskripsi || "-",
+              tanggalPencatatan: ck.tanggal_pencatatan ? ck.tanggal_pencatatan.slice(0, 10) : "2026-10-10",
+              tanggalLengkap: ck.tanggal_pencatatan || "10 Oktober 2026",
+              kategoriSubtitle: "Karakter",
+              tanggal: ck.tanggal_pencatatan ? ck.tanggal_pencatatan.slice(0, 10) : "10 Okt 2026",
+              kategori: ck.jenis_catatan || "Kedisiplinan",
+              judul: ck.jenis_catatan || "Catatan Siswa",
+              ringkasan: ck.deskripsi || "-",
+              pencatat: "Wali Kelas",
+              pencatatLengkap: "Wali Kelas · SMAN 8 Malang",
+              status: "Selesai",
+            }));
+            setCatatanList(liveCatatans);
+            if (liveCatatans[0]) {
+              setSelectedCatatanId(liveCatatans[0].id);
+            }
+          }
         }
 
         if (resAsesmen?.data?.rekomendasi_prodi) {
@@ -256,12 +283,28 @@ export default function SiswaDashboardPage() {
       (c) => c.id === selectedCatatanId || c.idCatatan === selectedCatatanId
     ) || catatanList[0];
 
-  const handleSaveCatatan = (updated: CatatanSiswaItem) => {
+  const handleSaveCatatan = async (updated: CatatanSiswaItem) => {
     setCatatanList((prev) =>
       prev.map((c) =>
         c.id === updated.id || c.idCatatan === updated.idCatatan ? updated : c
       )
     );
+
+    try {
+      await akademikService.storePresensiKarakter({
+        catatan_karakter: [
+          {
+            semester: Number(updated.semester) || 1,
+            jenis_catatan: updated.jenisCatatan || updated.kategori || "Kedisiplinan",
+            poin_disiplin: parseInt(String(updated.poinDisiplin).replace(/\D/g, "")) || 5,
+            deskripsi: updated.deskripsiCatatan || updated.ringkasan || "-",
+            tanggal_pencatatan: new Date().toISOString().slice(0, 10),
+          },
+        ],
+      });
+    } catch (err: any) {
+      console.warn("Gagal sinkronisasi catatan karakter ke backend:", err?.message);
+    }
   };
 
   return (

@@ -185,14 +185,50 @@ export const akademikService = {
     }),
 
   // POST /v1/siswa/akademik/prestasi
-  storePrestasi: (payload: any) =>
+  storePrestasi: (payload: {
+    siswa_id?: string | number;
+    jenis_prestasi: string;
+    nama_kompetisi: string;
+    bidang?: string;
+    tingkat: string;
+    peringkat: string;
+    bobot_persentase?: number;
+    status_verifikasi?: "menunggu" | "diverifikasi" | "ditolak";
+    penyelenggara?: string;
+    tahun: number;
+    file_bukti_url?: string;
+  }) =>
     apiFetch<{ status: string; message: string; data?: any }>("/v1/siswa/akademik/prestasi", {
       method: "POST",
       body: JSON.stringify(payload),
     }),
 
   // POST /v1/siswa/akademik/presensi-karakter
-  storePresensiKarakter: (payload: any) =>
+  storePresensiKarakter: (payload: {
+    siswa_id?: string | number;
+    presensi?: Array<{
+      semester: number;
+      jumlah_hadir: number;
+      jumlah_sakit?: number;
+      jumlah_izin?: number;
+      jumlah_alpa?: number;
+      persentase_kehadiran?: number;
+    }>;
+    catatan_karakter?: Array<{
+      semester: number;
+      jenis_catatan?: string;
+      poin_disiplin?: number;
+      deskripsi: string;
+      tanggal_pencatatan?: string;
+    }>;
+    organisasi?: Array<{
+      jenis_organisasi?: string;
+      nama_organisasi: string;
+      jabatan: string;
+      bobot_jabatan?: number;
+      periode_jabatan?: string;
+    }>;
+  }) =>
     apiFetch<{ status: string; message: string; data?: any }>(
       "/v1/siswa/akademik/presensi-karakter",
       {
