@@ -1,0 +1,26 @@
+.b4-schoolViews { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.b4-schoolViews button { padding: 10px 18px; border: 1px solid var(--b4-border); border-radius: 10px; color: var(--b4-purple); background: #fff; font-weight: 650; cursor: pointer; }
+.b4-schoolViews button[aria-pressed="true"] { color: #fff; background: var(--b4-purple); }
+.b4-schoolViews button:focus-visible { outline: 3px solid #c5a5de; outline-offset: 3px; }
+.b4-schoolSummary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
+.b4-schoolSummary > div { display: grid; gap: 4px; padding: 16px 20px; border: 1px solid #dbc9e8; border-radius: 11px; background: #faf7fc; }
+.b4-schoolSummary strong { color: var(--b4-purple); font-size: 26px; font-weight: 700; }
+.b4-schoolSummary span { color: #5a5061; font-size: 13px; }
+.b4-schoolToolbar { grid-template-columns: 1.6fr .7fr 1fr; }
+.b4-schoolTable { min-width: 1160px; }
+.b4-schoolTable th:first-child { width: 20%; }
+.b4-schoolTable th:nth-child(2) { width: 17%; }
+.b4-schoolTable th:nth-child(3) { width: 9%; }
+.b4-schoolTable th:nth-child(4) { width: 25%; }
+.b4-schoolTable th:nth-child(5) { width: 12%; }
+.b4-schoolTable th:last-child { width: 17%; }
+.b4-schoolTable td { text-align: left; vertical-align: top; padding: 16px; overflow-wrap: anywhere; }
+.b4-schoolTable td:nth-child(3) { text-align: center; }
+.b4-schoolPrimary { display: block; font-weight: 550; }
+.b4-schoolSecondary { display: block; margin-top: 4px; color: #6b6172; font-size: 12px; line-height: 1.55; }
+.b4-schoolSourceLink { color: var(--b4-purple); text-underline-offset: 3px; }
+.b4-schoolSourceLink:hover { text-decoration: underline; }
+.b4-schoolBadge { display: inline-block; padding: 4px 8px; border: 1px solid #d7c3e6; border-radius: 7px; color: #5d247d; background: #f4edf9; font-size: 12px; }
+.b4-schoolBadgePending { border-color: #dfd2b5; color: #775b26; background: #fcf8ec; }
+@media (max-width: 850px) { .b4-schoolToolbar { grid-template-columns: 1fr 1fr; }.b4-schoolToolbar .b4-searchField { grid-column: 1 / -1; } }
+@media (max-width: 540px) { .b4-schoolSummary { grid-template-columns: 1fr; gap: 8px; }.b4-schoolSummary > div { display: flex; align-items: center; gap: 12px; padding: 10px 14px; }.b4-schoolSummary strong { min-width: 48px; font-size: 23px; } }
