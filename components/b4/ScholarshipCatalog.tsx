@@ -6,8 +6,20 @@ import { ChevronDown, ChevronLeft, ChevronRight, Plus, Search } from "lucide-rea
 import B4Shell from "./B4Shell";
 import { updateDemo, useDemoData, type CatalogItem } from "./demoStore";
 import "@/components/admin/b-4/scholarships.css";
+import { useUser } from "@/context/UserContext";
+import ScholarshipCatalogApi from "./ScholarshipCatalogApi";
 
 export default function ScholarshipCatalog() {
+  const { authStatus, refreshSession, authMessage } = useUser();
+  if (authStatus === "authenticated") return <ScholarshipCatalogApi />;
+  if (authStatus !== "anonymous") return <B4Shell title="Basis Data Beasiswa" description="Kelola informasi program beasiswa." active="database" dataNote="Memeriksa sesi akun sebelum membuka katalog.">
+    <p role="status">{authStatus === "loading" ? "Memeriksa sesi akun…" : authMessage}</p>
+    {authStatus === "unavailable" && <button type="button" onClick={() => void refreshSession()}>Coba periksa sesi lagi</button>}
+  </B4Shell>;
+  return <ScholarshipCatalogDemo />;
+}
+
+function ScholarshipCatalogDemo() {
   const data = useDemoData();
   const [query, setQuery] = useState("");
   const [level, setLevel] = useState("");
