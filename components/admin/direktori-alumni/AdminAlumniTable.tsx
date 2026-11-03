@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   FileSpreadsheet,
   Download,
@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { AlumniItem, AdminRole, KategoriPerguruanTinggi } from "./types";
 import { exportToPDF } from "@/utils/exportToPdf";
+import { apiFetch } from "@/lib/api";
+import { ApiAlumni } from "@/lib/alumni";
 
 interface AdminAlumniTableProps {
   role: AdminRole;
@@ -44,7 +46,22 @@ export default function AdminAlumniTable({
 }: AdminAlumniTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewCertAlumni, setViewCertAlumni] = useState<AlumniItem | null>(null);
+  const [detailAlumni, setDetailAlumni] = useState<ApiAlumni | null>(null);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!viewCertAlumni) {
+      setDetailAlumni(null);
+      return;
+    }
+    setIsLoadingDetail(true);
+    setErrorDetail(null);
+    apiFetch<ApiAlumni>(`/alumni/${viewCertAlumni.id}`)
+      .then((res) => setDetailAlumni(res))
+      .catch((err) => setErrorDetail(err.message))
+      .finally(() => setIsLoadingDetail(false));
+  }, [viewCertAlumni]);
   // Filter States
   const [filterKategoriPt, setFilterKategoriPt] = useState<string>("SEMUA");
   const [filterKampus, setFilterKampus] = useState("SEMUA");
@@ -447,21 +464,15 @@ export default function AdminAlumniTable({
                     </div>
 
                     <div>
-                      {alumni.sertifikat && alumni.sertifikat.length > 0 ? (
-                        <button
-                          type="button"
-                          onClick={() => setViewCertAlumni(alumni)}
-                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-purple-50 text-[#5F089E] hover:bg-purple-100 text-[10px] font-bold border border-purple-200 transition-colors cursor-pointer"
-                        >
-                          <Award className="w-3 h-3" />
-                          <span>{alumni.sertifikat.length} Berkas</span>
-                          <Eye className="w-3 h-3 opacity-60" />
-                        </button>
-                      ) : (
-                        <span className="text-[10px] text-slate-400 font-medium">
-                          0 Berkas
-                        </span>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => setViewCertAlumni(alumni)}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-purple-50 text-[#5F089E] hover:bg-purple-100 text-[10px] font-bold border border-purple-200 transition-colors cursor-pointer"
+                      >
+                        <Award className="w-3 h-3" />
+                        <span>{alumni.sertifikat?.length || 0} Berkas</span>
+                        <Eye className="w-3 h-3 opacity-60" />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -673,24 +684,17 @@ export default function AdminAlumniTable({
                         )}
                       </td>
 
-                      {/* 10. SERTIF */}
-                      <td className="py-3 px-3 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <span className="text-xs font-semibold text-slate-700">
-                            {alumni.sertifikat ? alumni.sertifikat.length : 0} Berkas
-                          </span>
-                          {alumni.sertifikat && alumni.sertifikat.length > 0 && (
-                            <button
-                              type="button"
-                              onClick={() => setViewCertAlumni(alumni)}
-                              className="p-1 rounded-md text-slate-400 hover:text-[#5F089E] hover:bg-purple-100 transition-colors cursor-pointer"
-                              title="Lihat Berkas Sertifikat"
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      </td>
+                    {/* 10. SERTIF */}
+                    <td className="py-3 px-3 text-center">
+                      <button
+                        type="button"
+                        onClick={() => setViewCertAlumni(alumni)}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-purple-50 text-[#5F089E] hover:bg-purple-100 text-[10px] font-bold border border-purple-200 transition-colors cursor-pointer"
+                      >
+                        <span>{alumni.sertifikat?.length || 0} Berkas</span>
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
+                    </td>
 
                       {/* AKSI Admin */}
                       {role === "admin" && (
@@ -726,7 +730,7 @@ export default function AdminAlumniTable({
         {/* Footer Pagination */}
         <div className="px-4 py-3.5 bg-slate-50/70 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
           <span>
-            Menampilkan 1–{filteredAlumni.length} dari {alumniList.length} total data alumni
+            Menampilkan{filteredAlumni.length} dari {alumniList.length} total data alumni
           </span>
           <div className="flex items-center gap-1">
             <button
@@ -758,14 +762,14 @@ export default function AdminAlumniTable({
         </div>
       </div>
 
-      {/* Modal Detail Sertifikat */}
+      {/* Modal Detail Alumni */}
       {viewCertAlumni && (
         <div className="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/80">
               <div className="flex items-center gap-2 text-[#5F089E]">
                 <Award className="w-4 h-4" />
-                <h3 className="font-bold text-sm">Daftar Berkas Sertifikat</h3>
+                <h3 className="font-bold text-sm">Detail Alumni</h3>
               </div>
               <button
                 onClick={() => setViewCertAlumni(null)}
@@ -774,24 +778,88 @@ export default function AdminAlumniTable({
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="p-5 space-y-2">
-              <span className="text-xs text-slate-500 mb-1 block">
-                Milik:{" "}
-                <strong className="text-slate-800">
-                  {viewCertAlumni.nama}
-                </strong>{" "}
-                ({viewCertAlumni.kelas || "XII"})
-              </span>
-              {viewCertAlumni.sertifikat?.map((cert, idx) => (
-                <div
-                  key={idx}
-                  className="text-xs font-medium text-slate-700 bg-purple-50/50 px-3 py-2.5 rounded-xl border border-purple-100 flex items-start gap-2"
-                >
-                  <span className="text-[#5F089E] font-bold">{idx + 1}.</span>
-                  <span>{cert}</span>
+
+            {isLoadingDetail ? (
+              <div className="p-8 text-center text-sm text-slate-500">Memuat detail...</div>
+            ) : errorDetail ? (
+              <div className="p-8 text-center text-sm text-red-500">{errorDetail}</div>
+            ) : detailAlumni ? (
+              <div className="p-5 space-y-3 max-h-[70vh] overflow-y-auto text-sm">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-[11px] text-slate-500 block">Nama</span>
+                    <span className="font-bold text-slate-800">{detailAlumni.nama}</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-slate-500 block">Tahun Lulus</span>
+                    <span className="font-semibold text-slate-800">{detailAlumni.tahun_lulus ?? "-"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-slate-500 block">Universitas</span>
+                    <span className="font-semibold text-slate-800">{detailAlumni.univ ?? "-"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-slate-500 block">Program Studi</span>
+                    <span className="font-semibold text-slate-800">{detailAlumni.prodi ?? "-"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-slate-500 block">Jenjang</span>
+                    <span className="font-semibold text-slate-800">{detailAlumni.strata ?? "-"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-slate-500 block">Jalur Masuk</span>
+                    <span className="font-semibold text-slate-800">{detailAlumni.jalur_masuk ?? "-"}</span>
+                  </div>
+                  {detailAlumni.sub_jalur && (
+                    <div className="col-span-2">
+                      <span className="text-[11px] text-slate-500 block">Sub Jalur</span>
+                      <span className="font-semibold text-slate-800">{detailAlumni.sub_jalur}</span>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-[11px] text-slate-500 block">Pilihan Ke-</span>
+                    <span className="font-semibold text-slate-800">{detailAlumni.pilihan_ke ?? "-"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-slate-500 block">Status Penerimaan</span>
+                    <span className="font-semibold text-slate-800">{detailAlumni.status_penerimaan ?? "-"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-slate-500 block">Nilai Rapor</span>
+                    <span className="font-semibold text-slate-800">{detailAlumni.nilai_rapor ?? "-"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-slate-500 block">Skor UTBK</span>
+                    <span className="font-semibold text-slate-800">{detailAlumni.skor_utbk ?? "-"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-slate-500 block">KIP-K</span>
+                    <span className="font-semibold text-slate-800">{detailAlumni.is_kipk ? "Ya" : "Tidak"}</span>
+                  </div>
                 </div>
-              ))}
-            </div>
+
+                <div className="pt-3 border-t border-slate-100">
+                  <span className="text-[11px] text-slate-500 block mb-2">Sertifikat</span>
+                  {detailAlumni.sertifikat && detailAlumni.sertifikat.length > 0 ? (
+                    <div className="space-y-2">
+                      {detailAlumni.sertifikat.map((cert, idx) => (
+                        <div key={idx} className="text-xs font-medium text-slate-700 bg-purple-50/50 px-3 py-2.5 rounded-xl border border-purple-100 flex items-start gap-2">
+                          <span className="text-[#5F089E] font-bold">{idx + 1}.</span>
+                          <span>
+                            {cert.nama_kompetisi ?? "-"}
+                            {cert.tingkat && ` (${cert.tingkat})`}
+                            {cert.peringkat && ` - ${cert.peringkat}`}
+                            {cert.tahun && ` - ${cert.tahun}`}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-slate-400">Tidak ada sertifikat</span>
+                  )}
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       )}
