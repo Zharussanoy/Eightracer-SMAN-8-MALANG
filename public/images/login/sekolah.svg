@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 430" role="img" aria-labelledby="title desc">
+  <title id="title">Gedung sekolah</title>
+  <desc id="desc">Ilustrasi gedung sekolah merah dengan atap abu-abu, jendela, pintu, dan menara jam.</desc>
+  <defs>
+    <linearGradient id="wall" x2="0" y2="1"><stop stop-color="#b64e49"/><stop offset="1" stop-color="#963b38"/></linearGradient>
+    <linearGradient id="roof" x2="0" y2="1"><stop stop-color="#58636d"/><stop offset="1" stop-color="#394751"/></linearGradient>
+    <g id="window">
+      <rect width="136" height="58" fill="#eee9df" stroke="#c8bfb3" stroke-width="5"/>
+      <path d="M45 0V58M91 0V58M0 29H136" stroke="#c6c4bf" stroke-width="4"/>
+      <path d="M5 5H131V53H5Z" fill="none" stroke="#fffaf0" stroke-width="3"/>
+    </g>
+    <g id="door">
+      <rect width="88" height="120" fill="#e9e4d9" stroke="#c4bcb0" stroke-width="7"/>
+      <path d="M44 5V115" stroke="#c9c1b5" stroke-width="3"/>
+      <path d="M36 57v13M52 57v13" stroke="#a8a39b" stroke-width="3" stroke-linecap="round"/>
+    </g>
+  </defs>
+  <g id="school-building">
+    <rect x="0" y="112" width="1440" height="318" fill="url(#wall)"/>
+    <rect x="0" y="112" width="1440" height="13" fill="#873633"/>
+    <rect x="0" y="190" width="1440" height="13" fill="#77302e"/>
+    <rect x="0" y="276" width="1440" height="13" fill="#77302e"/>
+    <rect x="0" y="365" width="1440" height="13" fill="#77302e"/>
+    <path d="M0 70H1440V120H0Z" fill="url(#roof)"/>
+    <path d="M0 70L240 42L480 70L720 42L960 70L1200 42L1440 70V91H0Z" fill="#46545e" opacity=".8"/>
+    <path d="M0 91H1440V112H0Z" fill="#34434d"/>
+    <!-- Left and right window rows -->
+    <use href="#window" x="14" y="145"/><use href="#window" x="326" y="145"/><use href="#window" x="1025" y="145"/><use href="#window" x="1280" y="145"/>
+    <use href="#window" x="14" y="232"/><use href="#window" x="326" y="232"/><use href="#window" x="1025" y="232"/><use href="#window" x="1280" y="232"/>
+    <use href="#window" x="14" y="319"/><use href="#window" x="326" y="319"/><use href="#window" x="1025" y="319"/><use href="#window" x="1280" y="319"/>
+    <!-- Central entrance -->
+    <rect x="493" y="112" width="454" height="318" fill="#a54440"/>
+    <use href="#window" x="510" y="145"/><use href="#window" x="790" y="145"/>
+    <use href="#window" x="510" y="232"/><use href="#window" x="790" y="232"/>
+    <rect x="660" y="286" width="120" height="144" fill="#d5cec2"/>
+    <rect x="669" y="295" width="102" height="135" fill="#f0ece2" stroke="#bdb5a9" stroke-width="5"/>
+    <path d="M720 300V430" stroke="#c7c0b6" stroke-width="3"/>
+    <!-- Clock tower -->
+    <g id="clock-tower">
+      <rect x="170" y="8" width="139" height="422" fill="url(#wall)"/>
+      <path d="M159 18L239 0L320 18V39H159Z" fill="#59656f"/>
+      <path d="M159 39H320V48H159Z" fill="#c8c8c4"/>
+      <circle cx="239" cy="74" r="17" fill="#c9cbc9" stroke="#8c9292" stroke-width="3"/>
+      <circle cx="239" cy="74" r="13" fill="#9da3a3"/>
+      <path d="M239 64V74L247 74" fill="none" stroke="#f4f1e9" stroke-width="2" stroke-linecap="round"/>
+      <rect x="181" y="108" width="117" height="26" fill="#e5ddd1"/>
+      <text x="239" y="128" font-family="Arial,sans-serif" font-size="21" font-weight="800" text-anchor="middle" fill="#5d514d">SCHOOL</text>
+      <rect x="177" y="264" width="125" height="17" fill="#c9c4bb"/>
+      <use href="#door" x="194" y="292"/>
+    </g>
+    <!-- Base and architectural details -->
+    <path d="M0 420H1440V430H0Z" fill="#79513c"/>
+    <path d="M0 110H1440" stroke="#d36a60" stroke-width="5" opacity=".55"/>
+  </g>
+</svg>

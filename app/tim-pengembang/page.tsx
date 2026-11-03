@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import Navbar from "@/components/Navbar";
-import TeamSection from "@/components/TeamSection";
-import Footer from "@/components/Footer";
+import TeamSection from "@/components/shared/TeamSection";
+import Footer from "@/components/shared/Footer";
 
 export const metadata: Metadata = {
   title: "Tim Pengembang - Eightracer SMAN 8 Malang",
@@ -11,15 +10,10 @@ export const metadata: Metadata = {
 
 export default function TimPengembangPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      {/* Navigation Bar */}
-      <Navbar />
-
+    <div className="flex-1 flex flex-col bg-white">
       <main className="flex-1">
         <TeamSection />
       </main>
-
-      {/* Footer */}
       <Footer />
     </div>
   );
