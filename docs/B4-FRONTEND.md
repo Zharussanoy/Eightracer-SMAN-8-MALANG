@@ -1,6 +1,6 @@
 # Frontend B4 — Alumni dan Beasiswa
 
-Implementasi ini adalah pratinjau UI dengan data contoh. Belum ada integrasi API, autentikasi peran, atau layanan AI. Jangan gunakan pilihan profil contoh sebagai pengganti otorisasi backend.
+Sebagian besar halaman modul B4 masih memakai data contoh dan belum memakai layanan AI. Login, pemeriksaan sesi dan logout sudah dihubungkan ke kontrak API BE. Pembacaan katalog beasiswa untuk sesi BE sudah disiapkan; pengujian dengan akun BE sungguhan masih menunggu akun uji. Jangan gunakan pilihan profil contoh sebagai pengganti otorisasi backend. Rincian dan batas pemeriksaan ada di `docs/INTEGRASI-API-B4.md`.
 
 ## Halaman
 
@@ -22,7 +22,7 @@ Implementasi ini adalah pratinjau UI dengan data contoh. Belum ada integrasi API
 
 ## Mencoba alur
 
-1. Tambahkan beasiswa melalui katalog. Pindah halaman atau refresh: data tetap tersimpan di browser yang sama.
+1. Tanpa sesi BE, tambahkan beasiswa melalui katalog demo. Isi penyelenggara, deskripsi dan minimal satu nama kriteria, lalu **Simpan di Browser**. Pindah halaman atau refresh: data tetap tersimpan di browser yang sama. Dengan sesi BE, katalog menggunakan API baca saja; **Siapkan Draf Beasiswa Lokal** menyimpan draf terpisah, belum mengubah katalog sekolah. Untuk memulihkan draf sesudah refresh, pilih **Pulihkan draf lokal tersimpan**. Edit/arsip BE belum diaktifkan.
 2. Buka rekomendasi admin. Profil awal adalah Nadia dan status awalnya draft. Tinjau lalu tekan **Publikasikan Ke Siswa**.
 3. Buka rekomendasi siswa. Pilih **Nadia Putri Wicaksono** pada pilihan profil contoh. Rekomendasi yang dipublikasikan akan terlihat.
 4. Edit alasan atau visibilitas rekomendasi di admin. Status kembali menjadi draft sampai dipublikasikan ulang.
@@ -80,7 +80,7 @@ Build produksi berhasil dengan `npm run build -- --webpack`. Pada lingkungan pem
 Pembaruan main sampai commit `32a3cd3` telah digabung ke b4. Navbar bersama dari layout utama digunakan oleh seluruh halaman B4; komponen B4Navbar lama dipertahankan sebagai kompatibilitas tanpa merender header tambahan.
 
 - Menu **Alumni dan Beasiswa** tersedia di dropdown desktop dan menu ponsel. Di area admin, menu menuju `/admin/alumni-perguruan-tinggi`; di area siswa, menu menuju `/siswa/jejak-alumni`. Di halaman umum, tujuan mengikuti role contoh dari UserContext.
-- Tujuan menu tersebut hanya navigasi. Pilihan role demo tidak memberi izin API BE. Profil siswa contoh B4 masih terpisah dari UserContext sampai integrasi login diselesaikan.
+- Tujuan menu tersebut hanya navigasi. Pilihan role demo tidak memberi izin API BE. Profil siswa contoh pada data demo B4 masih terpisah dari identitas akun UserContext sampai integrasi data modul diselesaikan.
 - Link direktori bersama memakai `/alumni?tab=direktori`. Breadcrumb layanan B4 menuju `/#layanan`.
 - Navbar bersama dibungkus Suspense agar halaman detail dinamis B4 dapat dibangun dengan Cache Components.
 - Build Webpack dan TypeScript lolos setelah cache tipe route pengembangan lama disisihkan. Cache tersebut masih merujuk halaman `/admin/alumni` yang dipindahkan oleh main; file sumber tidak perlu dikembalikan ke lokasi lama.
