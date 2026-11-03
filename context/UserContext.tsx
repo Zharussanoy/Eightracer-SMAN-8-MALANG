@@ -70,7 +70,8 @@ interface UserContextType {
     currentUser: UserProfile;
     currentPreset: PresetKey;
     isLoggedIn: boolean;
-    login: (preset?: PresetKey) => void;
+    token: string | null;
+    login: (preset?: PresetKey, authToken?: string, userData?: any) => void;
     logout: () => void;
     switchRole: (preset: PresetKey) => void;
     getDisplayRole: () => DisplayRoleInfo;
@@ -82,12 +83,18 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const [currentPreset, setCurrentPreset] = useState<PresetKey>("siswa_aktif");
     const [currentUser, setCurrentUser] = useState<UserProfile>(MOCK_USERS.siswa_aktif);
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+    const [token, setToken] = useState<string | null>(null);
 
     useEffect(() => {
         const timer = setTimeout(() => {
             try {
+                const savedToken = localStorage.getItem("eightracer_token");
+                if (savedToken) {
+                    setToken(savedToken);
+                }
+
                 const savedAuth = localStorage.getItem("eightracer_is_logged_in");
-                if (savedAuth === "true") {
+                if (savedAuth === "true" || !!savedToken) {
                     setIsLoggedIn(true);
                 } else if (savedAuth === "false") {
                     setIsLoggedIn(false);
@@ -105,11 +112,20 @@ export function UserProvider({ children }: { children: ReactNode }) {
         return () => clearTimeout(timer);
     }, []);
 
-    const login = (preset?: PresetKey) => {
+    const login = (preset?: PresetKey, authToken?: string, userData?: any) => {
         setIsLoggedIn(true);
+        if (authToken) {
+            setToken(authToken);
+            try {
+                localStorage.setItem("eightracer_token", authToken);
+            } catch {}
+        }
         if (preset && MOCK_USERS[preset]) {
             setCurrentPreset(preset);
             setCurrentUser(MOCK_USERS[preset]);
+            try {
+                localStorage.setItem("eightracer_user_role_preset", preset);
+            } catch {}
         }
         try {
             localStorage.setItem("eightracer_is_logged_in", "true");
@@ -120,7 +136,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     const logout = () => {
         setIsLoggedIn(false);
+        setToken(null);
         try {
+            localStorage.removeItem("eightracer_token");
+            localStorage.removeItem("eightracer_user");
             localStorage.setItem("eightracer_is_logged_in", "false");
         } catch {
             // Ignore
@@ -184,6 +203,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 currentUser,
                 currentPreset,
                 isLoggedIn,
+                token,
                 login,
                 logout,
                 switchRole,
@@ -202,6 +222,7 @@ export function useUser() {
             currentUser: MOCK_USERS.siswa_aktif,
             currentPreset: "siswa_aktif" as PresetKey,
             isLoggedIn: false,
+            token: null,
             login: () => {},
             logout: () => {},
             switchRole: () => {},

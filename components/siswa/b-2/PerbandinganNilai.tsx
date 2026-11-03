@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Download, Filter, ChevronDown } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Search, Download, Filter, ChevronDown, Loader2, RotateCcw, AlertCircle, CheckCircle2, X } from "lucide-react";
+import { benchmarkService } from "@/services/b2";
+import { useUser } from "@/context/UserContext";
 
-// ── 1. Data Profil Siswa ──
+// ── 1. Data Profil Siswa Default (Fallback) ──
 const PROFIL_SISWA = {
   nama: "Alya Putri Rahma",
   kelas: "Kelas XII TKJ",
@@ -11,7 +13,7 @@ const PROFIL_SISWA = {
   rataRataNilai: 88.4,
 };
 
-// ── 2. Data KPI Hasil Perbandingan ──
+// ── 2. Data KPI Hasil Perbandingan Default ──
 const KPI_DATA = [
   {
     label: "ALUMNI YANG MIRIP",
@@ -74,13 +76,58 @@ function MedalColor(rank: number): string {
 
 // ── Komponen Utama ──
 export default function PerbandinganNilai() {
+  const { currentUser } = useUser();
   const [angkatan, setAngkatan] = useState("Semua angkatan");
   const [kelompokMapel, setKelompokMapel] = useState("Semua mata pelajaran");
   const [programStudi, setProgramStudi] = useState("Semua program studi");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const totalAlumni = 248;
+  // Live Backend State: Benchmark Alumni (BenchmarkAlumniController)
+  const [benchmarkData, setBenchmarkData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [notification, setNotification] = useState<{
+    type: "success" | "error" | "info";
+    message: string;
+  } | null>(null);
+
+  const fetchBenchmark = async (prodi?: string) => {
+    try {
+      setIsLoading(true);
+      setNotification(null);
+
+      // Jika user sedang login sebagai admin/guru, otomatis ambil siswa_id pertama agar tidak 404
+      const siswaIdParam = currentUser?.role === "admin" || currentUser?.role === "guru" ? 1 : undefined;
+
+      const res = await benchmarkService.compareWithAlumni({
+        nama_prodi: prodi && prodi !== "Semua program studi" ? prodi : undefined,
+        siswa_id: siswaIdParam,
+      });
+
+      if (res?.data) {
+        setBenchmarkData(res.data);
+        const total = res.data.benchmark_alumni?.total_alumni_pembanding ?? 0;
+        setNotification({
+          type: "success",
+          message: `Analisis perbandingan berhasil dihitung oleh backend! Ditemukan ${total} data alumni pembanding untuk target "${res.data.target_pencarian?.prodi}".`,
+        });
+      }
+    } catch (err: any) {
+      console.warn("Backend benchmark alumni (fallback):", err?.message);
+      setNotification({
+        type: "error",
+        message: err?.message || "Gagal memuat analisis perbandingan dari backend.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBenchmark();
+  }, [currentUser]);
+
+  const totalAlumni = benchmarkData?.benchmark_alumni?.total_alumni_pembanding ?? 248;
   const pageSize = 5;
   const totalPages = Math.ceil(totalAlumni / pageSize);
 
@@ -90,11 +137,74 @@ export default function PerbandinganNilai() {
       a.nisn.includes(searchQuery)
   );
 
+  const kpiItems = [
+    {
+      label: "TOTAL ALUMNI PEMBANDING",
+      value: benchmarkData?.benchmark_alumni?.total_alumni_pembanding !== undefined
+        ? `${benchmarkData.benchmark_alumni.total_alumni_pembanding} Alumni`
+        : KPI_DATA[0].value,
+      note: `Target: ${benchmarkData?.target_pencarian?.prodi ?? 'Semua Prodi'}`,
+    },
+    {
+      label: "ESTIMASI PELUANG LOLOS",
+      value: benchmarkData?.gap_analisis?.estimasi_peluang
+        ? `${benchmarkData.gap_analisis.estimasi_peluang} (${benchmarkData.gap_analisis.estimasi_peluang_persen}%)`
+        : KPI_DATA[1].value,
+      note: "Berdasarkan gap nilai rapor kumulatif",
+    },
+    {
+      label: "RATA-RATA NILAI SAYA",
+      value: benchmarkData?.siswa?.rata_rata_rapor !== undefined
+        ? Number(benchmarkData.siswa.rata_rata_rapor).toFixed(1).replace(".", ",")
+        : KPI_DATA[2].value,
+      note: benchmarkData?.benchmark_alumni?.rata_rata_nilai_alumni
+        ? `Rata-rata alumni: ${benchmarkData.benchmark_alumni.rata_rata_nilai_alumni}`
+        : KPI_DATA[2].note,
+    },
+  ];
+
+  const grafikItems: MataPelajaranBar[] =
+    benchmarkData?.gap_analisis?.rincian_per_mapel &&
+    benchmarkData.gap_analisis.rincian_per_mapel.length > 0
+      ? benchmarkData.gap_analisis.rincian_per_mapel.map((m: any) => ({
+          nama: m.nama_mapel,
+          nilaiku: Number(m.nilai_siswa) || 0,
+          nilaiAlumni: Number(m.rata_rata_alumni) || 0,
+          maxNilai: 100,
+        }))
+      : DATA_GRAFIK;
+
   return (
     <div
       className="flex flex-col gap-6 w-full max-w-[1360px] mx-auto"
       style={{ fontFamily: "Inter, sans-serif", color: "#1F1729" }}
     >
+      {notification && (
+        <div
+          className={`p-4 rounded-xl flex items-center justify-between gap-3 text-[13px] border animate-in fade-in duration-200 ${
+            notification.type === "success"
+              ? "bg-[#DCFCE7] border-[#86EFAC] text-[#148557]"
+              : "bg-[#FEE4E2] border-[#FECDCA] text-[#D92D20]"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {notification.type === "success" ? (
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+            ) : (
+              <AlertCircle className="w-4 h-4 shrink-0" />
+            )}
+            <span>{notification.message}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setNotification(null)}
+            className="text-slate-400 hover:text-slate-600 font-bold px-1 cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* ─── ROW 1: Profil + Atur Perbandingan ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-4 items-stretch">
         {/* Kartu Profil Siswa */}
@@ -113,15 +223,18 @@ export default function PerbandinganNilai() {
               className="font-bold text-[22px] leading-tight mb-1.5"
               style={{ color: "#1F1729", fontFamily: "Inter, sans-serif" }}
             >
-              {PROFIL_SISWA.nama}
+              {benchmarkData?.siswa?.nama_lengkap || PROFIL_SISWA.nama}
             </h2>
             <p className="text-[12px]" style={{ color: "#6E6678" }}>
-              {PROFIL_SISWA.kelas}&nbsp;•&nbsp;{PROFIL_SISWA.tahunAjaran}
+              {benchmarkData?.siswa?.nisn ? `NISN: ${benchmarkData.siswa.nisn}` : PROFIL_SISWA.kelas}&nbsp;•&nbsp;
+              {benchmarkData?.siswa?.peringkat_eligibilitas
+                ? `Peringkat #${benchmarkData.siswa.peringkat_eligibilitas} (${benchmarkData.siswa.status_eligible || 'Eligible'})`
+                : PROFIL_SISWA.tahunAjaran}
             </p>
           </div>
           <div
             className="mt-4 rounded-[8px] px-3.5 py-2 inline-flex flex-col"
-            style={{ background: "#F0E6F7", width: 160 }}
+            style={{ background: "#F0E6F7", width: 170 }}
           >
             <span
               className="text-[10px] font-semibold uppercase tracking-wider"
@@ -133,7 +246,9 @@ export default function PerbandinganNilai() {
               className="font-bold text-[20px] leading-tight"
               style={{ color: "#6200A8" }}
             >
-              {PROFIL_SISWA.rataRataNilai.toFixed(1).replace(".", ",")}
+              {benchmarkData?.siswa?.rata_rata_rapor !== undefined
+                ? Number(benchmarkData.siswa.rata_rata_rapor).toFixed(1).replace(".", ",")
+                : PROFIL_SISWA.rataRataNilai.toFixed(1).replace(".", ",")}
             </span>
           </div>
         </div>
@@ -242,10 +357,14 @@ export default function PerbandinganNilai() {
 
             {/* Tombol Bandingkan */}
             <button
-              className="h-10 px-5 rounded-[7px] font-semibold text-[12px] text-white shrink-0 transition-opacity hover:opacity-90 active:opacity-80"
+              type="button"
+              disabled={isLoading}
+              onClick={() => fetchBenchmark(programStudi)}
+              className="h-10 px-5 rounded-[7px] font-semibold text-[12px] text-white shrink-0 transition-opacity hover:opacity-90 active:opacity-80 flex items-center gap-2 cursor-pointer disabled:opacity-60"
               style={{ background: "#6200A8" }}
             >
-              Bandingkan
+              {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+              <span>Bandingkan</span>
             </button>
           </div>
         </div>
@@ -260,7 +379,7 @@ export default function PerbandinganNilai() {
           Hasil Perbandingan
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {KPI_DATA.map((kpi) => (
+          {kpiItems.map((kpi) => (
             <div
               key={kpi.label}
               className="rounded-[11px] p-5 sm:p-6"
@@ -325,7 +444,7 @@ export default function PerbandinganNilai() {
 
         {/* Bar rows */}
         <div className="flex flex-col gap-5">
-          {DATA_GRAFIK.map((item) => {
+          {grafikItems.map((item) => {
             const pctKu = (item.nilaiku / item.maxNilai) * 100;
             const pctAlumni = (item.nilaiAlumni / item.maxNilai) * 100;
             return (

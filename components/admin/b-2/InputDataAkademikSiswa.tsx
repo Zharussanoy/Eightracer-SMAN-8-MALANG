@@ -9,16 +9,19 @@ import {
 } from "@/components/admin/b-2/dummyAkademikData";
 import { DATA_MANAJEMEN_SISWA, SiswaDataItem } from "@/components/admin/b-2/mockDataAdminB2";
 import {
+  AlertCircle,
   ArrowLeft,
   CheckCircle2,
   Info,
+  Loader2,
   Plus,
   Search,
   Trash2,
   Upload
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { akademikService, siswaAdminService } from "@/services/b2";
 
 interface Props {
   siswaId: string;
@@ -28,18 +31,29 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
   const siswa: SiswaDataItem | undefined = DATA_MANAJEMEN_SISWA.find((s) => s.id === siswaId);
   const rawAkademik: AkademikDataItem | undefined = DUMMY_AKADEMIK_DATA[siswaId];
 
-  const defaultSiswa: SiswaDataItem = siswa || {
+  const [liveSiswa, setLiveSiswa] = useState<any | null>(null);
+  const [isLoadingSiswa, setIsLoadingSiswa] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const defaultSiswa: SiswaDataItem = {
     id: siswaId,
-    initials: "TS",
+    initials: liveSiswa?.nama_lengkap
+      ? liveSiswa.nama_lengkap
+          .split(" ")
+          .map((w: string) => w[0])
+          .slice(0, 2)
+          .join("")
+          .toUpperCase()
+      : siswa?.initials || "SW",
     initialsBg: "#E0D7F5",
-    nama: "Tegar Saputra",
-    nisn: "005391101",
-    kelas: "XII IPA 1",
-    gender: "Laki-laki",
-    statusKelengkapan: "Lengkap",
-    kelengkapanDetail: "(100%)",
-    rataRapor: 92.4,
-    rekomendasiMinat: "Teknik Informatika",
+    nama: liveSiswa?.nama_lengkap || siswa?.nama || "Siswa",
+    nisn: liveSiswa?.nisn || siswa?.nisn || "-",
+    kelas: liveSiswa?.riwayat_kelas?.[0]?.kelas?.nama_kelas || siswa?.kelas || "XII",
+    gender: liveSiswa?.jenis_kelamin === "L" ? "Laki-laki" : liveSiswa?.jenis_kelamin === "P" ? "Perempuan" : siswa?.gender || "Laki-laki",
+    statusKelengkapan: siswa?.statusKelengkapan || "Lengkap",
+    kelengkapanDetail: siswa?.kelengkapanDetail || "(100%)",
+    rataRapor: siswa?.rataRapor || 90.0,
+    rekomendasiMinat: siswa?.rekomendasiMinat || "Riset Saintifik",
   };
 
   const [nilaiRaporList, setNilaiRaporList] = useState<NilaiRapor[]>(
@@ -177,13 +191,101 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSimpan = () => {
-    setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
+  useEffect(() => {
+    if (!siswaId) return;
+
+    let isMounted = true;
+    setIsLoadingSiswa(true);
+
+    Promise.all([
+      siswaAdminService.getById(siswaId).catch(() => null),
+      akademikService.getAkademik({ siswa_id: siswaId }).catch(() => null),
+    ])
+      .then(([resSiswa, resAkademik]) => {
+        if (!isMounted) return;
+
+        if (resSiswa?.data) {
+          setLiveSiswa(resSiswa.data);
+        }
+
+        if (resAkademik?.data?.nilai_rapor && resAkademik.data.nilai_rapor.length > 0) {
+          const grouped: Record<string, any> = {};
+          resAkademik.data.nilai_rapor.forEach((nr: any) => {
+            const mapelName =
+              nr.mata_pelajaran?.nama_mata_pelajaran ||
+              `Mata Pelajaran #${nr.mata_pelajaran_id}`;
+            if (!grouped[mapelName]) {
+              grouped[mapelName] = {
+                mataPelajaran: mapelName,
+                mata_pelajaran_id: nr.mata_pelajaran_id,
+                jurusan: "MIPA",
+                semester: { s1: null, s2: null, s3: null, s4: null, s5: null },
+              };
+            }
+            const semKey = `s${nr.semester}` as "s1" | "s2" | "s3" | "s4" | "s5";
+            grouped[mapelName].semester[semKey] = parseFloat(nr.nilai_akhir);
+          });
+          setNilaiRaporList(Object.values(grouped));
+        }
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingSiswa(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [siswaId]);
+
+  const handleSimpan = async () => {
+    try {
+      setIsSaving(true);
+      setSaveError(null);
+      setIsSaved(false);
+
+      // Hitung rata-rata nilai TKA dari tkaWajib
+      const sumTka = tkaWajib.reduce((acc, curr) => acc + (Number(curr.nilai) || 0), 0);
+      const avgTka = tkaWajib.length > 0 ? Number((sumTka / tkaWajib.length).toFixed(1)) : 85;
+
+      // Flatten nilai rapor
+      const flatRapor: Array<{
+        mata_pelajaran_id: number;
+        semester: number;
+        nilai_akhir: number;
+      }> = [];
+
+      nilaiRaporList.forEach((item, idx) => {
+        const mapelId = (item as any).mata_pelajaran_id || idx + 1;
+        (["s1", "s2", "s3", "s4", "s5"] as const).forEach((semKey, semIdx) => {
+          const val = item.semester[semKey];
+          if (val !== null && val !== undefined && !isNaN(Number(val))) {
+            flatRapor.push({
+              mata_pelajaran_id: Number(mapelId),
+              semester: semIdx + 1,
+              nilai_akhir: Number(val),
+            });
+          }
+        });
+      });
+
+      if (flatRapor.length === 0) {
+        throw new Error("Mohon masukkan minimal 1 nilai rapor semester sebelum menyimpan.");
+      }
+
+      await akademikService.storeOrUpdateNilaiRapor({
+        siswa_id: siswaId,
+        nilai_tka: avgTka,
+        nilai_rapor: flatRapor,
+      });
+
       setIsSaved(true);
-      setTimeout(() => setIsSaved(false), 4000);
-    }, 600);
+      setTimeout(() => setIsSaved(false), 4500);
+    } catch (err: any) {
+      console.error("Gagal menyimpan data nilai rapor:", err);
+      setSaveError(err?.message || "Terjadi kesalahan saat menyimpan data ke database.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleAddMapelRapor = () => {
@@ -292,6 +394,27 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
             Kelola nilai rapor, prestasi, kehadiran, dan profil potensi siswa untuk mendukung skema riset program studi.
           </p>
         </div>
+
+        {isLoadingSiswa && (
+          <div className="p-3.5 rounded-xl bg-purple-50 border border-purple-200 text-[#6941C6] text-[13px] font-medium flex items-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin text-[#7F56D9]" />
+            <span>Memuat profil dan nilai rapor siswa dari database Laravel...</span>
+          </div>
+        )}
+
+        {saveError && (
+          <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-[13px] font-medium flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+            <span>{saveError}</span>
+          </div>
+        )}
+
+        {isSaved && (
+          <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-[13px] font-medium flex items-center gap-2 animate-in fade-in">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>Data nilai rapor dan TKA berhasil disimpan langsung ke database!</span>
+          </div>
+        )}
 
         <div className="space-y-1.5">
           <label className="text-[12px] font-medium text-[#4B5563]">

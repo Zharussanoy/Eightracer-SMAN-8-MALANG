@@ -25,7 +25,7 @@ import {
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import DetailSiswaModal from "./DetailSiswaModal";
-import { eligibilitasService } from "@/services/b2";
+import { eligibilitasService, siswaAdminService } from "@/services/b2";
 import {
   DATA_MANAJEMEN_SISWA,
   DATA_MINAT_RIASEC,
@@ -123,6 +123,8 @@ export default function AdminB2Dashboard() {
         type: "success",
         message: res?.message || "Kalkulasi ranking eligibilitas berhasil diproses di backend!",
       });
+      // Segera sinkronkan ulang tabel ranking dengan data hasil kalkulasi terbaru
+      await fetchLiveRanking(1, searchRanking);
     } catch (err: any) {
       setCalcNotification({
         type: "error",
@@ -133,15 +135,136 @@ export default function AdminB2Dashboard() {
     }
   };
 
+  // Integrasi Backend: Live Data Ranking Eligibilitas (RankingController)
+  const [rankingData, setRankingData] = useState<any[]>(DATA_RANKING_ELIGIBILITAS);
+  const [isRankingLoading, setIsRankingLoading] = useState(false);
+  const [rankingPage, setRankingPage] = useState(1);
+  const [rankingPagination, setRankingPagination] = useState({
+    total: DATA_RANKING_ELIGIBILITAS.length,
+    lastPage: 1,
+    from: 1,
+    to: DATA_RANKING_ELIGIBILITAS.length,
+  });
 
-  const filteredRanking = DATA_RANKING_ELIGIBILITAS.filter(
+  const fetchLiveRanking = async (page = 1, search = searchRanking) => {
+    try {
+      setIsRankingLoading(true);
+      const res = await eligibilitasService.getRankingList({
+        page,
+        per_page: 10,
+        search: search.trim() || undefined,
+      });
+
+      if (res?.data?.data && Array.isArray(res.data.data)) {
+        const paginated = res.data;
+        const mapped = paginated.data.map((item: any) => ({
+          id: item.siswa?.id || String(item.rank),
+          rank: item.rank,
+          nama: item.siswa?.nama_lengkap || "Siswa",
+          nisn: item.siswa?.nisn || "-",
+          kelas: item.siswa?.kelas || "XII",
+          nilaiRataRata: Number(item.skor_akhir) || 0,
+          skor: Number(item.skor_akhir) || 0,
+          status:
+            item.status_eligible === "eligible" || item.status_eligible === "Eligible"
+              ? "Eligible"
+              : item.status_eligible === "cadangan" || item.status_eligible === "Cadangan"
+              ? "Cadangan"
+              : "Tidak Eligible",
+        }));
+        setRankingData(mapped);
+        setRankingPagination({
+          total: paginated.total ?? mapped.length,
+          lastPage: paginated.last_page ?? 1,
+          from: paginated.from ?? 1,
+          to: paginated.to ?? mapped.length,
+        });
+        setRankingPage(page);
+      }
+    } catch (err: any) {
+      console.warn("Koneksi Backend Ranking (fallback ke mock):", err?.message);
+    } finally {
+      setIsRankingLoading(false);
+    }
+  };
+
+  const [liveSiswaList, setLiveSiswaList] = useState<any[]>([]);
+  const [isSiswaLoading, setIsSiswaLoading] = useState(false);
+  const [siswaPage, setSiswaPage] = useState(1);
+  const [siswaPagination, setSiswaPagination] = useState({
+    total: 0,
+    currentPage: 1,
+    lastPage: 1,
+    from: 0,
+    to: 0,
+  });
+
+  const fetchLiveSiswa = async (page: number = 1, nama?: string, kelas?: string) => {
+    try {
+      setIsSiswaLoading(true);
+      const res = await siswaAdminService.getAll({
+        page,
+        nama_lengkap: nama || undefined,
+        kelas: kelas && kelas !== "Semua Kelas" ? kelas : undefined,
+      });
+
+      if (res?.data) {
+        const paginatedData = res.data.data || res.data;
+        if (Array.isArray(paginatedData)) {
+          const mapped = paginatedData.map((item: any) => {
+            const namaKelas = item.riwayat_kelas?.[0]?.kelas?.nama_kelas || item.kelas || "-";
+            const initials = item.nama_lengkap
+              ? item.nama_lengkap
+                  .split(" ")
+                  .map((w: string) => w[0])
+                  .slice(0, 2)
+                  .join("")
+                  .toUpperCase()
+              : "SW";
+            return {
+              id: String(item.id),
+              initials,
+              initialsBg: "#F4EBFF",
+              nama: item.nama_lengkap || item.nama || "Siswa",
+              nisn: item.nisn || "-",
+              kelas: namaKelas,
+              gender: item.jenis_kelamin === "L" ? "Laki-laki" : item.jenis_kelamin === "P" ? "Perempuan" : item.gender || "Laki-laki",
+              statusKelengkapan: item.statusKelengkapan || "Lengkap",
+              kelengkapanDetail: item.kelengkapanDetail || "(100%)",
+              rataRapor: item.nilai_rapor_avg ? parseFloat(item.nilai_rapor_avg) : 88.5,
+              rekomendasiMinat: item.rekomendasi_prodi?.[0]?.klaster?.nama_klaster || "Riset Saintifik",
+              rawItem: item,
+            };
+          });
+          setLiveSiswaList(mapped);
+          setSiswaPagination({
+            total: res.data.total ?? mapped.length,
+            currentPage: res.data.current_page ?? page,
+            lastPage: res.data.last_page ?? 1,
+            from: res.data.from ?? 1,
+            to: res.data.to ?? mapped.length,
+          });
+        }
+      }
+    } catch (err) {
+      console.warn("Gagal memuat siswa live, menggunakan fallback mock:", err);
+    } finally {
+      setIsSiswaLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLiveRanking(1, "");
+    fetchLiveSiswa(1, "", "");
+  }, []);
+
+  const filteredRanking = rankingData.filter(
     (item) =>
       item.nama.toLowerCase().includes(searchRanking.toLowerCase()) ||
       item.nisn.includes(searchRanking)
   );
 
-
-  const filteredSiswa = DATA_MANAJEMEN_SISWA.filter((item) => {
+  const filteredSiswaMock = DATA_MANAJEMEN_SISWA.filter((item) => {
     const matchSearch =
       item.nama.toLowerCase().includes(searchSiswa.toLowerCase()) ||
       item.nisn.includes(searchSiswa);
@@ -154,9 +277,11 @@ export default function AdminB2Dashboard() {
     return matchSearch && matchKelas && matchStatus && matchGender;
   });
 
+  const displayedSiswa = liveSiswaList.length > 0 ? liveSiswaList : filteredSiswaMock;
+
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedIds(filteredSiswa.map((s) => s.id));
+      setSelectedIds(displayedSiswa.map((s) => s.id));
     } else {
       setSelectedIds([]);
     }
@@ -173,6 +298,23 @@ export default function AdminB2Dashboard() {
     setFilterKelas("Semua Kelas");
     setFilterStatus("Semua Status");
     setFilterGender("Semua Gender");
+    fetchLiveSiswa(1, "", "");
+  };
+
+  const handleDeleteSiswa = async (id: string, nama: string) => {
+    if (
+      confirm(
+        `Yakin ingin menghapus data siswa ${nama}? Tindakan ini akan menghapus akun dan data akademik terkait.`
+      )
+    ) {
+      try {
+        await siswaAdminService.delete(id);
+        alert(`Data siswa ${nama} berhasil dihapus.`);
+        fetchLiveSiswa(siswaPage, searchSiswa, filterKelas);
+      } catch (err: any) {
+        alert(err?.message || "Gagal menghapus data siswa.");
+      }
+    }
   };
 
   useEffect(() => {
@@ -615,13 +757,17 @@ export default function AdminB2Dashboard() {
 
             <div className="flex flex-wrap items-center gap-2.5">
 
-              <div className="flex items-center gap-2 px-3 h-9 rounded-lg bg-white border border-[#D0D5DD] focus-within:border-[#7F56D9] min-w-[190px]">
+              <div className="flex items-center gap-2 px-3 h-9 rounded-lg bg-white border border-[#D0D5DD] focus-within:border-[#7F56D9] min-w-[210px]">
                 <Search className="w-3.5 h-3.5 text-[#667085]" />
                 <input
                   type="text"
                   placeholder="Cari nama atau NISN..."
                   value={searchRanking}
-                  onChange={(e) => setSearchRanking(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSearchRanking(val);
+                    fetchLiveRanking(1, val);
+                  }}
                   className="flex-1 bg-transparent outline-none text-[12px] text-[#1F1729]"
                 />
               </div>
@@ -642,18 +788,22 @@ export default function AdminB2Dashboard() {
 
               <button
                 type="button"
+                onClick={() => fetchLiveRanking(1, searchRanking)}
+                title="Muat Ulang Ranking dari Backend"
                 className="h-9 px-3.5 rounded-lg bg-white border border-[#D0D5DD] text-[#344054] hover:border-[#7F56D9] hover:text-[#6941C6] text-[12px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
               >
-                <Filter className="w-3.5 h-3.5 text-[#6941C6]" />
-                <span>Filter</span>
+                <RotateCcw className={`w-3.5 h-3.5 text-[#6941C6] ${isRankingLoading ? "animate-spin" : ""}`} />
+                <span>Refresh</span>
               </button>
 
               <button
                 type="button"
+                onClick={() => window.open(eligibilitasService.getExportExcelUrl(), "_blank")}
+                title="Unduh Laporan Excel dari Backend"
                 className="h-9 px-4 rounded-lg bg-[#7F56D9] hover:bg-[#6941C6] text-white text-[12px] font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>Unduh CSV</span>
+                <span>Unduh Excel</span>
               </button>
             </div>
           </div>
@@ -673,95 +823,151 @@ export default function AdminB2Dashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#EAECF0]">
-                {filteredRanking.map((row, idx) => {
-                  const isShade = idx % 2 === 1;
-                  return (
-                    <tr
-                      key={row.nisn}
-                      className={`transition-colors hover:bg-[#F9F5FF] ${isShade ? "bg-[#FCFAFF]" : "bg-white"
+                {isRankingLoading ? (
+                  <tr>
+                    <td colSpan={7} className="text-center py-12 text-[#6941C6]">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <Loader2 className="w-6 h-6 animate-spin text-[#7F56D9]" />
+                        <span className="text-[12px] font-medium text-[#475467]">
+                          Menghubungkan ke backend dan memuat daftar ranking...
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filteredRanking.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="text-center py-10 text-slate-400 text-[13px]">
+                      Tidak ditemukan data siswa atau hasil eligibilitas belum dikalkulasi.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredRanking.map((row, idx) => {
+                    const isShade = idx % 2 === 1;
+                    const isEligible = row.status === "Eligible";
+                    const isCadangan = row.status === "Cadangan";
+
+                    return (
+                      <tr
+                        key={row.id || `${row.nisn}-${idx}`}
+                        className={`transition-colors hover:bg-[#F9F5FF] ${
+                          isShade ? "bg-[#FCFAFF]" : "bg-white"
                         }`}
-                    >
+                      >
+                        <td className="px-5 py-3.5 font-bold">
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className={
+                                row.rank <= 3 ? "text-[#6941C6]" : "text-[#667085]"
+                              }
+                            >
+                              {String(row.rank).padStart(2, "0")}
+                            </span>
+                            {row.rank === 1 && (
+                              <span className="w-4 h-4 rounded-full bg-[#F2B32E] text-white text-[9px] font-bold flex items-center justify-center">
+                                1
+                              </span>
+                            )}
+                            {row.rank === 2 && (
+                              <span className="w-4 h-4 rounded-full bg-[#C4CFDE] text-white text-[9px] font-bold flex items-center justify-center">
+                                2
+                              </span>
+                            )}
+                            {row.rank === 3 && (
+                              <span className="w-4 h-4 rounded-full bg-[#C79163] text-white text-[9px] font-bold flex items-center justify-center">
+                                3
+                              </span>
+                            )}
+                          </div>
+                        </td>
 
-                      <td className="px-5 py-3.5 font-bold">
-                        <div className="flex items-center gap-1.5">
-                          <span
-                            className={
-                              row.rank <= 3 ? "text-[#6941C6]" : "text-[#667085]"
-                            }
+                        <td className="px-5 py-3.5 font-semibold text-[#14141C]">
+                          <div>
+                            <span>{row.nama}</span>
+                            {row.kelas && (
+                              <span className="block text-[11px] font-normal text-[#667085]">
+                                {row.kelas}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        <td className="px-5 py-3.5 text-[#667085]">{row.nisn}</td>
+
+                        <td className="px-5 py-3.5 font-bold text-[#14141C]">
+                          {typeof row.nilaiRataRata === "number"
+                            ? row.nilaiRataRata.toFixed(2).replace(".", ",")
+                            : "-"}
+                        </td>
+
+                        <td className="px-5 py-3.5 font-bold text-[#6941C6]">
+                          {typeof row.skor === "number"
+                            ? row.skor.toFixed(2).replace(".", ",")
+                            : "-"}
+                        </td>
+
+                        <td className="px-5 py-3.5">
+                          {isEligible ? (
+                            <span className="px-2.5 py-1 rounded-md bg-[#DCFCE7] text-[#148557] font-semibold text-[11px] inline-block">
+                              Eligible
+                            </span>
+                          ) : isCadangan ? (
+                            <span className="px-2.5 py-1 rounded-md bg-[#FEF0C7] text-[#B54708] font-semibold text-[11px] inline-block">
+                              Cadangan
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-1 rounded-md bg-[#FEE4E2] text-[#D92D20] font-semibold text-[11px] inline-block">
+                              Tidak Eligible
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="px-5 py-3.5 text-right">
+                          <button
+                            type="button"
+                            title="Detail Skor Siswa"
+                            onClick={() => {
+                              alert(`Detail Skor untuk ${row.nama} (Peringkat #${row.rank}, Skor Akhir: ${row.skor})`);
+                            }}
+                            className="text-[#667085] hover:text-[#6941C6] font-bold px-2 py-1 cursor-pointer transition-colors"
                           >
-                            {String(row.rank).padStart(2, "0")}
-                          </span>
-                          {row.rank === 1 && (
-                            <span className="w-4 h-4 rounded-full bg-[#F2B32E] text-white text-[9px] font-bold flex items-center justify-center">
-                              1
-                            </span>
-                          )}
-                          {row.rank === 2 && (
-                            <span className="w-4 h-4 rounded-full bg-[#C4CFDE] text-white text-[9px] font-bold flex items-center justify-center">
-                              2
-                            </span>
-                          )}
-                          {row.rank === 3 && (
-                            <span className="w-4 h-4 rounded-full bg-[#C79163] text-white text-[9px] font-bold flex items-center justify-center">
-                              3
-                            </span>
-                          )}
-                        </div>
-                      </td>
-
-
-                      <td className="px-5 py-3.5 font-semibold text-[#14141C]">
-                        {row.nama}
-                      </td>
-
-
-                      <td className="px-5 py-3.5 text-[#667085]">{row.nisn}</td>
-
-
-                      <td className="px-5 py-3.5 font-bold text-[#14141C]">
-                        {row.nilaiRataRata.toFixed(2).replace(".", ",")}
-                      </td>
-
-
-                      <td className="px-5 py-3.5 font-bold text-[#6941C6]">
-                        {row.skor.toFixed(1).replace(".", ",")}
-                      </td>
-
-
-                      <td className="px-5 py-3.5">
-                        {row.status === "Eligible" ? (
-                          <span className="px-2.5 py-1 rounded-md bg-[#DCFCE7] text-[#148557] font-semibold text-[11px] inline-block">
-                            Eligible
-                          </span>
-                        ) : (
-                          <span className="px-2.5 py-1 rounded-md bg-[#FEF0C7] text-[#B54708] font-semibold text-[11px] inline-block">
-                            Evaluasi
-                          </span>
-                        )}
-                      </td>
-
-
-                      <td className="px-5 py-3.5 text-right">
-                        <button
-                          type="button"
-                          className="text-[#667085] hover:text-[#6941C6] font-bold px-2 py-1 cursor-pointer"
-                        >
-                          •••
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                            •••
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
 
-
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-5 py-3 text-[11px] text-[#667085] border-t border-[#EAECF0] bg-white">
-            <span>Menampilkan 1-5 dari 248 siswa</span>
-            <span className="font-semibold text-[#6941C6]">
-              Halaman 1 dari 10 (Kuota SNBP Terpenuhi: 72/72)
+            <span>
+              Menampilkan {filteredRanking.length > 0 ? `${rankingPagination.from}-${rankingPagination.to}` : "0"} dari {rankingPagination.total} siswa terdata
             </span>
+            <div className="flex items-center gap-3">
+              <span className="font-semibold text-[#6941C6]">
+                Halaman {rankingPage} dari {rankingPagination.lastPage}
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  disabled={rankingPage <= 1 || isRankingLoading}
+                  onClick={() => fetchLiveRanking(rankingPage - 1, searchRanking)}
+                  className="px-2.5 py-1 rounded border border-[#D0D5DD] hover:bg-[#F9F5FF] disabled:opacity-40 disabled:pointer-events-none text-[11px] font-semibold text-[#344054] cursor-pointer transition-colors"
+                >
+                  Sebelumnya
+                </button>
+                <button
+                  type="button"
+                  disabled={rankingPage >= rankingPagination.lastPage || isRankingLoading}
+                  onClick={() => fetchLiveRanking(rankingPage + 1, searchRanking)}
+                  className="px-2.5 py-1 rounded border border-[#D0D5DD] hover:bg-[#F9F5FF] disabled:opacity-40 disabled:pointer-events-none text-[11px] font-semibold text-[#344054] cursor-pointer transition-colors"
+                >
+                  Selanjutnya
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -938,8 +1144,8 @@ export default function AdminB2Dashboard() {
                     <input
                       type="checkbox"
                       checked={
-                        filteredSiswa.length > 0 &&
-                        selectedIds.length === filteredSiswa.length
+                        displayedSiswa.length > 0 &&
+                        selectedIds.length === displayedSiswa.length
                       }
                       onChange={(e) => handleSelectAll(e.target.checked)}
                       className="rounded border-[#D0D5DD] text-[#7F56D9] focus:ring-[#7F56D9] cursor-pointer"
@@ -954,7 +1160,23 @@ export default function AdminB2Dashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#EAECF0]">
-                {filteredSiswa.map((siswa) => {
+                {isSiswaLoading ? (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-8 text-center text-[#667085]">
+                      <div className="flex items-center justify-center gap-2">
+                        <Loader2 className="w-5 h-5 animate-spin text-[#7F56D9]" />
+                        <span>Memuat data siswa dari database...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : displayedSiswa.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-8 text-center text-[#667085]">
+                      Tidak ada data siswa yang cocok dengan filter.
+                    </td>
+                  </tr>
+                ) : (
+                  displayedSiswa.map((siswa) => {
                   const isChecked = selectedIds.includes(siswa.id);
                   return (
                     <tr
@@ -1067,6 +1289,7 @@ export default function AdminB2Dashboard() {
                           </Link>
                           <button
                             type="button"
+                            onClick={() => handleDeleteSiswa(siswa.id, siswa.nama)}
                             title="Hapus Siswa"
                             className="p-1.5 rounded-md hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
                           >
@@ -1076,7 +1299,7 @@ export default function AdminB2Dashboard() {
                       </td>
                     </tr>
                   );
-                })}
+                }))}
               </tbody>
             </table>
           </div>
@@ -1084,56 +1307,46 @@ export default function AdminB2Dashboard() {
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-3.5 border-t border-[#EAECF0] text-[11px] text-[#667085] bg-white">
             <div className="flex items-center gap-4">
-              <span>Menampilkan 1-8 dari 420 siswa</span>
-              <div className="flex items-center gap-1.5">
-                <span>Tampilkan per halaman:</span>
-                <select className="border border-[#D0D5DD] rounded-md px-2 py-0.5 bg-white text-[#1F1729] outline-none">
-                  <option>10</option>
-                  <option>20</option>
-                  <option>50</option>
-                </select>
-              </div>
+              <span>
+                Menampilkan{" "}
+                {displayedSiswa.length > 0
+                  ? `${siswaPagination.from || 1}-${siswaPagination.to || displayedSiswa.length}`
+                  : "0"}{" "}
+                dari {siswaPagination.total || displayedSiswa.length} siswa
+              </span>
             </div>
 
 
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                className="px-2.5 py-1 rounded text-[#667085] hover:text-[#101828] disabled:opacity-40"
-              >
-                ‹ Sebelumnya
-              </button>
-              <button
-                type="button"
-                className="w-6 h-6 rounded-md bg-[#7F56D9] text-white font-bold flex items-center justify-center text-[11px] shadow-2xs"
-              >
-                1
-              </button>
-              <button
-                type="button"
-                className="w-6 h-6 rounded-md text-[#667085] hover:bg-[#F9F5FF] hover:text-[#6941C6] flex items-center justify-center text-[11px]"
-              >
-                2
-              </button>
-              <button
-                type="button"
-                className="w-6 h-6 rounded-md text-[#667085] hover:bg-[#F9F5FF] hover:text-[#6941C6] flex items-center justify-center text-[11px]"
-              >
-                3
-              </button>
-              <span className="px-1 text-[#667085]">...</span>
-              <button
-                type="button"
-                className="w-6 h-6 rounded-md text-[#667085] hover:bg-[#F9F5FF] hover:text-[#6941C6] flex items-center justify-center text-[11px]"
-              >
-                10
-              </button>
-              <button
-                type="button"
-                className="px-2.5 py-1 rounded text-[#6941C6] font-semibold hover:underline"
-              >
-                Selanjutnya ›
-              </button>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-[#6941C6]">
+                Halaman {siswaPage} dari {siswaPagination.lastPage || 1}
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  disabled={siswaPage <= 1 || isSiswaLoading}
+                  onClick={() => {
+                    const prev = siswaPage - 1;
+                    setSiswaPage(prev);
+                    fetchLiveSiswa(prev, searchSiswa, filterKelas);
+                  }}
+                  className="px-2.5 py-1 rounded border border-[#D0D5DD] hover:bg-[#F9F5FF] disabled:opacity-40 disabled:pointer-events-none text-[11px] font-semibold text-[#344054] cursor-pointer"
+                >
+                  ‹ Sebelumnya
+                </button>
+                <button
+                  type="button"
+                  disabled={siswaPage >= (siswaPagination.lastPage || 1) || isSiswaLoading}
+                  onClick={() => {
+                    const next = siswaPage + 1;
+                    setSiswaPage(next);
+                    fetchLiveSiswa(next, searchSiswa, filterKelas);
+                  }}
+                  className="px-2.5 py-1 rounded border border-[#D0D5DD] hover:bg-[#F9F5FF] disabled:opacity-40 disabled:pointer-events-none text-[11px] font-semibold text-[#344054] cursor-pointer"
+                >
+                  Selanjutnya ›
+                </button>
+              </div>
             </div>
           </div>
         </div>

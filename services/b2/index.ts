@@ -56,8 +56,14 @@ export const eligibilitasService = {
     ),
 
   // GET /v1/ranking
-  getRankingList: (params?: { jurusan?: string; status?: string; search?: string }) =>
-    apiFetch<{ success: boolean; data: any[] }>("/v1/ranking", { params }),
+  getRankingList: (params?: {
+    page?: number;
+    per_page?: number;
+    jurusan?: string;
+    status?: string;
+    search?: string;
+  }) =>
+    apiFetch<{ status: string; message?: string; data: any }>("/v1/ranking", { params }),
 
   // GET /v1/siswa/ranking/detail (untuk siswa aktif)
   getDetailSkorSiswaSaya: () =>
@@ -77,8 +83,8 @@ export const eligibilitasService = {
 // ==========================================
 export const benchmarkService = {
   // GET /v1/siswa/benchmark-alumni
-  compareWithAlumni: () =>
-    apiFetch<{ success: boolean; data: any }>("/v1/siswa/benchmark-alumni"),
+  compareWithAlumni: (params?: { nama_prodi?: string; ptn?: string; siswa_id?: string | number }) =>
+    apiFetch<{ status: string; message: string; data: any }>("/v1/siswa/benchmark-alumni", { params }),
 };
 
 // ==========================================
@@ -87,25 +93,34 @@ export const benchmarkService = {
 // ==========================================
 export const akademikService = {
   // GET /v1/siswa/akademik
-  getAkademik: () => apiFetch<{ success: boolean; data: any }>("/v1/siswa/akademik"),
+  getAkademik: (params?: { siswa_id?: string | number }) =>
+    apiFetch<{ status: string; message: string; data: any }>("/v1/siswa/akademik", { params }),
 
   // POST /v1/siswa/akademik/rapor
-  storeOrUpdateNilaiRapor: (payload: any) =>
-    apiFetch<{ success: boolean; message: string; data?: any }>("/v1/siswa/akademik/rapor", {
+  storeOrUpdateNilaiRapor: (payload: {
+    siswa_id?: string | number;
+    nilai_tka?: number;
+    nilai_rapor: Array<{
+      mata_pelajaran_id: number;
+      semester: number;
+      nilai_akhir: number;
+    }>;
+  }) =>
+    apiFetch<{ status: string; message: string; data?: any }>("/v1/siswa/akademik/rapor", {
       method: "POST",
       body: JSON.stringify(payload),
     }),
 
   // POST /v1/siswa/akademik/prestasi
   storePrestasi: (payload: any) =>
-    apiFetch<{ success: boolean; message: string; data?: any }>("/v1/siswa/akademik/prestasi", {
+    apiFetch<{ status: string; message: string; data?: any }>("/v1/siswa/akademik/prestasi", {
       method: "POST",
       body: JSON.stringify(payload),
     }),
 
   // POST /v1/siswa/akademik/presensi-karakter
   storePresensiKarakter: (payload: any) =>
-    apiFetch<{ success: boolean; message: string; data?: any }>(
+    apiFetch<{ status: string; message: string; data?: any }>(
       "/v1/siswa/akademik/presensi-karakter",
       {
         method: "POST",
@@ -120,11 +135,11 @@ export const akademikService = {
 // ==========================================
 export const asesmenService = {
   // GET /v1/siswa/asesmen
-  getAsesmen: () => apiFetch<{ success: boolean; data: any }>("/v1/siswa/asesmen"),
+  getAsesmen: () => apiFetch<{ status: string; message?: string; data: any }>("/v1/siswa/asesmen"),
 
   // POST /v1/siswa/asesmen
   saveAsesmen: (payload: any) =>
-    apiFetch<{ success: boolean; message: string; data?: any }>("/v1/siswa/asesmen", {
+    apiFetch<{ status: string; message: string; data?: any }>("/v1/siswa/asesmen", {
       method: "POST",
       body: JSON.stringify(payload),
     }),
@@ -136,12 +151,12 @@ export const asesmenService = {
 // ==========================================
 export const siswaAdminService = {
   // GET /v1/admin/siswa
-  getAll: (params?: { search?: string; kelas?: string; jurusan?: string }) =>
-    apiFetch<{ success: boolean; data: any[] }>("/v1/admin/siswa", { params }),
+  getAll: (params?: { nama_lengkap?: string; nisn?: string; kelas?: string; page?: number }) =>
+    apiFetch<{ status: string; message: string; data: any }>("/v1/admin/siswa", { params }),
 
   // GET /v1/admin/siswa/{id}
   getById: (id: string | number) =>
-    apiFetch<{ success: boolean; data: any }>(`/v1/admin/siswa/${id}`),
+    apiFetch<{ status: string; message: string; data: any }>(`/v1/admin/siswa/${id}`),
 
   // POST /v1/admin/siswa
   create: (payload: any) =>
