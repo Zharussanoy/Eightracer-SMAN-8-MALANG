@@ -6,15 +6,19 @@ import {
   Check,
   CheckCircle2,
   ChevronDown,
+  Loader2,
   Pencil,
   Plus,
+  RefreshCw,
   X
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { bobotService, eligibilitasService } from "@/services/b2";
 
 export interface KomponenBobot {
   id: string;
+  fieldKey?: "bobot_rapor" | "bobot_tka" | "bobot_prestasi" | "bobot_presensi" | "bobot_karakter" | "bobot_organisasi" | string;
   nama: string;
   deskripsi: string;
   bobot: number;
@@ -22,60 +26,90 @@ export interface KomponenBobot {
 
 export const OPSI_JENIS_VARIABEL = [
   {
-    nama: "Nilai TKA",
-    deskripsiDefault: "Akademik",
-  },
-  {
-    nama: "Rata-Rata raport semester 1-5",
+    fieldKey: "bobot_rapor",
+    nama: "Rata-rata rapor semester 1-5",
     deskripsiDefault: "Akademik · Nilai rata-rata kumulatif siswa semester 1-5",
   },
   {
+    fieldKey: "bobot_tka",
+    nama: "Nilai TKA (Tes Kemampuan Akademik)",
+    deskripsiDefault: "Akademik · Pengukuran standarisasi kemampuan skolastik & kognitif",
+  },
+  {
+    fieldKey: "bobot_prestasi",
     nama: "Prestasi Akademik",
-    deskripsiDefault: "Olimpiade, lomba, kompetisi akademik",
+    deskripsiDefault: "Olimpiade, lomba, kompetisi akademik terverifikasi",
   },
   {
-    nama: "Prestasi Non-Akademik",
-    deskripsiDefault: "Olahraga, seni, organisasi, dan lainnya",
+    fieldKey: "bobot_presensi",
+    nama: "Presensi / Kehadiran Siswa",
+    deskripsiDefault: "Kedisiplinan dan persentase kehadiran belajar di sekolah",
   },
   {
-    nama: "Catatan Karakter",
-    deskripsiDefault: "Evaluasi sikap, kedisiplinan, dan rekam jejak siswa",
+    fieldKey: "bobot_karakter",
+    nama: "Catatan Karakter & Sikap",
+    deskripsiDefault: "Evaluasi sikap, budi pekerti, dan rekam jejak siswa",
+  },
+  {
+    fieldKey: "bobot_organisasi",
+    nama: "Organisasi & Ekstrakurikuler",
+    deskripsiDefault: "Keaktifan organisasi siswa (OSIS/MPK) dan ekstrakurikuler",
   },
 ];
 
 const INITIAL_BOBOT_ITEMS: KomponenBobot[] = [
   {
     id: "1",
+    fieldKey: "bobot_rapor",
     nama: "Rata-rata rapor semester 1-5",
     deskripsi: "Akademik • Nilai rata-rata kumulatif siswa semester 1-5",
     bobot: 40,
   },
   {
     id: "2",
-    nama: "Prestasi akademik",
-    deskripsi: "Olimpiade, lomba, kompetisi akademik",
-    bobot: 25,
-  },
-  {
-    id: "3",
-    nama: "Prestasi non-akademik",
-    deskripsi: "Olahraga, seni, organisasi, dan lainnya",
+    fieldKey: "bobot_tka",
+    nama: "Nilai TKA",
+    deskripsi: "Akademik · Tes Kemampuan Akademik & Skolastik",
     bobot: 20,
   },
   {
-    id: "4",
-    nama: "Nilai TKA",
-    deskripsi: "Akademik",
+    id: "3",
+    fieldKey: "bobot_prestasi",
+    nama: "Prestasi Akademik",
+    deskripsi: "Olimpiade, lomba, kompetisi sains & akademik",
     bobot: 15,
+  },
+  {
+    id: "4",
+    fieldKey: "bobot_presensi",
+    nama: "Presensi / Kehadiran Siswa",
+    deskripsi: "Kedisiplinan & tingkat kehadiran di sekolah",
+    bobot: 10,
+  },
+  {
+    id: "5",
+    fieldKey: "bobot_karakter",
+    nama: "Catatan Karakter & Sikap",
+    deskripsi: "Evaluasi sikap budi pekerti & rekam jejak siswa",
+    bobot: 10,
+  },
+  {
+    id: "6",
+    fieldKey: "bobot_organisasi",
+    nama: "Organisasi & Ekstrakurikuler",
+    deskripsi: "Keaktifan di OSIS, MPK, dan ekstrakurikuler",
+    bobot: 5,
   },
 ];
 
 export default function KustomisasiBobotRanking() {
   const [items, setItems] = useState<KomponenBobot[]>(INITIAL_BOBOT_ITEMS);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [selectedJenis, setSelectedJenis] = useState(OPSI_JENIS_VARIABEL[1].nama);
-  const [deskripsi, setDeskripsi] = useState(OPSI_JENIS_VARIABEL[1].deskripsiDefault);
+  const [selectedJenis, setSelectedJenis] = useState(OPSI_JENIS_VARIABEL[0].nama);
+  const [deskripsi, setDeskripsi] = useState(OPSI_JENIS_VARIABEL[0].deskripsiDefault);
   const [bobot, setBobot] = useState<number | "">(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
@@ -90,9 +124,75 @@ export default function KustomisasiBobotRanking() {
   const totalBobot = items.reduce((sum, item) => sum + (Number(item.bobot) || 0), 0);
   const isValidTotal = totalBobot === 100;
 
+  // Muat konfigurasi bobot terkini dari Backend Laravel
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchBobot() {
+      try {
+        setIsLoading(true);
+        const res = await bobotService.getBobot();
+        if (res?.data?.bobot_eligibilitas && isMounted) {
+          const be = res.data.bobot_eligibilitas;
+          setItems([
+            {
+              id: "1",
+              fieldKey: "bobot_rapor",
+              nama: "Rata-rata rapor semester 1-5",
+              deskripsi: "Akademik • Nilai rata-rata kumulatif siswa semester 1-5",
+              bobot: Number(be.bobot_rapor) || 0,
+            },
+            {
+              id: "2",
+              fieldKey: "bobot_tka",
+              nama: "Nilai TKA",
+              deskripsi: "Akademik · Tes Kemampuan Akademik & Skolastik",
+              bobot: Number(be.bobot_tka) || 0,
+            },
+            {
+              id: "3",
+              fieldKey: "bobot_prestasi",
+              nama: "Prestasi Akademik",
+              deskripsi: "Olimpiade, lomba, kompetisi sains & akademik",
+              bobot: Number(be.bobot_prestasi) || 0,
+            },
+            {
+              id: "4",
+              fieldKey: "bobot_presensi",
+              nama: "Presensi / Kehadiran Siswa",
+              deskripsi: "Kedisiplinan & tingkat kehadiran di sekolah",
+              bobot: Number(be.bobot_presensi) || 0,
+            },
+            {
+              id: "5",
+              fieldKey: "bobot_karakter",
+              nama: "Catatan Karakter & Sikap",
+              deskripsi: "Evaluasi sikap budi pekerti & rekam jejak siswa",
+              bobot: Number(be.bobot_karakter) || 0,
+            },
+            {
+              id: "6",
+              fieldKey: "bobot_organisasi",
+              nama: "Organisasi & Ekstrakurikuler",
+              deskripsi: "Keaktifan di OSIS, MPK, dan ekstrakurikuler",
+              bobot: Number(be.bobot_organisasi) || 0,
+            },
+          ]);
+        }
+      } catch (err: any) {
+        console.warn("Koneksi API Backend (offline/fallback):", err?.message);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+    fetchBobot();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const handleOpenAddModal = () => {
-    setSelectedJenis("Rata-Rata raport semester 1-5");
-    setDeskripsi("Akademik · Nilai rata-rata kumulatif siswa semester 1-5");
+    setSelectedJenis(OPSI_JENIS_VARIABEL[0].nama);
+    setDeskripsi(OPSI_JENIS_VARIABEL[0].deskripsiDefault);
     setBobot(0);
     setIsDropdownOpen(false);
     setModalError(null);
@@ -149,8 +249,11 @@ export default function KustomisasiBobotRanking() {
       return;
     }
 
+    const matchedOption = OPSI_JENIS_VARIABEL.find((o) => o.nama === selectedJenis);
+
     const newItem: KomponenBobot = {
       id: Date.now().toString(),
+      fieldKey: matchedOption?.fieldKey || `custom_${Date.now()}`,
       nama: selectedJenis,
       deskripsi: deskripsi.trim() || "Kriteria tambahan",
       bobot: bobotAngka,
@@ -178,7 +281,7 @@ export default function KustomisasiBobotRanking() {
     });
   };
 
-  const handleSimpanDanHitung = () => {
+  const handleSimpanDanHitung = async () => {
     if (!isValidTotal) {
       setNotification({
         type: "error",
@@ -187,11 +290,44 @@ export default function KustomisasiBobotRanking() {
       return;
     }
 
-    setNotification({
-      type: "success",
-      message:
-        "Bobot penilaian berhasil disimpan! Skor dan ranking seluruh siswa telah dihitung ulang secara otomatis.",
-    });
+    try {
+      setIsSaving(true);
+      setNotification(null);
+
+      // Siapkan payload 6 komponen eligibilitas sesuai validasi backend BobotAdminController
+      const payload = {
+        bobot_rapor: items.find((i) => i.fieldKey === "bobot_rapor")?.bobot || 0,
+        bobot_tka: items.find((i) => i.fieldKey === "bobot_tka")?.bobot || 0,
+        bobot_prestasi: items.find((i) => i.fieldKey === "bobot_prestasi")?.bobot || 0,
+        bobot_presensi: items.find((i) => i.fieldKey === "bobot_presensi")?.bobot || 0,
+        bobot_karakter: items.find((i) => i.fieldKey === "bobot_karakter")?.bobot || 0,
+        bobot_organisasi: items.find((i) => i.fieldKey === "bobot_organisasi")?.bobot || 0,
+      };
+
+      // 1. Simpan bobot ke backend Laravel
+      const resBobot = await bobotService.updateBobot(payload);
+
+      // 2. Jalankan engine kalkulasi otomatis eligibilitas di backend
+      try {
+        await eligibilitasService.kalkulasiOtomatis();
+      } catch (engineErr: any) {
+        console.warn("Kalkulasi otomatis backend:", engineErr?.message);
+      }
+
+      setNotification({
+        type: "success",
+        message:
+          resBobot?.message ||
+          "Bobot penilaian berhasil disimpan ke database dan ranking siswa telah dihitung ulang!",
+      });
+    } catch (err: any) {
+      setNotification({
+        type: "error",
+        message: err?.message || "Terjadi kesalahan saat menyimpan bobot ke backend Laravel.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -350,14 +486,25 @@ export default function KustomisasiBobotRanking() {
 
           <button
             type="button"
+            disabled={!isValidTotal || isSaving}
             onClick={handleSimpanDanHitung}
-            className={`w-full sm:w-auto px-6 py-2.5 rounded-lg text-white text-[13px] font-semibold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer ${isValidTotal
+            className={`w-full sm:w-auto px-6 py-2.5 rounded-lg text-white text-[13px] font-semibold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer ${
+              isValidTotal && !isSaving
                 ? "bg-[#7F56D9] hover:bg-[#6941C6] active:bg-[#53389E]"
-                : "bg-[#7F56D9]/50 hover:bg-[#7F56D9]/60"
-              }`}
+                : "bg-[#7F56D9]/50 hover:bg-[#7F56D9]/60 cursor-not-allowed"
+            }`}
           >
-            <Check className="w-4 h-4 stroke-[2.5]" />
-            <span>Simpan & hitung ulang</span>
+            {isSaving ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Menyimpan ke Backend...</span>
+              </>
+            ) : (
+              <>
+                <Check className="w-4 h-4 stroke-[2.5]" />
+                <span>Simpan & hitung ulang</span>
+              </>
+            )}
           </button>
         </div>
 

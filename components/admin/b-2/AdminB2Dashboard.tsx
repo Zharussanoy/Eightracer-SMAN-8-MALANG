@@ -9,6 +9,7 @@ import {
   Eye,
   Filter,
   FolderOpen,
+  Loader2,
   MapPin,
   Pencil,
   RotateCcw,
@@ -24,6 +25,7 @@ import {
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import DetailSiswaModal from "./DetailSiswaModal";
+import { eligibilitasService } from "@/services/b2";
 import {
   DATA_MANAJEMEN_SISWA,
   DATA_MINAT_RIASEC,
@@ -104,6 +106,32 @@ export default function AdminB2Dashboard() {
 
   const [selectedDetailSiswa, setSelectedDetailSiswa] = useState<SiswaDataItem | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  // Integrasi Backend Engine Kalkulasi Eligibilitas (B2)
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [calcNotification, setCalcNotification] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  const handleJalankanKalkulasi = async () => {
+    try {
+      setIsCalculating(true);
+      setCalcNotification(null);
+      const res = await eligibilitasService.kalkulasiOtomatis();
+      setCalcNotification({
+        type: "success",
+        message: res?.message || "Kalkulasi ranking eligibilitas berhasil diproses di backend!",
+      });
+    } catch (err: any) {
+      setCalcNotification({
+        type: "error",
+        message: err?.message || "Terjadi kesalahan saat memproses kalkulasi eligibilitas di backend.",
+      });
+    } finally {
+      setIsCalculating(false);
+    }
+  };
 
 
   const filteredRanking = DATA_RANKING_ELIGIBILITAS.filter(
@@ -427,13 +455,50 @@ export default function AdminB2Dashboard() {
             </Link>
             <button
               type="button"
-              className="px-4 py-2 rounded-lg bg-[#7F56D9] hover:bg-[#6941C6] active:bg-[#53389E] text-white text-[12px] font-semibold transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
+              disabled={isCalculating}
+              onClick={handleJalankanKalkulasi}
+              className="px-4 py-2 rounded-lg bg-[#7F56D9] hover:bg-[#6941C6] active:bg-[#53389E] text-white text-[12px] font-semibold transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-60"
             >
-              <Calculator className="w-3.5 h-3.5" />
-              <span>Jalankan Kalkulasi</span>
+              {isCalculating ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Menghitung...</span>
+                </>
+              ) : (
+                <>
+                  <Calculator className="w-3.5 h-3.5" />
+                  <span>Jalankan Kalkulasi</span>
+                </>
+              )}
             </button>
           </div>
         </div>
+
+        {calcNotification && (
+          <div
+            className={`mb-4 p-3.5 rounded-xl flex items-center justify-between gap-3 text-[13px] border animate-in fade-in duration-200 ${
+              calcNotification.type === "success"
+                ? "bg-[#DCFCE7] border-[#86EFAC] text-[#148557]"
+                : "bg-[#FEE4E2] border-[#FECDCA] text-[#D92D20]"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              {calcNotification.type === "success" ? (
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+              ) : (
+                <AlertCircle className="w-4 h-4 shrink-0" />
+              )}
+              <span>{calcNotification.message}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setCalcNotification(null)}
+              className="text-slate-400 hover:text-slate-600 font-bold px-1 cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
