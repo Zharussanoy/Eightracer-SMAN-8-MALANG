@@ -29,6 +29,8 @@ import {
   BiodataSiswa,
   CatatanSiswaItem,
   INITIAL_BIODATA_SISWA,
+  KarakteristikMetric,
+  KarakteristikProfileSummary,
   MOCK_CATATAN_LIST,
   NILAI_AKADEMIK,
   OVERALL_SKOR,
@@ -87,6 +89,8 @@ export default function SiswaDashboardPage() {
     Array<{ label: string; value: string; detail: string }>
   >([]);
   const [liveProdis, setLiveProdis] = useState<RekomendasiProdiItem[]>([]);
+  const [liveKarakteristikSummary, setLiveKarakteristikSummary] = useState<Partial<KarakteristikProfileSummary>>({});
+  const [liveMetrics, setLiveMetrics] = useState<KarakteristikMetric[]>([]);
   const [isLoadingAkademik, setIsLoadingAkademik] = useState(false);
 
   const [biodata, setBiodata] = useState<BiodataSiswa>(INITIAL_BIODATA_SISWA);
@@ -257,11 +261,53 @@ export default function SiswaDashboardPage() {
           }
         }
 
-        if (resAsesmen?.data?.rekomendasi_prodi) {
-          const prodiData = resAsesmen.data.rekomendasi_prodi;
-          if (Array.isArray(prodiData) && prodiData.length > 0) {
+        if (resAsesmen?.data) {
+          const { karakteristik, riasec, multiple_intelligence, rekomendasi_prodi } = resAsesmen.data;
+
+          if (karakteristik) {
+            setLiveKarakteristikSummary((prev) => ({
+              ...prev,
+              ringkasan: karakteristik.tipe_kepribadian
+                ? `Tipe Kepribadian: ${karakteristik.tipe_kepribadian}. Kecerdasan Dominan: ${karakteristik.kecerdasan_majemuk_dominan || "Logis-Matematis"}. Kode RIASEC: ${karakteristik.kode_riasec || "-"}`
+                : prev.ringkasan,
+              pembaruanTerakhir: karakteristik.tanggal_asesmen ? karakteristik.tanggal_asesmen.slice(0, 10) : prev.pembaruanTerakhir,
+            }));
+          }
+
+          const metricsList: KarakteristikMetric[] = [];
+          if (riasec) {
+            const riasecScores = [
+              riasec.realistic_score,
+              riasec.investigative_score,
+              riasec.artistic_score,
+              riasec.social_score,
+              riasec.enterprising_score,
+              riasec.conventional_score,
+            ].filter((s) => s !== null && s !== undefined).map(Number);
+
+            const maxRiasec = riasecScores.length > 0 ? Math.max(...riasecScores) : 92;
+            metricsList.push({
+              kategori: `Minat RIASEC (${riasec.kode_hasil || "Utama"})`,
+              persentase: maxRiasec,
+            });
+          }
+
+          if (Array.isArray(multiple_intelligence) && multiple_intelligence.length > 0) {
+            multiple_intelligence.forEach((mi) => {
+              metricsList.push({
+                kategori: mi.jenis_kecerdasan,
+                persentase: Number(mi.skor),
+              });
+            });
+          }
+
+          if (metricsList.length > 0) {
+            setLiveMetrics(metricsList);
+          }
+
+          if (rekomendasi_prodi && Array.isArray(rekomendasi_prodi) && rekomendasi_prodi.length > 0) {
             setLiveProdis(
-              prodiData.map((p: any) => ({
+              rekomendasi_prodi.map((p: any) => ({
                 nama: p.nama_prodi || p.prodi?.nama_prodi || "Teknik Informatika",
                 persentase: Math.round(parseFloat(p.skor_kesesuaian || p.persentase || 85)),
               }))
@@ -367,11 +413,21 @@ export default function SiswaDashboardPage() {
         {activeTab === "Karakteristik" && (
           <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 lg:gap-7 items-start">
 
-            <KarakteristikProfileCard />
+            <KarakteristikProfileCard
+              summary={{
+                nama: biodata.nama,
+                nisn: biodata.nisn,
+                kelas: biodata.kelas,
+                akumulasiNilaiRapor: liveSummaryCards[0]?.value ? parseFloat(liveSummaryCards[0].value) : 88.5,
+                ...liveKarakteristikSummary,
+              }}
+            />
 
 
             <div className="flex flex-col gap-6">
-              <KarakteristikMetricsCard />
+              <KarakteristikMetricsCard
+                metrics={liveMetrics.length > 0 ? liveMetrics : undefined}
+              />
               <KarakteristikRekomendasiProdi
                 prodis={liveProdis.length > 0 ? liveProdis : undefined}
               />

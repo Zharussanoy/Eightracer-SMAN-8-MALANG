@@ -1,10 +1,14 @@
 "use client";
 
-import { KARAKTERISTIK_SUMMARY } from "./mockDataSiswa";
+import { KarakteristikProfileSummary, KARAKTERISTIK_SUMMARY } from "./mockDataSiswa";
 import { Check, User } from "lucide-react";
 
-export default function KarakteristikProfileCard() {
-  const data = KARAKTERISTIK_SUMMARY;
+interface KarakteristikProfileCardProps {
+  summary?: Partial<KarakteristikProfileSummary>;
+}
+
+export default function KarakteristikProfileCard({ summary }: KarakteristikProfileCardProps = {}) {
+  const data = { ...KARAKTERISTIK_SUMMARY, ...summary };
 
   return (
     <div className="flex flex-col gap-6" style={{ fontFamily: "Inter, Montserrat, sans-serif" }}>

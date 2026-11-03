@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { akademikService, siswaAdminService } from "@/services/b2";
+import { akademikService, asesmenService, siswaAdminService } from "@/services/b2";
 
 interface Props {
   siswaId: string;
@@ -200,8 +200,9 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
     Promise.all([
       siswaAdminService.getById(siswaId).catch(() => null),
       akademikService.getAkademik({ siswa_id: siswaId }).catch(() => null),
+      asesmenService.getAsesmen({ siswa_id: siswaId }).catch(() => null),
     ])
-      .then(([resSiswa, resAkademik]) => {
+      .then(([resSiswa, resAkademik, resAsesmen]) => {
         if (!isMounted) return;
 
         if (resSiswa?.data) {
@@ -269,6 +270,57 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
             nilaiBobotKuantitatif: ck.poin_disiplin || 85,
           }));
           setRiwayatCatatan(mappedCatatan);
+        }
+
+        // Sinkronisasi data Asesmen RIASEC & Multiple Intelligence dari backend
+        if (resAsesmen?.data) {
+          const { karakteristik, riasec, multiple_intelligence } = resAsesmen.data;
+
+          if (karakteristik) {
+            setRiasecMeta((prev) => ({
+              ...prev,
+              kodeTes: karakteristik.kode_riasec || prev.kodeTes,
+              tanggalAsesmen: karakteristik.tanggal_asesmen
+                ? karakteristik.tanggal_asesmen.slice(0, 10)
+                : prev.tanggalAsesmen,
+            }));
+
+            setKecerdasanForm((prev) => ({
+              ...prev,
+              klasifikasi: karakteristik.tipe_kepribadian || prev.klasifikasi,
+              jenisKecerdasan: karakteristik.kecerdasan_majemuk_dominan || prev.jenisKecerdasan,
+            }));
+          }
+
+          if (riasec) {
+            setRiasecScores({
+              R: riasec.realistic_score !== null && riasec.realistic_score !== undefined ? Number(riasec.realistic_score) : 77,
+              I: riasec.investigative_score !== null && riasec.investigative_score !== undefined ? Number(riasec.investigative_score) : 89,
+              A: riasec.artistic_score !== null && riasec.artistic_score !== undefined ? Number(riasec.artistic_score) : 75,
+              S: riasec.social_score !== null && riasec.social_score !== undefined ? Number(riasec.social_score) : 80,
+              E: riasec.enterprising_score !== null && riasec.enterprising_score !== undefined ? Number(riasec.enterprising_score) : 74,
+              C: riasec.conventional_score !== null && riasec.conventional_score !== undefined ? Number(riasec.conventional_score) : 64,
+            });
+          }
+
+          if (Array.isArray(multiple_intelligence) && multiple_intelligence.length > 0) {
+            const miMap: Record<string, number> = {};
+            multiple_intelligence.forEach((item) => {
+              miMap[item.jenis_kecerdasan] = Number(item.skor);
+            });
+
+            setKecerdasanForm((prev) => ({
+              ...prev,
+              linguistik: miMap["Linguistik"] ?? miMap["Diri Kebahasaan"] ?? prev.linguistik,
+              logisMatematis: miMap["Logis-Matematis"] ?? prev.logisMatematis,
+              spasialVisual: miMap["Spasial-Visual"] ?? prev.spasialVisual,
+              kinestetik: miMap["Kinestetik"] ?? prev.kinestetik,
+              musikal: miMap["Musikal"] ?? prev.musikal,
+              interpersonal: miMap["Interpersonal"] ?? prev.interpersonal,
+              intrapersonal: miMap["Intrapersonal"] ?? prev.intrapersonal,
+              naturalis: miMap["Naturalis"] ?? prev.naturalis,
+            }));
+          }
         }
       })
       .finally(() => {
@@ -381,6 +433,33 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
         siswa_id: siswaId,
         presensi: presensiPayload,
         catatan_karakter: catatanPayload.length > 0 ? catatanPayload : undefined,
+      });
+
+      // 4. Simpan Asesmen Minat RIASEC & Multiple Intelligence ke Backend
+      await asesmenService.saveAsesmen({
+        siswa_id: siswaId,
+        tipe_kepribadian: kecerdasanForm.klasifikasi,
+        kecerdasan_majemuk_dominan: kecerdasanForm.jenisKecerdasan,
+        kode_riasec: riasecMeta.kodeTes,
+        tanggal_asesmen: riasecMeta.tanggalAsesmen
+          ? riasecMeta.tanggalAsesmen.replace(/\//g, "-")
+          : undefined,
+        realistic_score: Number(riasecScores.R) || 0,
+        investigative_score: Number(riasecScores.I) || 0,
+        artistic_score: Number(riasecScores.A) || 0,
+        social_score: Number(riasecScores.S) || 0,
+        enterprising_score: Number(riasecScores.E) || 0,
+        conventional_score: Number(riasecScores.C) || 0,
+        multiple_intelligence: [
+          { jenis_kecerdasan: "Linguistik", skor: Number(kecerdasanForm.linguistik) || 0 },
+          { jenis_kecerdasan: "Logis-Matematis", skor: Number(kecerdasanForm.logisMatematis) || 0 },
+          { jenis_kecerdasan: "Spasial-Visual", skor: Number(kecerdasanForm.spasialVisual) || 0 },
+          { jenis_kecerdasan: "Kinestetik", skor: Number(kecerdasanForm.kinestetik) || 0 },
+          { jenis_kecerdasan: "Musikal", skor: Number(kecerdasanForm.musikal) || 0 },
+          { jenis_kecerdasan: "Interpersonal", skor: Number(kecerdasanForm.interpersonal) || 0 },
+          { jenis_kecerdasan: "Intrapersonal", skor: Number(kecerdasanForm.intrapersonal) || 0 },
+          { jenis_kecerdasan: "Naturalis", skor: Number(kecerdasanForm.naturalis) || 0 },
+        ],
       });
 
       setIsSaved(true);

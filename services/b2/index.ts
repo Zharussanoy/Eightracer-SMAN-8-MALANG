@@ -242,14 +242,72 @@ export const akademikService = {
 // 6. ASESMEN & MINAT RIASEC (B2)
 // Controller: AsesmenController
 // ==========================================
+export interface AsesmenData {
+  siswa: {
+    id: number;
+    nama_lengkap: string;
+    nisn: string;
+  };
+  karakteristik: {
+    tipe_kepribadian?: string | null;
+    kecerdasan_majemuk_dominan?: string | null;
+    kode_riasec?: string | null;
+    tanggal_asesmen?: string | null;
+  } | null;
+  riasec: {
+    realistic_score?: number | null;
+    investigative_score?: number | null;
+    artistic_score?: number | null;
+    social_score?: number | null;
+    enterprising_score?: number | null;
+    conventional_score?: number | null;
+    kode_hasil?: string | null;
+    tanggal_asesmen?: string | null;
+  } | null;
+  multiple_intelligence: Array<{
+    id?: number;
+    jenis_kecerdasan: string;
+    skor: number;
+    tanggal_asesmen?: string | null;
+  }>;
+  rekomendasi_prodi?: Array<{
+    id?: number;
+    nama_prodi?: string;
+    skor_kesesuaian?: number;
+    persentase?: number;
+    prodi?: {
+      nama_prodi: string;
+      jenjang?: string;
+    };
+  }>;
+}
+
+export interface SaveAsesmenPayload {
+  siswa_id?: string | number;
+  tipe_kepribadian?: string;
+  kecerdasan_majemuk_dominan?: string;
+  kode_riasec?: string;
+  tanggal_asesmen?: string;
+  realistic_score?: number;
+  investigative_score?: number;
+  artistic_score?: number;
+  social_score?: number;
+  enterprising_score?: number;
+  conventional_score?: number;
+  multiple_intelligence?: Array<{
+    jenis_kecerdasan: string;
+    skor: number;
+  }>;
+}
+
 export const asesmenService = {
   // GET /v1/siswa/asesmen
   getAsesmen: (params?: { siswa_id?: string | number }) =>
-    apiFetch<{ status: string; message?: string; data: any }>("/v1/siswa/asesmen", { params }),
+    apiFetch<{ status: string; message?: string; data: AsesmenData }>("/v1/siswa/asesmen", { params }),
 
   // POST /v1/siswa/asesmen
-  saveAsesmen: (payload: any) =>
-    apiFetch<{ status: string; message: string; data?: any }>("/v1/siswa/asesmen", {
+  saveAsesmen: (payload: SaveAsesmenPayload) =>
+    apiFetch<{ status: string; message: string; data?: AsesmenData }>("/v1/siswa/asesmen", {
       method: "POST",
       body: JSON.stringify(payload),
     }),

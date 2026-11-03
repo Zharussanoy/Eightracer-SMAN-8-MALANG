@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   Sparkles,
   ChevronDown,
@@ -11,6 +11,7 @@ import {
   BookOpen,
   Award,
 } from "lucide-react";
+import { asesmenService } from "@/services/b2";
 import {
   KRITERIA_SAW,
   ALTERNATIF_PRODI,
@@ -117,6 +118,37 @@ export default function RekomProdiSAW() {
   const [hasil, setHasil] = useState<HasilSAW[]>([]);
   const [calculated, setCalculated] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    asesmenService
+      .getAsesmen()
+      .then((res) => {
+        if (!isMounted || !res?.data?.riasec) return;
+        const riasec = res.data.riasec;
+        const scores = [
+          riasec.realistic_score,
+          riasec.investigative_score,
+          riasec.artistic_score,
+          riasec.social_score,
+          riasec.enterprising_score,
+          riasec.conventional_score,
+        ]
+          .filter((s) => s !== null && s !== undefined)
+          .map(Number);
+
+        if (scores.length > 0) {
+          const maxScore = Math.max(...scores);
+          const scaledMinat = Math.max(1, Math.min(10, Math.round(maxScore / 10)));
+          setMinat(String(scaledMinat));
+        }
+      })
+      .catch(() => null);
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const validate = useCallback(() => {
     const e: Record<string, string> = {};
