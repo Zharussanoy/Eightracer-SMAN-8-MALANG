@@ -18,7 +18,12 @@ import KarakteristikRekomendasiProdi from "@/components/siswa/b-2/KarakteristikR
 import RankingEligibilitas from "@/components/siswa/b-2/RankingEligibilitas";
 import PerbandinganNilai from "@/components/siswa/b-2/PerbandinganNilai";
 import SiswaProfileCard from "@/components/siswa/b-2/SiswaProfileCard";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useUser } from "@/context/UserContext";
+import { akademikService, asesmenService } from "@/services/b2";
+import { AkademikMapelRow } from "@/components/siswa/b-2/AkademikTablePanel";
+import { TrendItem } from "@/components/siswa/b-2/AkademikTrendPanel";
+import { RekomendasiProdiItem } from "@/components/siswa/b-2/KarakteristikRekomendasiProdi";
 
 import {
   BiodataSiswa,
@@ -75,10 +80,17 @@ export default function SiswaDashboardPage() {
 
   const [activeTab, setActiveTab] = useState<SiswaTab>("Dashboard");
 
+  const { currentUser, currentPreset } = useUser();
+  const [liveMapelList, setLiveMapelList] = useState<AkademikMapelRow[]>([]);
+  const [liveTrends, setLiveTrends] = useState<TrendItem[]>([]);
+  const [liveSummaryCards, setLiveSummaryCards] = useState<
+    Array<{ label: string; value: string; detail: string }>
+  >([]);
+  const [liveProdis, setLiveProdis] = useState<RekomendasiProdiItem[]>([]);
+  const [isLoadingAkademik, setIsLoadingAkademik] = useState(false);
 
   const [biodata, setBiodata] = useState<BiodataSiswa>(INITIAL_BIODATA_SISWA);
   const [isEditingBiodata, setIsEditingBiodata] = useState(false);
-
 
   const [catatanList, setCatatanList] =
     useState<CatatanSiswaItem[]>(MOCK_CATATAN_LIST);
@@ -86,6 +98,158 @@ export default function SiswaDashboardPage() {
   const [catatanSearch, setCatatanSearch] = useState<string>("");
   const [catatanPage, setCatatanPage] = useState<number>(1);
 
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoadingAkademik(true);
+
+    const isStudent = currentPreset === "siswa_aktif" || currentUser.role === "siswa";
+    const queryParams = isStudent ? undefined : { siswa_id: 1 };
+
+    Promise.all([
+      akademikService.getAkademik(queryParams).catch(() => null),
+      asesmenService.getAsesmen(queryParams).catch(() => null),
+    ])
+      .then(([resAkademik, resAsesmen]) => {
+        if (!isMounted) return;
+
+        if (resAkademik?.data) {
+          const { siswa, nilai_rapor, prestasi } = resAkademik.data;
+
+          if (siswa) {
+            setBiodata((prev) => ({
+              ...prev,
+              nama: siswa.nama_lengkap || prev.nama,
+              nisn: siswa.nisn || prev.nisn,
+            }));
+          }
+
+          if (Array.isArray(nilai_rapor) && nilai_rapor.length > 0) {
+            const mapelMap = new Map<string, any>();
+            const semTotals: Record<number, { sum: number; count: number }> = {
+              1: { sum: 0, count: 0 },
+              2: { sum: 0, count: 0 },
+              3: { sum: 0, count: 0 },
+            };
+
+            nilai_rapor.forEach((nr: any) => {
+              const name =
+                nr.mata_pelajaran?.nama_mata_pelajaran ||
+                `Mata Pelajaran #${nr.mata_pelajaran_id}`;
+              const scoreNum = parseFloat(nr.nilai_akhir);
+
+              if (!mapelMap.has(name)) {
+                mapelMap.set(name, {
+                  id: String(nr.mata_pelajaran_id || name),
+                  mataPelajaran: name,
+                  sem1: "-",
+                  sem2: "-",
+                  sem3: "-",
+                  scores: [] as number[],
+                });
+              }
+
+              const item = mapelMap.get(name)!;
+              if (nr.semester === 1) item.sem1 = scoreNum;
+              if (nr.semester === 2) item.sem2 = scoreNum;
+              if (nr.semester === 3) item.sem3 = scoreNum;
+
+              if (!isNaN(scoreNum)) {
+                item.scores.push(scoreNum);
+                if (semTotals[nr.semester]) {
+                  semTotals[nr.semester].sum += scoreNum;
+                  semTotals[nr.semester].count += 1;
+                }
+              }
+            });
+
+            const mappedRows: AkademikMapelRow[] = Array.from(mapelMap.values()).map(
+              (m) => {
+                const avg =
+                  m.scores.length > 0
+                    ? (m.scores.reduce((a: number, b: number) => a + b, 0) / m.scores.length).toFixed(1)
+                    : "-";
+                const avgNum = parseFloat(avg);
+                return {
+                  id: m.id,
+                  mataPelajaran: m.mataPelajaran,
+                  sem1: m.sem1,
+                  sem2: m.sem2,
+                  sem3: m.sem3,
+                  rataRata: avg,
+                  predikat: !isNaN(avgNum) && avgNum >= 85 ? "A" : "B",
+                };
+              }
+            );
+
+            setLiveMapelList(mappedRows);
+
+            const calculatedTrends: TrendItem[] = [1, 2, 3].map((s) => ({
+              semester: `Semester ${s}`,
+              nilai:
+                semTotals[s].count > 0
+                  ? Math.round(semTotals[s].sum / semTotals[s].count)
+                  : 88,
+            }));
+            setLiveTrends(calculatedTrends);
+
+            const allScores = nilai_rapor
+              .map((nr: any) => parseFloat(nr.nilai_akhir))
+              .filter((n: number) => !isNaN(n));
+            const overallAvg =
+              allScores.length > 0
+                ? (allScores.reduce((a: number, b: number) => a + b, 0) / allScores.length).toFixed(1)
+                : "88.6";
+
+            const tkaVal = siswa?.nilai_tka
+              ? Number(siswa.nilai_tka).toFixed(1)
+              : "89.0";
+            const totalPrestasi = Array.isArray(prestasi) ? String(prestasi.length) : "0";
+
+            setLiveSummaryCards([
+              {
+                label: "RATA-RATA RAPOR",
+                value: overallAvg,
+                detail: "Dari seluruh mata pelajaran",
+              },
+              {
+                label: "NILAI TKA",
+                value: tkaVal,
+                detail: "Skor Tes Kemampuan Akademik",
+              },
+              {
+                label: "TOTAL MAPEL",
+                value: String(mapelMap.size),
+                detail: "Mata pelajaran terdata",
+              },
+              {
+                label: "PRESTASI SISWA",
+                value: totalPrestasi,
+                detail: "Capaian terverifikasi",
+              },
+            ]);
+          }
+        }
+
+        if (resAsesmen?.data?.rekomendasi_prodi) {
+          const prodiData = resAsesmen.data.rekomendasi_prodi;
+          if (Array.isArray(prodiData) && prodiData.length > 0) {
+            setLiveProdis(
+              prodiData.map((p: any) => ({
+                nama: p.nama_prodi || p.prodi?.nama_prodi || "Teknik Informatika",
+                persentase: Math.round(parseFloat(p.skor_kesesuaian || p.persentase || 85)),
+              }))
+            );
+          }
+        }
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingAkademik(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentPreset, currentUser.role]);
 
   const selectedCatatan =
     catatanList.find(
@@ -134,12 +298,25 @@ export default function SiswaDashboardPage() {
         {activeTab === "Akademik" && (
           <div className="flex flex-col gap-6">
 
-            <AkademikHeaderCard />
+            <AkademikHeaderCard
+              siswaData={{
+                nama: biodata.nama,
+                nisn: biodata.nisn,
+                kelas: biodata.kelas,
+                status: biodata.status,
+              }}
+              summaryCards={liveSummaryCards.length > 0 ? liveSummaryCards : undefined}
+            />
 
 
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6 items-stretch">
-              <AkademikTablePanel />
-              <AkademikTrendPanel />
+              <AkademikTablePanel
+                data={liveMapelList.length > 0 ? liveMapelList : undefined}
+                isLoading={isLoadingAkademik}
+              />
+              <AkademikTrendPanel
+                trends={liveTrends.length > 0 ? liveTrends : undefined}
+              />
             </div>
           </div>
         )}
@@ -152,7 +329,9 @@ export default function SiswaDashboardPage() {
 
             <div className="flex flex-col gap-6">
               <KarakteristikMetricsCard />
-              <KarakteristikRekomendasiProdi />
+              <KarakteristikRekomendasiProdi
+                prodis={liveProdis.length > 0 ? liveProdis : undefined}
+              />
             </div>
           </div>
         )}

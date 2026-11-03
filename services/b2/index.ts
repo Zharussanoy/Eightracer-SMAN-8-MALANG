@@ -135,7 +135,8 @@ export const akademikService = {
 // ==========================================
 export const asesmenService = {
   // GET /v1/siswa/asesmen
-  getAsesmen: () => apiFetch<{ status: string; message?: string; data: any }>("/v1/siswa/asesmen"),
+  getAsesmen: (params?: { siswa_id?: string | number }) =>
+    apiFetch<{ status: string; message?: string; data: any }>("/v1/siswa/asesmen", { params }),
 
   // POST /v1/siswa/asesmen
   saveAsesmen: (payload: any) =>

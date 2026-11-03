@@ -2,8 +2,17 @@
 
 import { AKADEMIK_TREND_DATA } from "./mockDataSiswa";
 
-export default function AkademikTrendPanel() {
-  const trends = AKADEMIK_TREND_DATA;
+export interface TrendItem {
+  semester: string;
+  nilai: number;
+}
+
+interface AkademikTrendPanelProps {
+  trends?: TrendItem[];
+}
+
+export default function AkademikTrendPanel({ trends }: AkademikTrendPanelProps = {}) {
+  const activeTrends = trends && trends.length > 0 ? trends : AKADEMIK_TREND_DATA;
 
   return (
     <div
@@ -21,7 +30,7 @@ export default function AkademikTrendPanel() {
 
 
         <div className="flex items-end justify-around gap-3 pt-2 pb-2">
-          {trends.map((item) => (
+          {activeTrends.map((item) => (
             <div key={item.semester} className="flex flex-col items-center gap-2">
 
               <span className="font-bold text-[13px] text-[#6305B0]">

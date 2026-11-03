@@ -2,8 +2,19 @@
 
 import { REKOMENDASI_PRODI_KARAKTERISTIK } from "./mockDataSiswa";
 
-export default function KarakteristikRekomendasiProdi() {
-  const prodis = REKOMENDASI_PRODI_KARAKTERISTIK;
+export interface RekomendasiProdiItem {
+  nama: string;
+  persentase: number;
+}
+
+interface KarakteristikRekomendasiProdiProps {
+  prodis?: RekomendasiProdiItem[];
+}
+
+export default function KarakteristikRekomendasiProdi({
+  prodis,
+}: KarakteristikRekomendasiProdiProps = {}) {
+  const activeProdis = prodis && prodis.length > 0 ? prodis : REKOMENDASI_PRODI_KARAKTERISTIK;
 
   return (
     <div
@@ -20,7 +31,7 @@ export default function KarakteristikRekomendasiProdi() {
 
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4">
-        {prodis.map((item) => (
+        {activeProdis.map((item) => (
           <div
             key={item.nama}
             className="rounded-[10px] bg-white border-[1.5px] border-[#DECFE8] p-3.5 flex flex-col justify-between shadow-2xs hover:border-[#6305B0]/50 transition-colors"

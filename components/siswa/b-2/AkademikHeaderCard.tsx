@@ -4,9 +4,31 @@ import { useState } from "react";
 import { AKADEMIK_SUMMARY_CARDS } from "./mockDataSiswa";
 import { Download, ChevronDown, CheckCircle2, X, User } from "lucide-react";
 
-export default function AkademikHeaderCard() {
+interface AkademikHeaderCardProps {
+  siswaData?: {
+    nama?: string;
+    nisn?: string;
+    kelas?: string;
+    status?: string;
+  };
+  summaryCards?: Array<{
+    label: string;
+    value: string;
+    detail: string;
+  }>;
+}
+
+export default function AkademikHeaderCard({
+  siswaData,
+  summaryCards,
+}: AkademikHeaderCardProps = {}) {
   const [selectedTahun, setSelectedTahun] = useState("2026 / 2027");
   const [showExportToast, setShowExportToast] = useState(false);
+
+  const namaSiswa = siswaData?.nama || "Tegar Saputra";
+  const nisnSiswa = siswaData?.nisn || "0061284731";
+  const kelasSiswa = siswaData?.kelas || "XII-A";
+  const cards = summaryCards && summaryCards.length > 0 ? summaryCards : AKADEMIK_SUMMARY_CARDS;
 
   const handleExportPdf = () => {
     setShowExportToast(true);
@@ -49,10 +71,10 @@ export default function AkademikHeaderCard() {
 
           <div>
             <h2 className="font-bold text-base text-[#14141C] leading-snug">
-              Tegar Saputra
+              {namaSiswa}
             </h2>
             <p className="font-normal text-[11px] text-[#6E6B78] mt-0.5">
-              NISN 0061284731 <span className="mx-1">•</span> Kelas XII-A <span className="mx-1">•</span> SMA Negeri 8 Malang
+              NISN {nisnSiswa} <span className="mx-1">•</span> Kelas {kelasSiswa} <span className="mx-1">•</span> SMA Negeri 8 Malang
             </p>
             <div className="mt-2">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[7px] bg-[#E0F5E8] text-[#148557] font-semibold text-[10px]">
@@ -104,7 +126,7 @@ export default function AkademikHeaderCard() {
 
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {AKADEMIK_SUMMARY_CARDS.map((card) => (
+        {cards.map((card) => (
           <div
             key={card.label}
             className="rounded-[12px] bg-[#F0E6F5] p-4 sm:p-4.5 flex flex-col justify-between shadow-2xs min-h-[112px]"

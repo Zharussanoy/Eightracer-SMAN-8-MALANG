@@ -2,18 +2,38 @@
 
 import { useState, useMemo } from "react";
 import { AKADEMIK_MAPEL_DATA } from "./mockDataSiswa";
-import { Search } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 
-export default function AkademikTablePanel() {
+export interface AkademikMapelRow {
+  id: string | number;
+  mataPelajaran: string;
+  sem1: number | string;
+  sem2: number | string;
+  sem3: number | string;
+  rataRata: number | string;
+  predikat: string;
+}
+
+interface AkademikTablePanelProps {
+  data?: AkademikMapelRow[];
+  isLoading?: boolean;
+}
+
+export default function AkademikTablePanel({
+  data,
+  isLoading = false,
+}: AkademikTablePanelProps = {}) {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
+  const sourceData = data && data.length > 0 ? data : AKADEMIK_MAPEL_DATA;
+
   const filteredData = useMemo(() => {
-    return AKADEMIK_MAPEL_DATA.filter((item) =>
+    return sourceData.filter((item) =>
       item.mataPelajaran.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [searchQuery]);
+  }, [sourceData, searchQuery]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
 
@@ -80,7 +100,16 @@ export default function AkademikTablePanel() {
 
 
             <tbody>
-              {paginatedData.length > 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-8 bg-white rounded-[5px] text-xs text-[#6305B0]">
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-[#6305B0]" />
+                      <span>Memuat nilai rapor dari database...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : paginatedData.length > 0 ? (
                 paginatedData.map((row) => (
                   <tr
                     key={row.id}
