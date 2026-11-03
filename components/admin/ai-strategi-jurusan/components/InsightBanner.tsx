@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { Sparkles } from "lucide-react";
 import type { OverviewInsight, Kampus, ProgramStudi } from "../types";
 
 interface InsightBannerProps {
@@ -8,43 +7,49 @@ interface InsightBannerProps {
   prodi: ProgramStudi;
 }
 
-export default function InsightBanner({ insight, kampus, prodi }: InsightBannerProps) {
+export default function InsightBanner({
+  insight,
+  kampus,
+  prodi,
+}: InsightBannerProps) {
   return (
-    <div className="relative overflow-visible rounded-3xl bg-gradient-to-r from-[#4A047D] via-[#5F089E] to-[#7B1FA2] text-white p-6 sm:p-8 shadow-lg shadow-purple-950/20 min-h-[160px]">
-      {/* Decorative glow */}
-      <div className="absolute top-0 right-1/3 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-8 -right-8 w-80 h-80 bg-purple-400/10 rounded-full blur-2xl pointer-events-none" />
+    <div className="relative mt-8 sm:mt-12 mr-10 sm:mr-16 md:mr-20 lg:mr-24">
+      {/* Box Utama Banner dengan Gradasi Ungu Tua di Kiri ke Ungu Pudar di Kanan */}
+      <div className="relative overflow-visible rounded-3xl bg-linear-to-r from-[#5F089E] via-[#8543B6] to-[#C7A9DD] text-white p-6 sm:p-8 lg:p-10 shadow-lg shadow-purple-950/15 min-h-[170px] sm:min-h-[190px] lg:min-h-[220px] flex items-center">
+        {/* Glow lembut dekoratif di background */}
+        <div className="absolute top-0 right-1/4 w-72 h-72 bg-white/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-8 -right-8 w-80 h-80 bg-purple-300/10 rounded-full blur-2xl pointer-events-none" />
 
-      {/* Sparkles decorative */}
-      <Sparkles className="absolute top-4 left-1/2 w-4 h-4 text-yellow-300/60" aria-hidden="true" />
-      <Sparkles className="absolute bottom-6 right-1/3 w-3 h-3 text-purple-200/50" aria-hidden="true" />
-
-      {/* Content */}
-      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-4 items-center">
-        <div className="lg:col-span-2 space-y-3">
-          <h3 className="text-xl sm:text-2xl font-black leading-tight">
-            Peluang penerimaan{" "}
-            <span className="text-yellow-300">{prodi.nama}</span> meningkat{" "}
-            <span className="text-yellow-300">{insight.peningkatan}</span> dibanding tahun lalu
+        {/* Konten Teks di Sisi Kiri */}
+        <div className="relative z-10 max-w-[50%] sm:max-w-[54%] md:max-w-[58%] lg:max-w-[60%] space-y-2 sm:space-y-3">
+          <h3 className="text-lg sm:text-2xl lg:text-3xl font-extrabold text-white leading-tight tracking-tight">
+            Peluang penerimaan {prodi.nama} meningkat {insight.peningkatan} dibanding tahun lalu
           </h3>
-          <p className="text-sm text-purple-100/90 leading-relaxed max-w-xl">
-            Konsistensi nilai dan kesesuaian pilihan menjadi faktor terkuat di{" "}
-            <span className="font-semibold text-white">{kampus.nama}</span>. AI menganalisis{" "}
-            <span className="font-semibold text-white">{insight.jumlahRiwayat}</span> riwayat penerimaan.
+          <p className="text-xs sm:text-sm text-purple-100/95 leading-relaxed font-normal">
+            Konsistensi nilai dan kesesuaian pilihan menjadi faktor terkuat di {kampus.nama}. AI menganalisis {insight.jumlahRiwayat} riwayat penerimaan
           </p>
         </div>
 
-        {/* Illustration - overflow visible */}
-        <div className="hidden lg:flex justify-end items-end h-full">
-          <div className="relative w-40 h-40 -mb-8">
-            <Image
-              src="/images/students-illustration.svg"
-              alt="Ilustrasi siswa"
-              width={160}
-              height={160}
-              className="w-full h-full object-contain drop-shadow-xl"
-            />
-          </div>
+        {/* Gambar Buku Melayang (sampingguru.svg) dibuat besar & digeser lebih ke kanan */}
+        <div className="absolute right-0 sm:right-2 md:right-4 lg:right-6 top-1/2 -translate-y-1/2 w-52 sm:w-72 md:w-88 lg:w-[460px] h-52 sm:h-72 md:h-88 lg:h-[460px] z-10 pointer-events-none flex items-center justify-center">
+          <Image
+            src="/images/ai-strategi-jurusan/sampingguru.svg"
+            alt="Ilustrasi buku-buku berterbangan"
+            fill
+            className="object-contain"
+            priority
+          />
+        </div>
+
+        {/* Guru (Guru.svg) lebih proporsional & lebih ke kanan, mengintip dari luar box sambil memegang sudut box */}
+        <div className="absolute right-0 translate-x-[75%] -top-3 sm:-top-5 md:-top-7 lg:-top-8 w-16 sm:w-20 md:w-24 lg:w-28 h-[140px] sm:h-[180px] md:h-[210px] lg:h-[240px] z-20 pointer-events-none">
+          <Image
+            src="/images/ai-strategi-jurusan/Guru.svg"
+            alt="Ilustrasi Guru mengintip box"
+            fill
+            className="object-contain object-bottom filter drop-shadow-md"
+            priority
+          />
         </div>
       </div>
     </div>
