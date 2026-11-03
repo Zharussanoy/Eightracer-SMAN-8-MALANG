@@ -6,6 +6,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Menu, X, ArrowUpRight } from "lucide-react";
 import { useUser } from "@/context/UserContext";
+import { getB4HomeHref, isB4Page } from "@/lib/b4-navigation";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -17,6 +18,8 @@ export default function Navbar() {
   const isHome = pathname === "/";
   const isTeam = pathname === "/tim-pengembang";
   const isProfile = pathname === "/profile";
+  const b4Href = getB4HomeHref(pathname, currentUser.role);
+  const isB4 = isB4Page(pathname);
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-purple-100 transition-all">
@@ -44,7 +47,7 @@ export default function Navbar() {
           </Link>
 
           {/* Navigasi Utama: HANYA 1. Beranda, 2. Tentang Kami, 3. Layanan, 4. Tim Pengembang */}
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+          <nav aria-label="Navigasi utama" className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
             {/* 1. Beranda */}
             <Link
               href="/"
@@ -66,13 +69,22 @@ export default function Navbar() {
             {/* 3. Layanan */}
             <div
               className="relative"
-              onMouseEnter={() => setServicesDropdownOpen(true)}
               onMouseLeave={() => setServicesDropdownOpen(false)}
+              onBlur={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                  setServicesDropdownOpen(false);
+                }
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") setServicesDropdownOpen(false);
+              }}
             >
-              <Link
-                href={isHome ? "#layanan" : "/#layanan"}
-                className="flex items-center gap-1.5 hover:text-[#5F089E] py-2 transition-colors cursor-pointer"
-                onClick={() => setServicesDropdownOpen(false)}
+              <button
+                type="button"
+                aria-expanded={servicesDropdownOpen}
+                aria-controls="main-services-menu"
+                className={`flex items-center gap-1.5 hover:text-[#5F089E] py-2 transition-colors cursor-pointer ${isB4 ? "text-[#5F089E] font-semibold" : ""}`}
+                onClick={() => setServicesDropdownOpen(!servicesDropdownOpen)}
               >
                 <span>Layanan</span>
                 <ChevronDown
@@ -80,10 +92,10 @@ export default function Navbar() {
                     servicesDropdownOpen ? "rotate-180 text-[#5F089E]" : ""
                   }`}
                 />
-              </Link>
+              </button>
 
               {servicesDropdownOpen && (
-                <div className="absolute top-full left-0 w-64 pt-2 animate-in fade-in slide-in-from-top-2 duration-150 z-50">
+                <div id="main-services-menu" className="absolute top-full left-0 w-64 pt-2 animate-in fade-in slide-in-from-top-2 duration-150 z-50">
                   <div className="bg-white rounded-2xl shadow-xl shadow-purple-950/10 border border-purple-100 p-2 space-y-1">
                     <Link
                       href={isHome ? "#layanan" : "/#layanan"}
@@ -115,6 +127,15 @@ export default function Navbar() {
                       onClick={() => setServicesDropdownOpen(false)}
                     >
                       <span>Perkembangan &amp; Karir Alumni</span>
+                      <ArrowUpRight className="w-3.5 h-3.5 opacity-50" />
+                    </Link>
+                    <Link
+                      href={b4Href}
+                      aria-current={pathname === b4Href ? "page" : undefined}
+                      className={`flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-purple-50 text-xs font-semibold transition-colors ${isB4 ? "bg-purple-50 text-[#5F089E]" : "text-slate-700 hover:text-[#5F089E]"}`}
+                      onClick={() => setServicesDropdownOpen(false)}
+                    >
+                      <span>Alumni dan Beasiswa</span>
                       <ArrowUpRight className="w-3.5 h-3.5 opacity-50" />
                     </Link>
                   </div>
@@ -192,7 +213,9 @@ export default function Navbar() {
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-xl text-slate-700 hover:text-purple-700 hover:bg-purple-50 transition-colors"
-              aria-label="Buka menu navigasi"
+              aria-label={mobileMenuOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="main-mobile-navigation"
             >
               {mobileMenuOpen ? (
                 <X className="w-6 h-6" />
@@ -206,7 +229,7 @@ export default function Navbar() {
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-purple-100 bg-white px-4 pt-4 pb-6 space-y-4 animate-in slide-in-from-top-2 duration-150">
+        <div id="main-mobile-navigation" className="md:hidden border-t border-purple-100 bg-white px-4 pt-4 pb-6 space-y-4 animate-in slide-in-from-top-2 duration-150">
           {/* Card Profil jika sudah login */}
           {isLoggedIn && (
             <Link
@@ -243,7 +266,7 @@ export default function Navbar() {
           )}
 
           {/* Navigasi Utama */}
-          <div className="flex flex-col space-y-2 font-medium text-slate-700">
+          <nav aria-label="Navigasi utama seluler" className="flex flex-col space-y-2 font-medium text-slate-700">
             <Link
               href="/"
               onClick={() => setMobileMenuOpen(false)}
@@ -270,6 +293,21 @@ export default function Navbar() {
               Layanan
             </Link>
             <Link
+              href="/alumni?tab=direktori"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2 rounded-lg hover:bg-purple-50"
+            >
+              Data Kelulusan &amp; Kampus
+            </Link>
+            <Link
+              href={b4Href}
+              aria-current={pathname === b4Href ? "page" : undefined}
+              onClick={() => setMobileMenuOpen(false)}
+              className={`px-3 py-2 rounded-lg transition-colors ${isB4 ? "text-purple-700 font-semibold bg-purple-50" : "hover:bg-purple-50"}`}
+            >
+              Alumni dan Beasiswa
+            </Link>
+            <Link
               href="/tim-pengembang"
               onClick={() => setMobileMenuOpen(false)}
               className={`px-3 py-2 rounded-lg transition-colors ${
@@ -280,7 +318,7 @@ export default function Navbar() {
             >
               Tim Pengembang
             </Link>
-          </div>
+          </nav>
 
           {/* Tombol Masuk & Daftar jika belum login */}
           {!isLoggedIn && (

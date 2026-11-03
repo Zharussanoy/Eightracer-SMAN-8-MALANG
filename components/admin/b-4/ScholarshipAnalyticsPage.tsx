@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { BookOpen, ChevronDown, ChevronRight, Landmark } from "lucide-react";
-import B4Navbar from "./B4Navbar";
 import B4Tabs from "./B4Tabs";
 import "./college.css";
 
@@ -110,12 +109,11 @@ export default function ScholarshipAnalyticsPage() {
   const scholarshipPercent = Math.round(scholarshipCount / Math.max(1, totalAlumni) * 100);
 
   return <div className="b4-page">
-    <B4Navbar />
     <main>
       <section className="b4-hero" aria-labelledby="b4-analytics-title">
         <div className="b4-container">
           <nav aria-label="Breadcrumb" className="b4-breadcrumb">
-            <Link href="/admin#layanan">Layanan</Link><ChevronRight size={14} aria-hidden="true" />
+            <Link href="/#layanan">Layanan</Link><ChevronRight size={14} aria-hidden="true" />
             <span>Alumni dan Beasiswa</span><ChevronRight size={14} aria-hidden="true" />
             <span aria-current="page">Analitik Beasiswa</span>
           </nav>

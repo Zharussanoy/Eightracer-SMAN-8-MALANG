@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { UserProvider } from "@/context/UserContext";
@@ -36,7 +37,9 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-white text-slate-900 selection:bg-purple-100 selection:text-purple-900">
         <UserProvider>
           {/* Universal Navbar aktif di SEMUA halaman */}
-          <Navbar />
+          <Suspense fallback={<div className="h-20 shrink-0" aria-label="Memuat navigasi" />}>
+            <Navbar />
+          </Suspense>
           <div className="flex-1 flex flex-col">
             {children}
           </div>

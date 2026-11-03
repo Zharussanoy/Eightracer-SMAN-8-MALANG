@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ChevronDown, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
-import B4Navbar from "./B4Navbar";
 import B4Tabs from "./B4Tabs";
 import { COLLEGE_ALUMNI } from "./mockData";
 import "./college.css";
@@ -57,12 +56,11 @@ export default function AlumniCollegePage() {
 
   return (
     <div className={"b4-page"}>
-      <B4Navbar />
       <main>
         <section className={"b4-hero"} aria-labelledby="b4-page-title">
           <div className={"b4-container"}>
             <nav aria-label="Breadcrumb" className={"b4-breadcrumb"}>
-              <Link href="/admin#layanan">Layanan</Link><ChevronRight size={14} aria-hidden="true" />
+              <Link href="/#layanan">Layanan</Link><ChevronRight size={14} aria-hidden="true" />
               <span>Alumni dan Beasiswa</span><ChevronRight size={14} aria-hidden="true" />
               <span aria-current="page">Alumni di PT</span>
             </nav>

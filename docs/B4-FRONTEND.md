@@ -74,3 +74,16 @@ Build produksi berhasil dengan `npm run build -- --webpack`. Pada lingkungan pem
 - Pencarian katalog, kombinasi filter tanpa hasil, reset filter, pergantian tab progres siswa, pilihan semester, dan jawaban percakapan demo diperiksa kembali.
 - Beranda, beranda admin, dan direktori alumni lama juga dibuka tanpa error aplikasi. Pemeriksaan ini bukan pengujian menyeluruh fitur kelompok lain.
 - Pemeriksaan kali ini belum mencakup integrasi API BE, layanan AI, atau pengujian ulang semua operasi simpan dan impor. Hasil pemeriksaan lama di atas tidak menggantikan pengujian integrasi nanti.
+
+### Penyesuaian setelah penggabungan main
+
+Pembaruan main sampai commit `32a3cd3` telah digabung ke b4. Navbar bersama dari layout utama digunakan oleh seluruh halaman B4; komponen B4Navbar lama dipertahankan sebagai kompatibilitas tanpa merender header tambahan.
+
+- Menu **Alumni dan Beasiswa** tersedia di dropdown desktop dan menu ponsel. Di area admin, menu menuju `/admin/alumni-perguruan-tinggi`; di area siswa, menu menuju `/siswa/jejak-alumni`. Di halaman umum, tujuan mengikuti role contoh dari UserContext.
+- Tujuan menu tersebut hanya navigasi. Pilihan role demo tidak memberi izin API BE. Profil siswa contoh B4 masih terpisah dari UserContext sampai integrasi login diselesaikan.
+- Link direktori bersama memakai `/alumni?tab=direktori`. Breadcrumb layanan B4 menuju `/#layanan`.
+- Navbar bersama dibungkus Suspense agar halaman detail dinamis B4 dapat dibangun dengan Cache Components.
+- Build Webpack dan TypeScript lolos setelah cache tipe route pengembangan lama disisihkan. Cache tersebut masih merujuk halaman `/admin/alumni` yang dipindahkan oleh main; file sumber tidak perlu dikembalikan ke lokasi lama.
+- Pada hasil build, 13 halaman B4 diperiksa dengan satu navbar utama dan tanpa header B4 tambahan. Link desktop/siswa, direktori alumni, menu ponsel pada lebar 390 px, dan tujuan menu berdasarkan role contoh admin/siswa di beranda diperiksa.
+
+Sorotan tabel B4 memakai `#FEEEC9`; warna emas untuk badge dan aksen tetap `#FCC850`. Warna sorotan yang dihitung browser telah diperiksa sebagai `rgb(254, 238, 201)`.
