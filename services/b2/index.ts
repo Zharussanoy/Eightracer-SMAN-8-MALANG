@@ -75,6 +75,79 @@ export const eligibilitasService = {
 
   getExportPdfUrl: () => `${API_BASE_URL}/v1/admin/ranking/export/pdf`,
   getExportExcelUrl: () => `${API_BASE_URL}/v1/admin/ranking/export/excel`,
+
+  // GET /v1/admin/ranking/export/pdf
+  getExportPdfData: (params?: { kelas?: string; jurusan_id?: number | string }) =>
+    apiFetch<{
+      status: string;
+      message?: string;
+      data: {
+        metadata: {
+          judul: string;
+          tanggal_unduh: string;
+          total_siswa: number;
+        };
+        daftar_peringkat: Array<{
+          peringkat: number;
+          total_skor_akhir: number;
+          status_eligible: string;
+          siswa: {
+            id: number | null;
+            nisn: string | null;
+            nis: string | null;
+            nama_lengkap: string | null;
+            kelas: string | null;
+          };
+          rincian_skor: {
+            rapor: number;
+            tka: number;
+            prestasi: number;
+            presensi: number;
+            karakter: number;
+            organisasi: number;
+          };
+        }>;
+      };
+    }>("/v1/admin/ranking/export/pdf", { params }),
+
+  // Streamed CSV download with Bearer token
+  downloadExportExcel: async (params?: { kelas?: string; jurusan_id?: number | string }) => {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("eightracer_token") || localStorage.getItem("auth_token")
+        : null;
+
+    let url = `${API_BASE_URL}/v1/admin/ranking/export/excel`;
+    if (params) {
+      const sp = new URLSearchParams();
+      if (params.kelas) sp.append("kelas", params.kelas);
+      if (params.jurusan_id) sp.append("jurusan_id", String(params.jurusan_id));
+      const qs = sp.toString();
+      if (qs) url += `?${qs}`;
+    }
+
+    const response = await fetch(url, {
+      headers: {
+        Accept: "text/csv, application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    if (!response.ok) {
+      const errJson = await response.json().catch(() => null);
+      throw new Error(errJson?.message || `Gagal mengunduh file Excel (HTTP ${response.status})`);
+    }
+
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.download = `laporan-eligibilitas-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(downloadUrl);
+  },
 };
 
 // ==========================================

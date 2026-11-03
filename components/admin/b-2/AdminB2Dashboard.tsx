@@ -12,6 +12,7 @@ import {
   Loader2,
   MapPin,
   Pencil,
+  Printer,
   RotateCcw,
   Search,
   ShieldCheck,
@@ -185,6 +186,253 @@ export default function AdminB2Dashboard() {
       console.warn("Koneksi Backend Ranking (fallback ke mock):", err?.message);
     } finally {
       setIsRankingLoading(false);
+    }
+  };
+
+  // Integrasi Ekspor Laporan Eligibilitas (LaporanEligibilitasController)
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+
+  const handleDownloadExcel = async () => {
+    try {
+      setIsExportingExcel(true);
+      await eligibilitasService.downloadExportExcel();
+      setCalcNotification({
+        type: "success",
+        message: "Laporan eligibilitas format Excel/CSV berhasil diunduh!",
+      });
+    } catch (err: any) {
+      setCalcNotification({
+        type: "error",
+        message: err?.message || "Gagal mengunduh laporan Excel.",
+      });
+    } finally {
+      setIsExportingExcel(false);
+    }
+  };
+
+  const handleCetakPdf = async () => {
+    try {
+      setIsExportingPdf(true);
+      const res = await eligibilitasService.getExportPdfData();
+      const metadata = res?.data?.metadata || {
+        judul: "Laporan Hasil Pemeringkatan Eligibilitas Siswa",
+        tanggal_unduh: new Date().toLocaleString("id-ID"),
+        total_siswa: 0,
+      };
+      const daftar = res?.data?.daftar_peringkat || [];
+
+      // Siapkan jendela cetak dengan kop resmi SMAN 8 Malang
+      const printWindow = window.open("", "_blank");
+      if (!printWindow) {
+        throw new Error("Popup diblokir oleh browser. Izinkan popup untuk mencetak laporan.");
+      }
+
+      const rowsHtml = daftar
+        .map((item) => {
+          const statusBadge =
+            item.status_eligible === "eligible" || item.status_eligible === "Eligible"
+              ? '<span style="background-color:#DCFCE7;color:#148557;padding:3px 8px;border-radius:9999px;font-weight:bold;font-size:11px;">Eligible</span>'
+              : item.status_eligible === "cadangan" || item.status_eligible === "Cadangan"
+              ? '<span style="background-color:#FEF0C7;color:#B54708;padding:3px 8px;border-radius:9999px;font-weight:bold;font-size:11px;">Cadangan</span>'
+              : '<span style="background-color:#FEE4E2;color:#D92D20;padding:3px 8px;border-radius:9999px;font-weight:bold;font-size:11px;">Tidak Eligible</span>';
+
+          return `
+            <tr>
+              <td style="text-align:center;font-weight:bold;">${item.peringkat}</td>
+              <td>${item.siswa?.nisn || "-"}</td>
+              <td>${item.siswa?.nis || "-"}</td>
+              <td style="font-weight:600;">${item.siswa?.nama_lengkap || "-"}</td>
+              <td style="text-align:center;">${item.siswa?.kelas || "-"}</td>
+              <td style="text-align:right;">${item.rincian_skor?.rapor ?? "-"}</td>
+              <td style="text-align:right;">${item.rincian_skor?.tka ?? "-"}</td>
+              <td style="text-align:right;">${item.rincian_skor?.prestasi ?? "-"}</td>
+              <td style="text-align:right;">${item.rincian_skor?.presensi ?? "-"}</td>
+              <td style="text-align:right;">${item.rincian_skor?.karakter ?? "-"}</td>
+              <td style="text-align:right;">${item.rincian_skor?.organisasi ?? "-"}</td>
+              <td style="text-align:right;font-weight:bold;color:#1F1729;">${Number(item.total_skor_akhir).toFixed(2)}</td>
+              <td style="text-align:center;">${statusBadge}</td>
+            </tr>
+          `;
+        })
+        .join("");
+
+      const docHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>${metadata.judul} - SMAN 8 MALANG</title>
+          <style>
+            @page {
+              size: A4 landscape;
+              margin: 12mm;
+            }
+            body {
+              font-family: Arial, Helvetica, sans-serif;
+              color: #1a1a1a;
+              margin: 0;
+              padding: 10px;
+              font-size: 11px;
+            }
+            .kop {
+              display: flex;
+              align-items: center;
+              border-bottom: 3px double #000;
+              padding-bottom: 8px;
+              margin-bottom: 14px;
+            }
+            .kop-text {
+              flex: 1;
+              text-align: center;
+            }
+            .kop-text h2 {
+              margin: 0;
+              font-size: 15px;
+              font-weight: bold;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+            .kop-text h1 {
+              margin: 2px 0;
+              font-size: 18px;
+              font-weight: 800;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+            }
+            .kop-text p {
+              margin: 1px 0;
+              font-size: 10px;
+              color: #444;
+            }
+            .doc-title {
+              text-align: center;
+              margin: 14px 0 10px;
+            }
+            .doc-title h3 {
+              margin: 0;
+              font-size: 14px;
+              font-weight: 800;
+              text-decoration: underline;
+              letter-spacing: 0.5px;
+            }
+            .meta-bar {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 10px;
+              font-size: 11px;
+              color: #333;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 5px;
+            }
+            th, td {
+              border: 1px solid #777;
+              padding: 5px 6px;
+              font-size: 10px;
+            }
+            th {
+              background-color: #f2f4f8;
+              text-align: center;
+              font-weight: bold;
+            }
+            tr:nth-child(even) {
+              background-color: #fafafa;
+            }
+            .ttd-container {
+              margin-top: 25px;
+              display: flex;
+              justify-content: flex-end;
+              page-break-inside: avoid;
+            }
+            .ttd-box {
+              width: 260px;
+              text-align: center;
+              font-size: 11px;
+            }
+            .ttd-space {
+              height: 60px;
+            }
+            @media print {
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="kop">
+            <div class="kop-text">
+              <h2>PEMERINTAH PROVINSI JAWA TIMUR</h2>
+              <h2>DINAS PENDIDIKAN</h2>
+              <h1>SMA NEGERI 8 MALANG (SMARIHASTA)</h1>
+              <p>Jalan Veteran No. 19 Malang, Jawa Timur 65145 | Telp: (0341) 551096 | Website: sman8malang.sch.id</p>
+            </div>
+          </div>
+
+          <div class="doc-title">
+            <h3>${metadata.judul.toUpperCase()}</h3>
+            <p style="margin:2px 0;font-size:11px;color:#555;">Tahun Ajaran 2026/2027</p>
+          </div>
+
+          <div class="meta-bar">
+            <span><strong>Waktu Ekspor:</strong> ${metadata.tanggal_unduh}</span>
+            <span><strong>Total Peserta:</strong> ${metadata.total_siswa} Siswa</span>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th style="width:35px;">Rank</th>
+                <th>NISN</th>
+                <th>NIS</th>
+                <th>Nama Lengkap</th>
+                <th>Kelas</th>
+                <th>Rapor</th>
+                <th>TKA</th>
+                <th>Prestasi</th>
+                <th>Presensi</th>
+                <th>Karakter</th>
+                <th>Organisasi</th>
+                <th>Total Skor</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+
+          <div class="ttd-container">
+            <div class="ttd-box">
+              <p>Malang, ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</p>
+              <p>Kepala SMA Negeri 8 Malang,</p>
+              <div class="ttd-space"></div>
+              <p><strong>Drs. H. Moh. Sulthon, M.Pd.</strong></p>
+              <p style="font-size:10px;color:#555;">NIP. 19680512 199403 1 008</p>
+            </div>
+          </div>
+
+          <script>
+            window.onload = function() {
+              window.focus();
+              window.print();
+            };
+          </script>
+        </body>
+        </html>
+      `;
+
+      printWindow.document.open();
+      printWindow.document.write(docHtml);
+      printWindow.document.close();
+    } catch (err: any) {
+      setCalcNotification({
+        type: "error",
+        message: err?.message || "Gagal menyiapkan dokumen cetak PDF.",
+      });
+    } finally {
+      setIsExportingPdf(false);
     }
   };
 
@@ -798,11 +1046,31 @@ export default function AdminB2Dashboard() {
 
               <button
                 type="button"
-                onClick={() => window.open(eligibilitasService.getExportExcelUrl(), "_blank")}
-                title="Unduh Laporan Excel dari Backend"
-                className="h-9 px-4 rounded-lg bg-[#7F56D9] hover:bg-[#6941C6] text-white text-[12px] font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                disabled={isExportingPdf}
+                onClick={handleCetakPdf}
+                title="Cetak Laporan Dokumen PDF Resmi (Kop SMARIHASTA)"
+                className="h-9 px-3.5 rounded-lg bg-white border border-[#D0D5DD] text-[#344054] hover:border-[#7F56D9] hover:text-[#6941C6] text-[12px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
               >
-                <Download className="w-3.5 h-3.5" />
+                {isExportingPdf ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#7F56D9]" />
+                ) : (
+                  <Printer className="w-3.5 h-3.5 text-[#7F56D9]" />
+                )}
+                <span>Cetak PDF</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={isExportingExcel}
+                onClick={handleDownloadExcel}
+                title="Unduh Laporan Excel / CSV dari Backend"
+                className="h-9 px-4 rounded-lg bg-[#7F56D9] hover:bg-[#6941C6] text-white text-[12px] font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer disabled:opacity-60"
+              >
+                {isExportingExcel ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Download className="w-3.5 h-3.5" />
+                )}
                 <span>Unduh Excel</span>
               </button>
             </div>
