@@ -2,6 +2,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const TOKEN_KEY = 'eightracer_token';
 
+export function isApiConfigured(): boolean {
+  return Boolean(process.env.NEXT_PUBLIC_API_URL);
+}
+
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
   return localStorage.getItem(TOKEN_KEY);
@@ -16,6 +20,10 @@ export function clearToken() {
 }
 
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+  if (!API_URL) {
+    throw new Error('NEXT_PUBLIC_API_URL belum dikonfigurasi di environment.');
+  }
+
   const token = getToken();
 
   const res = await fetch(`${API_URL}${path}`, {

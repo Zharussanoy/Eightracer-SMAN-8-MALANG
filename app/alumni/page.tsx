@@ -46,12 +46,18 @@ function AlumniPageContent() {
   const [isLoadingAlumni, setIsLoadingAlumni] = useState(true);
 
   useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_API_URL) {
+      setAlumniList(INITIAL_ALUMNI);
+      setIsLoadingAlumni(false);
+      return;
+    }
+
     apiFetch<{ data: ApiAlumni[] }>("/alumni?per_page=250")
       .then((res) => {
         setAlumniList(res.data.map(mapApiAlumniToItem));
       })
       .catch((err) => {
-        console.error("Gagal fetch alumni:", err);
+        console.warn("Gagal fetch alumni dari API, menggunakan mock data:", err);
         setAlumniList(INITIAL_ALUMNI);
       })
       .finally(() => {
