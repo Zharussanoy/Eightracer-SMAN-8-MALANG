@@ -4,16 +4,16 @@ import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import AdminB1Page from "@/components/admin/b-1/AdminB1Page";
 
-function AdminLandingContent() {
+function AdminLandingWrapper() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // Redirect legacy/direct tab queries (e.g. /admin?tab=direktori) to /admin/alumni
+    // Redirect jika ada parameter tab (misal: /admin?tab=direktori) ke /alumni
     const tabParam = searchParams.get("tab");
     if (tabParam) {
       const queryString = searchParams.toString();
-      router.replace(`/admin/alumni?${queryString}`);
+      router.replace(`/alumni?${queryString}`);
     }
   }, [searchParams, router]);
 
@@ -23,14 +23,8 @@ function AdminLandingContent() {
 
 export default function AdminPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-white flex items-center justify-center">
-          <div className="w-8 h-8 border-3 border-purple-200 border-t-[#5F089E] rounded-full animate-spin" />
-        </div>
-      }
-    >
-      <AdminLandingContent />
+    <Suspense fallback={null}>
+      <AdminLandingWrapper />
     </Suspense>
   );
 }
