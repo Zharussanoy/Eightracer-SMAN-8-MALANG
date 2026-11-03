@@ -2,8 +2,10 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import { SCHOLARSHIPS, type Scholarship } from "@/components/admin/b-4/scholarshipData";
+import type { ScholarshipDraft } from "@/lib/b4-scholarship-draft";
 
 export interface CatalogItem extends Scholarship {
+  draft?: ScholarshipDraft;
   criteria: string[];
   provider: string;
   funding: string;
