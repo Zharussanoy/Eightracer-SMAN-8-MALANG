@@ -16,6 +16,7 @@ import KarakteristikMetricsCard from "@/components/siswa/b-2/KarakteristikMetric
 import KarakteristikProfileCard from "@/components/siswa/b-2/KarakteristikProfileCard";
 import KarakteristikRekomendasiProdi from "@/components/siswa/b-2/KarakteristikRekomendasiProdi";
 import RankingEligibilitas from "@/components/siswa/b-2/RankingEligibilitas";
+import PerbandinganNilai from "@/components/siswa/b-2/PerbandinganNilai";
 import SiswaProfileCard from "@/components/siswa/b-2/SiswaProfileCard";
 import { useState } from "react";
 
@@ -37,6 +38,8 @@ function Breadcrumb({ tab }: { tab: SiswaTab }) {
     displayTab = "Catatan";
   } else if (tab === "Ranking Eligibilitas") {
     displayTab = "Ranking Eligibilitas";
+  } else if (tab === "Perbandingan Nilai") {
+    displayTab = "Perbandingan Nilai";
   }
   return (
     <p
@@ -264,6 +267,11 @@ export default function SiswaDashboardPage() {
 
         {activeTab === "Ranking Eligibilitas" && (
           <RankingEligibilitas />
+        )}
+
+        {/* TAB: Perbandingan Nilai — FITUR B2 */}
+        {activeTab === "Perbandingan Nilai" && (
+          <PerbandinganNilai />
         )}
       </main>
     </div>

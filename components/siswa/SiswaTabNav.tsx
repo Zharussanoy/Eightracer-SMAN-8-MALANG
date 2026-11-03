@@ -6,7 +6,8 @@ export type SiswaTab =
   | "Akademik"
   | "Catatan"
   | "Karakteristik"
-  | "Ranking Eligibilitas";
+  | "Ranking Eligibilitas"
+  | "Perbandingan Nilai";
 
 const TABS: SiswaTab[] = [
   "Dashboard",
@@ -15,6 +16,7 @@ const TABS: SiswaTab[] = [
   "Catatan",
   "Karakteristik",
   "Ranking Eligibilitas",
+  "Perbandingan Nilai",
 ];
 
 interface SiswaTabNavProps {
@@ -37,7 +39,7 @@ export default function SiswaTabNav({
             id={`tab-siswa-${tab.toLowerCase().replace(/\s+/g, "-")}`}
             onClick={() => onTabChange(tab)}
             className={`
-              shrink-0 cursor-pointer text-sm transition-all pb-1.5
+              shrink-0 cursor-pointer text-[15px] sm:text-base transition-all pb-1.5
               ${
                 isActive
                   ? "border-b-2 border-[#410070] text-[#410070] font-semibold"
