@@ -1,39 +1,34 @@
 "use client";
 
-import { useState } from "react";
 import SiswaNavbar from "@/components/siswa/SiswaNavbar";
 import SiswaTabNav, { SiswaTab } from "@/components/siswa/SiswaTabNav";
-import SiswaProfileCard from "@/components/siswa/b-2/SiswaProfileCard";
-import BiodataProfileCard from "@/components/siswa/b-2/BiodataProfileCard";
-import BiodataFormCard from "@/components/siswa/b-2/BiodataFormCard";
-import KarakteristikProfileCard from "@/components/siswa/b-2/KarakteristikProfileCard";
-import KarakteristikMetricsCard from "@/components/siswa/b-2/KarakteristikMetricsCard";
-import KarakteristikRekomendasiProdi from "@/components/siswa/b-2/KarakteristikRekomendasiProdi";
 import AkademikHeaderCard from "@/components/siswa/b-2/AkademikHeaderCard";
 import AkademikTablePanel from "@/components/siswa/b-2/AkademikTablePanel";
 import AkademikTrendPanel from "@/components/siswa/b-2/AkademikTrendPanel";
-import {
-  DashboardChartsWrapper,
-  RecapAsesmenCard,
-  NilaiAkademikCard,
-} from "@/components/siswa/b-2/DashboardCards";
-import RekomProdiSAW from "@/components/siswa/b-2/RekomProdiSAW";
-import RankingEligibilitas from "@/components/siswa/b-2/RankingEligibilitas";
-import CatatanTablePanel from "@/components/siswa/b-2/CatatanTablePanel";
+import BiodataFormCard from "@/components/siswa/b-2/BiodataFormCard";
+import BiodataProfileCard from "@/components/siswa/b-2/BiodataProfileCard";
 import CatatanDetailPanel from "@/components/siswa/b-2/CatatanDetailPanel";
-import CatatanHeaderCard from "@/components/siswa/b-2/CatatanHeaderCard";
+import CatatanTablePanel from "@/components/siswa/b-2/CatatanTablePanel";
+import {
+  DashboardChartsWrapper
+} from "@/components/siswa/b-2/DashboardCards";
+import KarakteristikMetricsCard from "@/components/siswa/b-2/KarakteristikMetricsCard";
+import KarakteristikProfileCard from "@/components/siswa/b-2/KarakteristikProfileCard";
+import KarakteristikRekomendasiProdi from "@/components/siswa/b-2/KarakteristikRekomendasiProdi";
+import RankingEligibilitas from "@/components/siswa/b-2/RankingEligibilitas";
+import SiswaProfileCard from "@/components/siswa/b-2/SiswaProfileCard";
+import { useState } from "react";
 
 import {
-  INITIAL_BIODATA_SISWA,
   BiodataSiswa,
+  CatatanSiswaItem,
+  INITIAL_BIODATA_SISWA,
+  MOCK_CATATAN_LIST,
+  NILAI_AKADEMIK,
   OVERALL_SKOR,
   RECAP_ASESMEN,
-  NILAI_AKADEMIK,
-  MOCK_CATATAN_LIST,
-  CatatanSiswaItem,
 } from "@/components/siswa/b-2/mockDataSiswa";
 
-// Breadcrumb: Beranda/B2/Catatan pada Catatan & Ranking Eligibilitas (sesuai screenshot dan layer Figma), Beranda/B2/Akademik pada Akademik & Karakteristik
 function Breadcrumb({ tab }: { tab: SiswaTab }) {
   let displayTab: string = tab;
   if (tab === "Karakteristik" || tab === "Akademik") {
@@ -53,7 +48,7 @@ function Breadcrumb({ tab }: { tab: SiswaTab }) {
   );
 }
 
-// Placeholder untuk tab yang belum dikerjakan
+
 function ComingSoon({ label }: { label: string }) {
   return (
     <div className="min-h-72 rounded-[24px] border-2 border-dashed border-[#5F089E]/30 bg-[#EFE6F5]/40 flex flex-col items-center justify-center gap-3 p-8 text-center">
@@ -74,21 +69,21 @@ function ComingSoon({ label }: { label: string }) {
 }
 
 export default function SiswaDashboardPage() {
-  // Tab Ranking Eligibilitas aktif secara default sesuai permintaan revisi
-  const [activeTab, setActiveTab] = useState<SiswaTab>("Ranking Eligibilitas");
 
-  // State biodata siswa (frontend only, simulasi tersimpan di memory)
+  const [activeTab, setActiveTab] = useState<SiswaTab>("Dashboard");
+
+
   const [biodata, setBiodata] = useState<BiodataSiswa>(INITIAL_BIODATA_SISWA);
   const [isEditingBiodata, setIsEditingBiodata] = useState(false);
 
-  // State Catatan Siswa
+
   const [catatanList, setCatatanList] =
     useState<CatatanSiswaItem[]>(MOCK_CATATAN_LIST);
   const [selectedCatatanId, setSelectedCatatanId] = useState<string>("1001");
   const [catatanSearch, setCatatanSearch] = useState<string>("");
   const [catatanPage, setCatatanPage] = useState<number>(1);
 
-  // Ambil objek catatan yang sedang dipilih
+
   const selectedCatatan =
     catatanList.find(
       (c) => c.id === selectedCatatanId || c.idCatatan === selectedCatatanId
@@ -104,11 +99,11 @@ export default function SiswaDashboardPage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col selection:bg-purple-100">
-      {/* ── Navbar siswa (Untitled UI) ── */}
+
       <SiswaNavbar />
 
       <main className="flex-1 max-w-[1440px] w-full mx-auto px-6 lg:px-10 pt-8 pb-16">
-        {/* ── Breadcrumb & Judul Halaman ── */}
+
         <div className="mb-6">
           <Breadcrumb tab={activeTab} />
           <h1
@@ -125,20 +120,20 @@ export default function SiswaDashboardPage() {
           </p>
         </div>
 
-        {/* ── Tab Navigasi ── */}
+
         <div className="mb-7">
           <SiswaTabNav activeTab={activeTab} onTabChange={setActiveTab} />
         </div>
 
-        {/* ── Konten per tab ── */}
 
-        {/* TAB: Akademik — FOKUS UTAMA B2 AKADEMIK SISWA */}
+
+
         {activeTab === "Akademik" && (
           <div className="flex flex-col gap-6">
-            {/* Bagian Atas: Identitas Siswa & 4 Kartu Ringkasan Akademik */}
+
             <AkademikHeaderCard />
 
-            {/* Bagian Bawah: 2 Kolom (Tabel Nilai di kiri, Perkembangan Grafik di kanan) */}
+
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6 items-stretch">
               <AkademikTablePanel />
               <AkademikTrendPanel />
@@ -146,13 +141,12 @@ export default function SiswaDashboardPage() {
           </div>
         )}
 
-        {/* TAB: Karakteristik */}
         {activeTab === "Karakteristik" && (
           <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 lg:gap-7 items-start">
-            {/* Kolom kiri: Profil Siswa & Akumulasi Nilai Rapor */}
+
             <KarakteristikProfileCard />
 
-            {/* Kolom kanan: Panel Karakteristik & Rekomendasi Program Studi */}
+
             <div className="flex flex-col gap-6">
               <KarakteristikMetricsCard />
               <KarakteristikRekomendasiProdi />
@@ -160,17 +154,16 @@ export default function SiswaDashboardPage() {
           </div>
         )}
 
-        {/* TAB: Biodata */}
+
         {activeTab === "Biodata" && (
           <div className="grid grid-cols-1 lg:grid-cols-[290px_1fr] gap-7 items-stretch">
-            {/* Kolom kiri — Kartu Profil Siswa */}
+
             <BiodataProfileCard
               biodata={biodata}
               isEditing={isEditingBiodata}
               onToggleEdit={() => setIsEditingBiodata((prev) => !prev)}
             />
 
-            {/* Kolom kanan — Formulir Biodata & Kartu Sinkronisasi PDSS */}
             <BiodataFormCard
               biodata={biodata}
               isEditing={isEditingBiodata}
@@ -184,10 +177,10 @@ export default function SiswaDashboardPage() {
           </div>
         )}
 
-        {/* TAB: Dashboard */}
+
         {activeTab === "Dashboard" && (
           <div className="grid grid-cols-1 lg:grid-cols-[290px_1fr] gap-7 items-start">
-            {/* Kolom kiri — profil */}
+
             <SiswaProfileCard
               profile={{
                 nama: biodata.nama,
@@ -199,7 +192,7 @@ export default function SiswaDashboardPage() {
               skor={OVERALL_SKOR}
             />
 
-            {/* Kolom kanan — kotak ungu tua pembungkus dengan grafik recap & nilai */}
+
             <DashboardChartsWrapper
               recapData={RECAP_ASESMEN}
               nilaiData={NILAI_AKADEMIK}
@@ -207,10 +200,9 @@ export default function SiswaDashboardPage() {
           </div>
         )}
 
-        {/* TAB: Catatan — FOKUS UTAMA B2 CATATAN SISWA */}
         {activeTab === "Catatan" && (
           <div className="flex flex-col gap-6 mt-6">
-            {/* Kartu Profil Siswa (Tegar Saputra) */}
+
             <div className="rounded-[14px] bg-[#F0E6F5] p-4 sm:p-5 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="w-[60px] h-[60px] sm:w-[68px] sm:h-[68px] rounded-[10px] bg-white border border-[#DECFE8] flex items-center justify-center shrink-0 shadow-2xs">
@@ -245,9 +237,9 @@ export default function SiswaDashboardPage() {
               </div>
             </div>
 
-            {/* Dua Panel Sejajar: Riwayat Catatan & Detail Catatan Karakter */}
+
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_390px] xl:grid-cols-[1fr_420px] gap-6 items-start">
-              {/* Panel Kiri: Riwayat Catatan */}
+
               <CatatanTablePanel
                 catatanList={catatanList}
                 selectedId={selectedCatatan?.id || ""}
@@ -259,7 +251,7 @@ export default function SiswaDashboardPage() {
                 pageSize={8}
               />
 
-              {/* Panel Kanan: Detail Catatan Karakter */}
+
               {selectedCatatan && (
                 <CatatanDetailPanel
                   catatan={selectedCatatan}
@@ -270,7 +262,6 @@ export default function SiswaDashboardPage() {
           </div>
         )}
 
-        {/* TAB: Ranking Eligibilitas — FITUR B2 */}
         {activeTab === "Ranking Eligibilitas" && (
           <RankingEligibilitas />
         )}

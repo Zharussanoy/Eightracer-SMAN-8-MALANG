@@ -30,7 +30,7 @@ const services: ServiceItem[] = [
     description:
       "Pantau peluang lolos seleksi PTN berdasarkan riwayat data historis kelolosan dan tren nilai dari tahun ke tahun.",
     icon: <ChartPie className="w-12 h-12 text-slate-700 stroke-[1.6]" />,
-    link: "#kelolosan-ptn",
+    link: "/siswa",
   },
   {
     id: "persebaran-kampus",
