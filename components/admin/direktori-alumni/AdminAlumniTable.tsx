@@ -16,6 +16,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { AlumniItem, AdminRole } from "./types";
+import { exportToPDF } from "@/utils/exportToPdf";
 
 interface AdminAlumniTableProps {
   role: AdminRole;
@@ -45,6 +46,19 @@ export default function AdminAlumniTable({
   const [filterKampus, setFilterKampus] = useState("SEMUA");
   const [filterJalur, setFilterJalur] = useState("SEMUA");
   const [filterKipk, setFilterKipk] = useState("SEMUA");
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportPDF = async () => {
+    try {
+      setIsExporting(true);
+      await exportToPDF(filteredAlumni, filterJalur, "2025/2026");
+    } catch (err) {
+      console.error("Gagal export PDF:", err);
+      alert("Gagal mengunduh laporan PDF. Silakan coba lagi.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const filteredAlumni = useMemo(() => {
     return alumniList.filter((item) => {
@@ -91,11 +105,12 @@ export default function AdminAlumniTable({
 
             <button
               type="button"
-              onClick={() => alert("Mengunduh laporan PDF...")}
+              onClick={handleExportPDF}
+              disabled={isExporting}
               className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-blue-50 text-blue-700 border border-blue-300/80 hover:bg-blue-100 text-xs font-bold transition-colors cursor-pointer shadow-2xs"
             >
               <Download className="w-4 h-4 shrink-0" />
-              <span>Export PDF</span>
+              <span>{isExporting ? "Mengekspor..." : "Export PDF"}</span>
             </button>
 
             <button
