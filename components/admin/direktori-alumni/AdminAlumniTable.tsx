@@ -619,7 +619,7 @@ export default function AdminAlumniTable({
                             <span className="text-[10px] font-medium text-slate-500">
                               {alumni.jenisKampus || "Negeri"}
                             </span>
-                            <span className="text-slate-300">ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢</span>
+                            <span className="text-slate-300">•</span>
                             <span className="text-[10px] font-bold text-purple-600">
                               {alumni.jalur}
                             </span>
@@ -730,7 +730,7 @@ export default function AdminAlumniTable({
         {/* Footer Pagination */}
         <div className="px-4 py-3.5 bg-slate-50/70 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
           <span>
-            Menampilkan 1ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ{filteredAlumni.length} dari {alumniList.length} total data alumni
+            Menampilkan{filteredAlumni.length} dari {alumniList.length} total data alumni
           </span>
           <div className="flex items-center gap-1">
             <button
