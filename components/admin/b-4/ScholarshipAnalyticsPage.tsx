@@ -3,9 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { BookOpen, ChevronDown, ChevronRight, Landmark } from "lucide-react";
-import B4Navbar from "./B4Navbar";
 import B4Tabs from "./B4Tabs";
 import "./college.css";
+import { useUser } from "@/context/UserContext";
+import ScholarshipAnalyticsApi from "@/components/b4/ScholarshipAnalyticsApi";
+import B4Shell from "@/components/b4/B4Shell";
 
 const scholarshipData = [
   { label: "Beasiswa Unggulan Kemendikbud", count: 48 },
@@ -83,6 +85,12 @@ function formatRupiah(value: number) {
 }
 
 export default function ScholarshipAnalyticsPage() {
+  const { authStatus, authMessage, refreshSession } = useUser();
+  if (authStatus === "authenticated") return <ScholarshipAnalyticsApi />;
+  if (authStatus !== "anonymous") return <B4Shell title="Analitik Beasiswa & Ringkasan Pola Per-Angkatan" active="analytics" description="Lihat analitik alumni sekolah." dataNote=""><p role="status">{authStatus === "loading" ? "Memeriksa sesi akun…" : authMessage}</p>{authStatus === "unavailable" && <button onClick={() => void refreshSession()}>Coba lagi</button>}</B4Shell>;
+  return <ScholarshipAnalyticsDemo />;
+}
+function ScholarshipAnalyticsDemo() {
   const [cohort, setCohort] = useState("");
   const [university, setUniversity] = useState("");
   const [program, setProgram] = useState("");
@@ -107,19 +115,18 @@ export default function ScholarshipAnalyticsPage() {
   const scholarshipCount = Math.min(totalAlumni, scholarship ? scholarshipData.find((item) => item.label === scholarship)?.count ?? 0 : 98);
   const kipkPopulation = cohort ? cohortKipk[cohort] : 56;
   const kipkCount = Math.min(totalAlumni, kipkPopulation);
-  const scholarshipPercent = filterSummary ? Math.round(scholarshipCount / Math.max(1, totalAlumni) * 100) : 74;
+  const scholarshipPercent = Math.round(scholarshipCount / Math.max(1, totalAlumni) * 100);
 
   return <div className="b4-page">
-    <B4Navbar />
     <main>
       <section className="b4-hero" aria-labelledby="b4-analytics-title">
         <div className="b4-container">
           <nav aria-label="Breadcrumb" className="b4-breadcrumb">
-            <Link href="/admin#layanan">Layanan</Link><ChevronRight size={14} aria-hidden="true" />
+            <Link href="/#layanan">Layanan</Link><ChevronRight size={14} aria-hidden="true" />
             <span>Alumni dan Beasiswa</span><ChevronRight size={14} aria-hidden="true" />
-            <span aria-current="page">Analitik Beasiswa</span>
+            <span aria-current="page">Analitik Beasiswa &amp; Ringkasan Pola Per-Angkatan</span>
           </nav>
-          <h1 id="b4-analytics-title">Analitik Beasiswa</h1>
+          <h1 id="b4-analytics-title">Analitik Beasiswa &amp; Ringkasan Pola Per-Angkatan</h1>
           <p>Lihat perjalanan pendidikan dan perkembangan kuliah alumni dari masa sekolah hingga kondisi terkini.</p>
         </div>
       </section>
@@ -157,7 +164,7 @@ export default function ScholarshipAnalyticsPage() {
                     <span className="b4-scholarshipTrack"><span style={{ width: `${item.count / 48 * 100}%` }} /></span>
                   </div>)}
                 </div>
-                <footer><span>Total akumulasi 98 penerima</span><button type="button" onClick={() => setShowAllScholarships(!showAllScholarships)}>{showAllScholarships ? "Lihat lebih sedikit" : "Lihat lainnya"}</button></footer>
+                <footer><span>Jumlah per program; alumni dapat tercatat lebih dari sekali</span><button type="button" onClick={() => setShowAllScholarships(!showAllScholarships)}>{showAllScholarships ? "Lihat lebih sedikit" : "Lihat lainnya"}</button></footer>
               </article>
             </div>
           </section>
@@ -176,8 +183,8 @@ export default function ScholarshipAnalyticsPage() {
                 <div className="b4-tuitionRange">
                   <div className="b4-tuitionMinMax"><span>Min: <strong>{formatRupiah(item.min)}</strong></span><span>Maks: <strong>{formatRupiah(item.max)}</strong></span></div>
                   <div className="b4-rangeTrack" role="img" aria-label={`Rentang UKT dari ${formatRupiah(item.min)} hingga ${formatRupiah(item.max)}`}>
-                    <span className="b4-rangeSelected" style={{ width: `${Math.max(0, item.max / tuitionMax * 100 - 5)}%` }} />
-                    <i className="b4-rangeDot b4-rangeDotStart" />
+                    <span className="b4-rangeSelected" style={{ left: `${item.min / tuitionMax * 100}%`, width: `${(item.max - item.min) / tuitionMax * 100}%` }} />
+                    <i className="b4-rangeDot b4-rangeDotStart" style={{ left: `${item.min / tuitionMax * 100}%` }} />
                     <i className="b4-rangeDot b4-rangeDotEnd" style={{ left: `${item.max / tuitionMax * 100}%` }} />
                   </div>
                   <div className="b4-tuitionRangeLabels"><span>{item.lower}</span><small>Rentang {formatRupiah(item.max - item.min)}</small><span>{item.upper}</span></div>
@@ -193,7 +200,7 @@ export default function ScholarshipAnalyticsPage() {
               <article className="b4-analyticsCard">
                 <h3>Distribusi IPK Alumni</h3>
                 <ChartBars label="Distribusi IPK alumni: empat di bawah tiga, delapan belas antara tiga dan 3.24, 45 antara 3.25 dan 3.49, 68 antara 3.50 dan 3.74, dan 37 antara 3.75 dan empat" data={gpaDistribution} />
-                <p className="b4-chartFootnote">87% Alumni di atas batas aman</p>
+                <p className="b4-chartFootnote">{Math.round(168 / 172 * 100)}% alumni contoh memiliki IPK ≥ 3.00</p>
               </article>
               <article className="b4-analyticsCard b4-continuityCard">
                 <h3>Status Beasiswa Berdasarkan Rentang IPK</h3>
@@ -209,8 +216,8 @@ export default function ScholarshipAnalyticsPage() {
           <section className="b4-analyticsSection b4-historyAnalytics" aria-labelledby="b4-history-analytics-title">
             <h2 id="b4-history-analytics-title">Pola Historis Mendapat Beasiswa</h2>
             <div className="b4-historyStats">
-              {[{ term: "Semester 1", alumni: 19, note: "Beasiswa jalur penerimaan awal/KIP-K" }, { term: "Semester 2", alumni: 45 }, { term: "Semester 3", alumni: 38 }, { term: "Semester 4+", alumni: 26 }].map((item) => <article key={item.term}>
-                <span>{item.term}</span><strong>{item.alumni} Alumni</strong>{item.note && <small>{item.note}</small>}
+              {[{ term: "Semester 1", alumni: 19, note: "Beasiswa jalur penerimaan awal/KIP-K" }, { term: "Semester 2", alumni: 45, note: "Beasiswa jalur penerimaan awal & Beasiswa Unggulan" }, { term: "Semester 3", alumni: 38, note: "Beasiswa korporat & prestasi kampus" }, { term: "Semester 4+", alumni: 26, note: "Beasiswa riset/skripsi dan bantuan semester akhir" }].map((item) => <article key={item.term}>
+                <span>{item.term} <small className="b4-historyPercentage">{Math.round(item.alumni / 128 * 100)}%</small></span><strong>{item.alumni} Alumni</strong><small>{item.note}</small>
               </article>)}
             </div>
           </section>
