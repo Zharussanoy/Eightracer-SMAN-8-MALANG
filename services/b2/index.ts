@@ -423,6 +423,7 @@ export const prodiAdminService = {
     kode_riasec?: string;
     kelompok_rumpun?: string;
     page?: number;
+    per_page?: number;
   }) =>
     apiFetch<{
       status: string;

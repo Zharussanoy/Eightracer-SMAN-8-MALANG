@@ -15,6 +15,7 @@ import {
 import KarakteristikMetricsCard from "@/components/siswa/b-2/KarakteristikMetricsCard";
 import KarakteristikProfileCard from "@/components/siswa/b-2/KarakteristikProfileCard";
 import KarakteristikRekomendasiProdi from "@/components/siswa/b-2/KarakteristikRekomendasiProdi";
+import RekomProdiSAW from "@/components/siswa/b-2/RekomProdiSAW";
 import RankingEligibilitas from "@/components/siswa/b-2/RankingEligibilitas";
 import PerbandinganNilai from "@/components/siswa/b-2/PerbandinganNilai";
 import SiswaProfileCard from "@/components/siswa/b-2/SiswaProfileCard";
@@ -507,6 +508,7 @@ export default function SiswaDashboardPage() {
               <KarakteristikRekomendasiProdi
                 prodis={liveProdis.length > 0 ? liveProdis : undefined}
               />
+              <RekomProdiSAW />
             </div>
           </div>
         )}
