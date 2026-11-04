@@ -992,6 +992,13 @@ export default function AdminB2Dashboard() {
               <GraduationCap className="w-3.5 h-3.5 text-[#7F56D9]" />
               <span>Master Prodi &amp; Kuota SNBP</span>
             </Link>
+            <Link
+              href="/admin/b2/users"
+              className="px-3.5 py-2 rounded-lg border border-[#D0D5DD] bg-white text-[12px] font-semibold text-[#344054] hover:border-[#7F56D9] hover:text-[#6941C6] transition-colors flex items-center gap-1.5 shadow-2xs"
+            >
+              <Users className="w-3.5 h-3.5 text-[#7F56D9]" />
+              <span>Manajemen Pengguna</span>
+            </Link>
             <button
               type="button"
               disabled={isCalculating}

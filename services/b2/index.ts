@@ -833,3 +833,93 @@ export const alumniAdminService = {
   },
 };
 
+// ==========================================
+// 11. USER MANAGEMENT SERVICE (ADMIN)
+// Controller: UserController
+// ==========================================
+export interface UserItem {
+  id: number;
+  username: string;
+  role: "administrator" | "guru" | "siswa" | string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface UserPagination {
+  current_page: number;
+  data: UserItem[];
+  first_page_url?: string;
+  from?: number;
+  last_page: number;
+  last_page_url?: string;
+  links?: Array<{ url: string | null; label: string; active: boolean }>;
+  next_page_url?: string | null;
+  path?: string;
+  per_page: number;
+  prev_page_url?: string | null;
+  to?: number;
+  total: number;
+}
+
+export interface CreateUserPayload {
+  username: string;
+  password: string;
+  role: "administrator" | "admin" | "guru" | "siswa";
+}
+
+export interface UpdateUserPayload {
+  username: string;
+  role?: "administrator" | "admin" | "guru" | "siswa";
+  password?: string;
+}
+
+export const userAdminService = {
+  // GET /v1/admin/users
+  getAll: (params?: { page?: number; username?: string; role?: string }) =>
+    apiFetch<{
+      status: string;
+      message: string;
+      data: UserPagination;
+    }>("/v1/admin/users", { params }),
+
+  // GET /v1/admin/users/{id}
+  getById: (id: number | string) =>
+    apiFetch<{
+      status: string;
+      message: string;
+      data: UserItem;
+    }>(`/v1/admin/users/${id}`),
+
+  // POST /v1/admin/users
+  create: (payload: CreateUserPayload) =>
+    apiFetch<{
+      status: string;
+      message: string;
+      data: UserItem;
+    }>("/v1/admin/users", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  // PUT /v1/admin/users/{id}
+  update: (id: number | string, payload: UpdateUserPayload) =>
+    apiFetch<{
+      status: string;
+      message: string;
+      data: UserItem;
+    }>(`/v1/admin/users/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+
+  // DELETE /v1/admin/users/{id}
+  delete: (id: number | string) =>
+    apiFetch<{
+      status: string;
+      message: string;
+    }>(`/v1/admin/users/${id}`, {
+      method: "DELETE",
+    }),
+};
+
+
