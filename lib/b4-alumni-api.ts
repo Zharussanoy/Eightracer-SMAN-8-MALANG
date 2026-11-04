@@ -1,4 +1,5 @@
 import { ApiError } from "./eightracer-api";
+import type { AlumniTimelineDetail } from "./b4-timeline";
 import { alumniQuery, type AlumniPage, type AlumniDetail } from "./b4-alumni";
 
 async function request<T>(path: string, options: { signal?: AbortSignal; method?: string; body?: BodyInit } = {}): Promise<T> {
@@ -15,6 +16,12 @@ export function getAlumniPage(search: string, university: string, program: strin
   return request<AlumniPage>(`?${alumniQuery(search, university, program, admission, page)}`, { signal });
 }
 export function getAlumniDetail(id: string, signal?: AbortSignal) { return request<{ data: AlumniDetail }>(`/${encodeURIComponent(id)}`, { signal }); }
+export function getTimelineAlumniPage(search: string, university: string, program: string, admission: string, page: number, signal?: AbortSignal) {
+  return request<AlumniPage>(`?${alumniQuery(search, university, program, admission, page)}&timeline_complete=1`, { signal });
+}
+export function getAlumniTimeline(id: number, signal?: AbortSignal) {
+  return request<{ data: AlumniTimelineDetail }>(`/${id}?timeline_complete=1`, { signal });
+}
 export function saveAlumniProgress(id: string, progressId: number | null, payload: unknown) {
   return request(`/${id}/college-progress${progressId ? "/"+progressId : ""}`, { method: progressId ? "PUT" : "POST", body: JSON.stringify(payload) });
 }
