@@ -46,6 +46,7 @@ export default function AdminAlumniTable({
 }: AdminAlumniTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewCertAlumni, setViewCertAlumni] = useState<AlumniItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AlumniItem | null>(null);
   const [detailAlumni, setDetailAlumni] = useState<ApiAlumni | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
@@ -388,7 +389,7 @@ export default function AdminAlumniTable({
                         </button>
                         <button
                           type="button"
-                          onClick={() => onDeleteRow(alumni.id)}
+                          onClick={() => setDeleteTarget(alumni)}
                           title="Hapus"
                           className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                         >
@@ -589,8 +590,8 @@ export default function AdminAlumniTable({
                             <span className="text-[10px] font-medium text-slate-500">
                               {alumni.jenisKampus || "Negeri"}
                             </span>
-                            <span className="text-slate-300">•</span>
-                            <span className="text-[10px] font-bold text-purple-600">
+                            <span className="text-slate-300"></span>
+                            <span className="text-[10px] font-bold text-purple-`6`00">
                               {alumni.jalur}
                             </span>
                           </div>
@@ -663,7 +664,7 @@ export default function AdminAlumniTable({
                             </button>
                             <button
                               type="button"
-                              onClick={() => onDeleteRow(alumni.id)}
+                              onClick={() => setDeleteTarget(alumni)}
                               title="Hapus"
                               className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                             >
@@ -813,6 +814,45 @@ export default function AdminAlumniTable({
                 </div>
               </div>
             ) : null}
+          </div>
+        </div>
+      )}
+      {/* Modal Konfirmasi Hapus */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-[70] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-5 text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  Hapus Data Alumni?
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  Yakin ingin menghapus <strong>{deleteTarget.nama}</strong> dari direktori alumni? Tindakan ini tidak bisa dibatalkan.
+                </p>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setDeleteTarget(null)}
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 text-xs font-bold hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onDeleteRow(deleteTarget.id);
+                    setDeleteTarget(null);
+                  }}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 transition-colors cursor-pointer"
+                >
+                  Ya, Hapus
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
