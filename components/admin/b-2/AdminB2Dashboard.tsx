@@ -7,8 +7,10 @@ import {
   ChevronDown,
   Download,
   Eye,
+  FileSpreadsheet,
   Filter,
   FolderOpen,
+  Info,
   Loader2,
   MapPin,
   Pencil,
@@ -21,12 +23,18 @@ import {
   TrendingUp,
   Upload,
   UserPlus,
-  Users
+  Users,
+  X
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import DetailSiswaModal from "./DetailSiswaModal";
-import { eligibilitasService, siswaAdminService } from "@/services/b2";
+import {
+  eligibilitasService,
+  importExcelService,
+  ImportExcelResult,
+  siswaAdminService
+} from "@/services/b2";
 import {
   DATA_MANAJEMEN_SISWA,
   DATA_MINAT_RIASEC,
@@ -434,6 +442,57 @@ export default function AdminB2Dashboard() {
     } finally {
       setIsExportingPdf(false);
     }
+  };
+
+  // Integrasi Import Massal Excel Siswa & Rapor (ImportExcelController)
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [selectedImportFile, setSelectedImportFile] = useState<File | null>(null);
+  const [importResult, setImportResult] = useState<ImportExcelResult | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+
+  const handleSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImportFile(file);
+      setImportModalOpen(true);
+      setImportResult(null);
+      setImportError(null);
+    }
+    if (e.target) e.target.value = "";
+  };
+
+  const handleExecuteImport = async () => {
+    if (!selectedImportFile) return;
+    try {
+      setIsImporting(true);
+      setImportError(null);
+      const res = await importExcelService.importExcel(selectedImportFile);
+      setImportResult(res.data);
+      // Sinkronkan ulang data siswa dan ranking live
+      await Promise.all([
+        fetchLiveSiswa(1, searchSiswa, filterKelas),
+        fetchLiveRanking(1, searchRanking),
+      ]);
+    } catch (err: any) {
+      setImportError(err?.message || "Terjadi kesalahan saat memproses impor berkas Excel.");
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const handleDownloadTemplateCsv = () => {
+    const templateContent = `nisn,nama_lengkap,nis,jenis_kelamin,kelas,nilai_tka,nilai_rapor,kehadiran\n0061284731,Ahmad Rizky Pratama,12841,L,XII MIPA 1,88.5,89.2,98\n0061284732,Beatrix Anindya,12842,P,XII MIPA 1,91.0,92.4,100\n0061284733,Christian Wijaya,12843,L,XII IPS 1,84.0,86.0,96`;
+    const blob = new Blob([templateContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "template_import_siswa_rapor.csv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
   };
 
   const [liveSiswaList, setLiveSiswaList] = useState<any[]>([]);
@@ -1254,8 +1313,17 @@ export default function AdminB2Dashboard() {
           </div>
 
           <div className="flex items-center gap-2.5 self-start sm:self-auto">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleSelectFile}
+              accept=".xlsx,.xls,.csv"
+              className="hidden"
+            />
             <button
               type="button"
+              onClick={() => fileInputRef.current?.click()}
+              title="Import Massal Excel/CSV Data Siswa & Rapor"
               className="px-3.5 py-2 rounded-lg border border-[#D0D5DD] bg-white text-[12px] font-semibold text-[#344054] hover:border-[#7F56D9] hover:text-[#6941C6] transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
             >
               <Upload className="w-3.5 h-3.5 text-[#7F56D9]" />
@@ -1625,6 +1693,156 @@ export default function AdminB2Dashboard() {
         onClose={() => setIsDetailModalOpen(false)}
         siswa={selectedDetailSiswa}
       />
+
+      {importModalOpen && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isImporting) setImportModalOpen(false);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in"
+        >
+          <div className="relative w-full max-w-[520px] rounded-2xl bg-white shadow-xl border border-[#E9D7FE] overflow-hidden text-[#1F2937]">
+            {/* Header */}
+            <div className="flex items-center justify-between p-5 border-b border-[#EAECF0] bg-[#FAF9FE]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-[#F4EBFF] text-[#7F56D9] flex items-center justify-center">
+                  <FileSpreadsheet className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-[15px] text-[#1F1729]">
+                    Import Massal Excel Siswa &amp; Rapor
+                  </h3>
+                  <p className="text-[11px] text-[#6E6678]">
+                    Unggah data siswa dan nilai rapor secara sekaligus
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={isImporting}
+                onClick={() => setImportModalOpen(false)}
+                className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-5 space-y-4 text-[12px]">
+              {/* Selected File Card */}
+              {selectedImportFile && (
+                <div className="p-3.5 rounded-xl border border-[#D0D5DD] bg-[#F8F9FC] flex items-center justify-between">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <FileSpreadsheet className="w-4 h-4 text-[#7F56D9] shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-semibold text-[#1F1729] truncate text-[12px]">
+                        {selectedImportFile.name}
+                      </p>
+                      <p className="text-[10px] text-[#667085]">
+                        {(selectedImportFile.size / 1024).toFixed(1)} KB
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={isImporting}
+                    onClick={() => fileInputRef.current?.click()}
+                    className="text-[11px] text-[#7F56D9] hover:underline font-semibold shrink-0 cursor-pointer"
+                  >
+                    Ganti Berkas
+                  </button>
+                </div>
+              )}
+
+              {/* Petunjuk Format Kolom */}
+              <div className="p-3.5 rounded-xl bg-[#F4EBFF]/50 border border-[#E9D7FE] text-[#53389E] space-y-1.5">
+                <p className="font-semibold text-[11px] flex items-center gap-1.5">
+                  <Info className="w-3.5 h-3.5 text-[#7F56D9]" />
+                  Format Kolom yang Didukung Backend:
+                </p>
+                <p className="text-[10.5px] leading-relaxed text-[#6941C6]">
+                  Kolom wajib: <strong>nisn</strong>, <strong>nama_lengkap</strong> (atau nama).<br />
+                  Kolom opsional: <strong>nis</strong>, <strong>jenis_kelamin</strong> (L/P), <strong>kelas</strong>, <strong>nilai_tka</strong>, <strong>nilai_rapor</strong>, <strong>kehadiran</strong>.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleDownloadTemplateCsv}
+                  className="text-[11px] font-bold text-[#7F56D9] hover:text-[#53389E] hover:underline flex items-center gap-1 pt-1 cursor-pointer"
+                >
+                  <Download className="w-3 h-3" />
+                  Unduh Contoh Template CSV
+                </button>
+              </div>
+
+              {/* Alert Error */}
+              {importError && (
+                <div className="p-3 rounded-xl bg-[#FEE4E2] border border-[#FECDCA] text-[#D92D20] text-[11px] flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="block font-semibold">Gagal Mengimpor:</strong>
+                    <span>{importError}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Alert Hasil Import */}
+              {importResult && (
+                <div className="p-3.5 rounded-xl bg-[#DCFCE7] border border-[#86EFAC] text-[#148557] space-y-2">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                    <span className="font-bold text-[12px]">
+                      Impor Selesai Diproses: {importResult.berhasil} baris berhasil ditambahkan/diperbarui!
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#15803D]">
+                    Total diproses: {importResult.total_baris_diproses} baris | Gagal: {importResult.gagal} baris
+                  </p>
+                  {importResult.rincian_gagal && importResult.rincian_gagal.length > 0 && (
+                    <div className="mt-2 p-2 rounded-lg bg-white/70 border border-[#86EFAC] text-[10px] space-y-1 max-h-28 overflow-y-auto">
+                      <p className="font-bold text-[#B91C1C]">Rincian baris gagal:</p>
+                      {importResult.rincian_gagal.map((rg, idx) => (
+                        <p key={idx} className="text-[#B91C1C]">
+                          Baris {rg.baris} (NISN: {rg.nisn || "-"}): {rg.alasan}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-2.5 p-4 border-t border-[#EAECF0] bg-[#FAF9FE]">
+              <button
+                type="button"
+                disabled={isImporting}
+                onClick={() => setImportModalOpen(false)}
+                className="px-4 py-2 rounded-lg border border-[#D0D5DD] text-[#344054] hover:bg-white text-[12px] font-semibold transition-colors cursor-pointer"
+              >
+                {importResult ? "Tutup" : "Batal"}
+              </button>
+              <button
+                type="button"
+                disabled={isImporting || !selectedImportFile}
+                onClick={handleExecuteImport}
+                className="px-4 py-2 rounded-lg bg-[#7F56D9] hover:bg-[#6941C6] text-white text-[12px] font-semibold transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                {isImporting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Memproses...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Mulai Impor</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

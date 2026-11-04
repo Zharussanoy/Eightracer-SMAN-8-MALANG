@@ -355,3 +355,54 @@ export const prodiAdminService = {
   // GET /v1/admin/prodi
   getAll: () => apiFetch<{ success: boolean; data: any[] }>("/v1/admin/prodi"),
 };
+
+// ==========================================
+// 9. IMPORT EXCEL SERVICE (B2)
+// Controller: ImportExcelController
+// ==========================================
+export interface ImportExcelResult {
+  total_baris_diproses: number;
+  berhasil: number;
+  gagal: number;
+  rincian_gagal?: Array<{
+    baris: number;
+    nisn?: string;
+    alasan: string;
+  }>;
+}
+
+export const importExcelService = {
+  // POST /v1/admin/import/excel
+  importExcel: async (file: File) => {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("eightracer_token") || localStorage.getItem("auth_token")
+        : null;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`${API_BASE_URL}/v1/admin/import/excel`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    });
+
+    const resJson = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      throw new Error(
+        resJson?.message || `Gagal mengimpor berkas Excel (HTTP ${response.status})`
+      );
+    }
+
+    return resJson as {
+      status: string;
+      message: string;
+      data: ImportExcelResult;
+    };
+  },
+};
