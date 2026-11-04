@@ -144,6 +144,9 @@
 .bc4-dropzone strong { font-size: 22px; }
 .bc4-empty { padding: 45px 20px; border: 1px dashed #cdb4e0; border-radius: 12px; color: #666; background: #fcfaff; text-align: center; line-height: 1.7; }
 .bc4-studentAlumniLive { overflow-wrap: anywhere; }
+.bc4-adminTimelineLive { margin-top: 24px; overflow-wrap: anywhere; }
+.bc4-adminTimelineLive .bc4-schoolTimeline { grid-template-columns: repeat(auto-fit,minmax(170px,1fr)); }
+.bc4-adminTimelineLive .bc4-note { margin-top: 20px; }
 .bc4-studentAlumniLive .bc4-infoList { grid-template-columns: minmax(0,1fr); }
 .bc4-studentAlumniLive .bc4-alumniCard .bc4-avatar { width: 60px; height: 60px; flex-basis: 60px; }
 .bc4-studentAlumniFooter { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px 12px; margin-top: 24px; border-radius: 0 0 10px 10px; background: linear-gradient(110deg,#f5eaff,#d1c9ef); }

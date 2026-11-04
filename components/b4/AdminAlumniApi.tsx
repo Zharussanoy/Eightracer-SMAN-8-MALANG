@@ -4,9 +4,10 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@/context/UserContext";
-import type { AlumniPage, AlumniTimeline } from "@/lib/b4-alumni";
+import type { AlumniAdmission, AlumniPage, AlumniTimeline } from "@/lib/b4-alumni";
 import B4Shell from "./B4Shell";
 import NumberPagination from "./NumberPagination";
+import AdminTimelineView from "./AdminTimelineView";
 
 function useAlumniRead<T>(path: string | null) {
   const { refreshSession } = useUser();
@@ -52,26 +53,33 @@ function Directory({ timeline }: { timeline: boolean }) {
   const [program, setProgram] = useState("");
   const [admission, setAdmission] = useState("");
   const [cohort, setCohort] = useState("");
+  const [university, setUniversity] = useState("");
   const [page, setPage] = useState(1);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const query = new URLSearchParams({ page: String(page) });
   if (search.trim()) query.set("search", search.trim());
   if (program.trim()) query.set("program_studi", program.trim());
   if (admission) query.set("jalur_masuk", admission);
   if (cohort) query.set("angkatan", cohort);
+  if (university) query.set("perguruan_tinggi_id", university);
   const result = useAlumniRead<AlumniPage>(`/api/b4/alumni?${query}`);
   const data = result.data;
   const change = (set: (value: string) => void, value: string) => { set(value); setPage(1); };
   return <>
-    {timeline && <p>Pilih alumni untuk membuka riwayat pendidikannya.</p>}
     <div className="bc4-filterRow">
       <label className="bc4-field"><span className="b4-srOnly">Cari nama alumni</span><input type="search" placeholder="Cari nama alumni" maxLength={100} value={search} onChange={(e) => change(setSearch, e.target.value)} /></label>
+      {timeline && <label className="bc4-field"><span className="b4-srOnly">Perguruan Tinggi</span><select aria-label="Perguruan Tinggi" value={university} onChange={(e) => change(setUniversity, e.target.value)}><option value="">Perguruan Tinggi</option>{university && !data?.data.some((row) => String(row.universityId) === university) && <option value={university}>Perguruan Tinggi terpilih</option>}{[...new Map(data?.data.filter((row) => row.universityId !== null && row.universityId !== undefined).map((row) => [row.universityId, row.university])).entries()].map(([id, name]) => <option key={id} value={String(id)}>{name ?? "Nama PT belum tercatat"}</option>)}</select></label>}
       <label className="bc4-field"><span className="b4-srOnly">Program Studi</span><input placeholder="Program Studi" maxLength={100} value={program} onChange={(e) => change(setProgram, e.target.value)} /></label>
       <label className="bc4-field"><span className="b4-srOnly">Jalur Masuk</span><select value={admission} onChange={(e) => change(setAdmission, e.target.value)}><option value="">Semua Jalur Masuk</option>{["SNBP", "SNBT", "Mandiri"].map((value) => <option key={value}>{value}</option>)}</select></label>
-      <label className="bc4-field"><span className="b4-srOnly">Angkatan</span><input placeholder="Angkatan (tahun lulus)" inputMode="numeric" maxLength={4} value={cohort} onChange={(e) => change(setCohort, e.target.value)} /></label>
+      {!timeline && <label className="bc4-field"><span className="b4-srOnly">Angkatan</span><input placeholder="Angkatan (tahun lulus)" inputMode="numeric" maxLength={4} value={cohort} onChange={(e) => change(setCohort, e.target.value)} /></label>}
     </div>
-    {(search || program || admission || cohort) && <button className="b4-resetFilters" onClick={() => { setSearch(""); setProgram(""); setAdmission(""); setCohort(""); setPage(1); }}>Reset pencarian dan filter</button>}
+    {(search || program || admission || cohort || university) && <button className="b4-resetFilters" onClick={() => { setSearch(""); setProgram(""); setAdmission(""); setCohort(""); setUniversity(""); setPage(1); }}>Reset pencarian dan filter</button>}
     {result.error ? <div className="bc4-empty"><p role="alert">{result.error}</p><button className="bc4-button" onClick={result.retry}>Coba lagi</button></div>
-      : !data ? <p role="status">Memuat daftar alumni dari sekolah…</p> : <div className="b4-tableFrame">
+      : !data ? <p role="status">Memuat daftar alumni dari sekolah…</p> : timeline && data.data.length ? <>
+        <label className="bc4-field">Pilih alumni<select value={data.data.find((row) => row.id === selectedId)?.id ?? data.data[0].id} onChange={(e) => setSelectedId(Number(e.target.value))}>{data.data.map((row) => <option key={row.id} value={row.id}>{row.name} · {row.university ?? "PT belum tercatat"} · {row.program ?? "Prodi belum tercatat"}</option>)}</select></label>
+        <Timeline key={(data.data.find((row) => row.id === selectedId) ?? data.data[0]).id} id={String((data.data.find((row) => row.id === selectedId) ?? data.data[0]).studentId)} profile={data.data.find((row) => row.id === selectedId) ?? data.data[0]} />
+        <NumberPagination current={data.currentPage} last={data.lastPage} onChange={setPage} />
+      </> : <div className="b4-tableFrame">
         <div className="b4-tableScroll" role="region" aria-label="Daftar alumni" tabIndex={0}><table className="b4-table">
           <thead><tr><th>Nama Alumni</th><th>Perguruan Tinggi</th><th>Program Studi</th><th>Jalur Masuk</th><th>Status Penerimaan</th><th>Aksi</th></tr></thead>
           <tbody>{data.data.map((row) => <tr key={row.id}><td>{row.name}</td><td>{row.university ?? "Belum tercatat"}</td><td>{row.program ?? "Belum tercatat"}</td><td>{row.admission ?? "Belum tercatat"}</td><td>{row.status ?? "Belum tercatat"}</td><td><Link className="bc4-button" href={`/admin/timeline-individu?id=${row.studentId}`}>Lihat Timeline</Link></td></tr>)}
@@ -81,28 +89,13 @@ function Directory({ timeline }: { timeline: boolean }) {
       </div>}
   </>;
 }
-function Timeline({ id }: { id: string }) {
+function Timeline({ id, profile }: { id: string; profile?: AlumniAdmission }) {
   const valid = /^[1-9]\d*$/.test(id) && Number.isSafeInteger(Number(id));
   const result = useAlumniRead<AlumniTimeline>(valid ? `/api/b4/alumni/${id}/timeline` : null);
-  const [selected, setSelected] = useState<string | null>(null);
-  const data = result.data;
-  const event = data?.events.find((item) => item.id === selected) ?? data?.events[0];
-  const known = (value: string | number | null | undefined) => value ?? "Belum tercatat";
-  const money = (value: number | null) => value === null ? "Belum tercatat" : new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(value);
   return <>
-    <Link className="bc4-button" href="/admin/timeline-individu">Pilih alumni lain</Link>
+    {!profile && <Link className="bc4-button" href="/admin/timeline-individu">Pilih alumni lain</Link>}
     {!valid ? <p role="alert">ID alumni tidak valid. Pilih melalui daftar alumni.</p>
       : result.error ? <div className="bc4-empty"><p role="alert">{result.error}</p><button className="bc4-button" onClick={result.retry}>Coba lagi</button></div>
-        : !data ? <p role="status">Memuat timeline alumni…</p> : <>
-          <h2 className="bc4-listTitle">{data.name ?? "Riwayat Alumni"}</h2>
-          {!data.events.length ? <p className="bc4-empty">Belum ada riwayat pendidikan yang dikirim BE untuk alumni ini.</p> : <>
-            <section className="bc4-section"><h2 className="bc4-sectionHeading">Perjalanan Pendidikan</h2><div className="bc4-sectionBody"><ol className="bc4-fields">{data.events.map((item) => <li key={item.id}><button className={`bc4-button ${event?.id === item.id ? "bc4-primary" : ""}`} aria-pressed={event?.id === item.id} onClick={() => setSelected(item.id)}>{item.semester ? `Semester ${item.semester}` : item.kind.replaceAll("_", " ")} · {item.period ?? item.date ?? item.year ?? "Waktu belum tercatat"}{item.current === false ? " · Revisi terdahulu" : ""}</button></li>)}</ol></div></section>
-            {event && <section className="bc4-section"><h2 className="bc4-sectionHeading">Detail Riwayat {event.semester ? `Semester ${event.semester}` : ""}</h2><div className="bc4-sectionBody bc4-grid3">
-              <div className="bc4-yellowCard"><h3>Pendidikan</h3><dl className="bc4-infoList"><dt>Perguruan Tinggi</dt><dd>{known(event.university)}</dd><dt>Program Studi</dt><dd>{known(event.program)}</dd><dt>Status</dt><dd>{known(event.status)}</dd><dt>IP Kumulatif</dt><dd>{known(event.ipk)}</dd></dl></div>
-              <div className="bc4-yellowCard"><h3>Bantuan & Beasiswa</h3><p>Penerima KIP-K: {event.kipk === null ? "Belum tercatat" : event.kipk ? "Ya" : "Tidak"}</p>{event.scholarships.length ? event.scholarships.map((item, index) => <p key={index}>{item.name} · {known(item.status)}</p>) : <p>Belum ada rincian beasiswa yang dikirim BE.</p>}</div>
-              <div className="bc4-yellowCard"><h3>Biaya Pendidikan</h3><dl className="bc4-infoList"><dt>UKT</dt><dd>{money(event.ukt)}</dd><dt>IPI</dt><dd>{money(event.ipi)}</dd></dl></div>
-            </div></section>}
-          </>}
-        </>}
+        : !result.data ? <p role="status">Memuat timeline alumni…</p> : <AdminTimelineView data={result.data} profile={profile} />}
   </>;
 }
