@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
-import { ArrowRight } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { ArrowRight, Award, CheckCircle2, ShieldCheck, Sparkles, TrendingUp, Info, Loader2 } from "lucide-react";
+import { eligibilitasService } from "@/services/b2";
 
 // ── 1. Data Alur Perbandingan ──
 interface WorkflowStep {
@@ -189,8 +190,174 @@ const DATA_DETAIL_TABEL: DetailNilaiRow[] = [
 ];
 
 export default function RankingEligibilitas() {
+  const [liveData, setLiveData] = useState<{
+    siswa?: { id: number; nisn?: string; nama_lengkap: string };
+    hasil_eligibilitas?: {
+      periode?: string;
+      peringkat?: number;
+      total_skor_akhir?: number;
+      status_eligible?: string;
+      tanggal_kalkulasi?: string;
+    };
+    rincian_komponen?: {
+      rapor?: { raw: number; normalisasi: number };
+      tka?: { raw: number; normalisasi: number };
+      prestasi?: { raw: number; normalisasi: number };
+      presensi?: { raw: number; normalisasi: number };
+      karakter?: { raw: number; normalisasi: number };
+      organisasi?: { raw: number; normalisasi: number };
+    };
+  } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [syncNotice, setSyncNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchDetail() {
+      setIsLoading(true);
+      try {
+        const res = await eligibilitasService.getDetailSkorSiswaSaya();
+        if (res?.data && isMounted) {
+          setLiveData(res.data);
+          setSyncNotice("Terhubung ke Engine Eligibilitas SMAN 8 Malang (Live API)");
+        }
+      } catch (err: any) {
+        console.warn("Koneksi detail skor siswa (fallback):", err?.message);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+    fetchDetail();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const dynamicKpiStats: KpiStat[] = [
+    {
+      label: "NILAI RATA-RATA KAMU",
+      value: liveData?.rincian_komponen?.rapor?.raw
+        ? Number(liveData.rincian_komponen.rapor.raw).toFixed(1).replace(".", ",")
+        : KPI_STATS[0].value,
+      description: "Dari seluruh semester & mata pelajaran",
+    },
+    {
+      label: "NILAI TES AKADEMIK (TKA)",
+      value: liveData?.rincian_komponen?.tka?.raw
+        ? Number(liveData.rincian_komponen.tka.raw).toFixed(1).replace(".", ",")
+        : "88,5",
+      description: "Skor Tes Kemampuan Akademik",
+    },
+    {
+      label: "TOTAL SKOR ELIGIBILITAS",
+      value: liveData?.hasil_eligibilitas?.total_skor_akhir
+        ? Number(liveData.hasil_eligibilitas.total_skor_akhir).toFixed(1).replace(".", ",")
+        : "91,2",
+      description: "Akumulasi pembobotan SPMK",
+    },
+    {
+      label: "PERINGKAT SEKOLAH",
+      value: liveData?.hasil_eligibilitas?.peringkat
+        ? `#${liveData.hasil_eligibilitas.peringkat}`
+        : "#1",
+      description: `Status: ${liveData?.hasil_eligibilitas?.status_eligible || "Eligible"} (Kuota 40%)`,
+    },
+  ];
+
   return (
     <div className="flex flex-col gap-6 sm:gap-7 w-full max-w-[1360px] mx-auto text-[#14141C]">
+      {/* ──────────────────────────────────────────────────────────
+          HERO STATUS ELIGIBILITAS SISWA (LIVE DARI ENGINE B2)
+         ────────────────────────────────────────────────────────── */}
+      <div className="rounded-[16px] bg-gradient-to-r from-[#5F089E] to-[#7915C4] text-white p-5 sm:p-6 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-5">
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-400 text-slate-900 text-[11px] font-bold flex items-center gap-1 shadow-xs">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              {liveData?.hasil_eligibilitas?.status_eligible || "Eligible SNBP"}
+            </span>
+            <span className="text-[11px] font-medium text-purple-200">
+              Periode {liveData?.hasil_eligibilitas?.periode || "2025/2026"}
+            </span>
+            {syncNotice && (
+              <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full text-white/90">
+                Live Engine
+              </span>
+            )}
+            {isLoading && (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-200" />
+            )}
+          </div>
+          <h2 className="text-xl sm:text-2xl font-black tracking-tight" style={{ fontFamily: "Inter, sans-serif" }}>
+            {liveData?.siswa?.nama_lengkap || "Ahmad B2 Pratama"}
+          </h2>
+          <p className="text-xs text-purple-100 max-w-xl">
+            Selamat! Berdasarkan hasil kalkulasi multi-kriteria SPMK, profil akademikmu masuk dalam <strong>kuota 40% siswa eligible SNBP</strong> SMAN 8 Malang.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-4 bg-white/10 backdrop-blur-xs p-3.5 sm:p-4 rounded-xl border border-white/20 shrink-0">
+          <div className="text-center px-2">
+            <span className="block text-[10px] font-semibold text-purple-200 uppercase">Peringkat</span>
+            <span className="text-2xl sm:text-3xl font-black text-amber-300">
+              #{liveData?.hasil_eligibilitas?.peringkat ?? 1}
+            </span>
+          </div>
+          <div className="w-[1px] h-10 bg-white/20" />
+          <div className="text-center px-2">
+            <span className="block text-[10px] font-semibold text-purple-200 uppercase">Total Skor</span>
+            <span className="text-2xl sm:text-3xl font-black text-white">
+              {liveData?.hasil_eligibilitas?.total_skor_akhir
+                ? Number(liveData.hasil_eligibilitas.total_skor_akhir).toFixed(1)
+                : "91.2"}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* ──────────────────────────────────────────────────────────
+          RINCIAN 6 KOMPONEN PEMBOBOTAN ELIGIBILITAS (SPMK)
+         ────────────────────────────────────────────────────────── */}
+      <div className="bg-white rounded-[14px] p-5 border border-purple-100 shadow-2xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div>
+            <h3 className="font-bold text-[14px] sm:text-[15px] text-[#1A1721] flex items-center gap-2">
+              <Award className="w-4 h-4 text-[#6305B0]" />
+              Rincian Komponen Skor Eligibilitas (Bobot SPMK)
+            </h3>
+            <p className="text-[11px] text-slate-500">
+              Komposisi pembobotan objektif berdasarkan formula SPMK SMAN 8 Malang
+            </p>
+          </div>
+          <span className="text-[10px] font-bold text-[#6305B0] bg-[#F2E8F7] px-2.5 py-1 rounded-lg">
+            Terverifikasi Sistem
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {[
+            { label: "Rapor (40%)", raw: liveData?.rincian_komponen?.rapor?.raw ?? 89.27, norm: liveData?.rincian_komponen?.rapor?.normalisasi ?? 89.27, color: "text-blue-600", bg: "bg-blue-50" },
+            { label: "TKA (20%)", raw: liveData?.rincian_komponen?.tka?.raw ?? 88.5, norm: liveData?.rincian_komponen?.tka?.normalisasi ?? 88.5, color: "text-purple-600", bg: "bg-purple-50" },
+            { label: "Prestasi (15%)", raw: liveData?.rincian_komponen?.prestasi?.raw ?? 95.0, norm: liveData?.rincian_komponen?.prestasi?.normalisasi ?? 95.0, color: "text-emerald-600", bg: "bg-emerald-50" },
+            { label: "Presensi (10%)", raw: liveData?.rincian_komponen?.presensi?.raw ?? 98.0, norm: liveData?.rincian_komponen?.presensi?.normalisasi ?? 98.0, color: "text-teal-600", bg: "bg-teal-50" },
+            { label: "Karakter (10%)", raw: liveData?.rincian_komponen?.karakter?.raw ?? 85.0, norm: liveData?.rincian_komponen?.karakter?.normalisasi ?? 85.0, color: "text-amber-600", bg: "bg-amber-50" },
+            { label: "Organisasi (5%)", raw: liveData?.rincian_komponen?.organisasi?.raw ?? 80.0, norm: liveData?.rincian_komponen?.organisasi?.normalisasi ?? 80.0, color: "text-indigo-600", bg: "bg-indigo-50" },
+          ].map((item, idx) => (
+            <div key={idx} className={`p-3 rounded-xl border border-slate-100 ${item.bg} flex flex-col justify-between`}>
+              <span className="text-[10px] font-bold text-slate-600 block mb-1">{item.label}</span>
+              <div>
+                <span className={`text-[16px] sm:text-[18px] font-black ${item.color}`}>
+                  {Number(item.raw).toFixed(1)}
+                </span>
+                <span className="text-[9px] text-slate-400 block mt-0.5">
+                  Norm: {Number(item.norm).toFixed(1)}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* ──────────────────────────────────────────────────────────
           SECTION 1: ALUR PERBANDINGAN
          ────────────────────────────────────────────────────────── */}
@@ -246,7 +413,7 @@ export default function RankingEligibilitas() {
           SECTION 2: KARTU RINGKASAN STATISTIK NILAI (4 KARTU)
          ────────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-        {KPI_STATS.map((kpi) => (
+        {dynamicKpiStats.map((kpi) => (
           <div
             key={kpi.label}
             className="bg-[#F2E8F7] rounded-[12px] p-4 sm:p-4.5 flex flex-col justify-between min-h-[108px] shadow-2xs"
