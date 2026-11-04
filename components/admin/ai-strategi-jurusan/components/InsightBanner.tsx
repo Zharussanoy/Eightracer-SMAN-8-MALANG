@@ -31,7 +31,7 @@ export default function InsightBanner({
         </div>
 
         {/* Gambar Buku Melayang (sampingguru.svg) dibuat besar & digeser lebih ke kanan */}
-        <div className="absolute right-0 sm:right-2 md:right-4 lg:right-6 top-1/2 -translate-y-1/2 w-52 sm:w-72 md:w-88 lg:w-[460px] h-52 sm:h-72 md:h-88 lg:h-[460px] z-10 pointer-events-none flex items-center justify-center">
+        <div className="absolute right-0 translate-x-[10%] top-1/2 -translate-y-1/2 w-52 sm:w-72 md:w-88 lg:w-[460px] h-52 sm:h-72 md:h-88 lg:h-[460px] z-10 pointer-events-none flex items-center justify-center">
           <Image
             src="/images/ai-strategi-jurusan/sampingguru.svg"
             alt="Ilustrasi buku-buku berterbangan"
@@ -42,7 +42,7 @@ export default function InsightBanner({
         </div>
 
         {/* Guru (Guru.svg) lebih proporsional & lebih ke kanan, mengintip dari luar box sambil memegang sudut box */}
-        <div className="absolute right-0 translate-x-[75%] -top-3 sm:-top-5 md:-top-7 lg:-top-8 w-16 sm:w-20 md:w-24 lg:w-28 h-[140px] sm:h-[180px] md:h-[210px] lg:h-[240px] z-20 pointer-events-none">
+        <div className="absolute right-0 translate-x-[87%] -top-3 sm:-top-5 md:-top-7 lg:-top-8 w-16 sm:w-20 md:w-24 lg:w-28 h-[140px] sm:h-[180px] md:h-[210px] lg:h-[240px] z-20 pointer-events-none">
           <Image
             src="/images/ai-strategi-jurusan/Guru.svg"
             alt="Ilustrasi Guru mengintip box"
