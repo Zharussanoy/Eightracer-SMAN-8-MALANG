@@ -101,3 +101,40 @@ test("FE publication and class filters are translated to the existing protected 
  assert.equal(forwarded.searchParams.has("publication"),false);
  const invalid=await route.GET(new NextRequest("http://localhost:3000/api/b4/students?publication=invalid",{headers:{Cookie:"eightracer_session=test-only-token"}}));assert.equal(invalid.status,422);
 });
+
+test("editor proxy binds PATCH to the selected student, saved detail and revision",async()=>{
+ let forwarded;
+ const next={...rawDraft,revision:3,rekomendasi_beasiswa_detail:[{...rawDraft.rekomendasi_beasiswa_detail[0],id:22,is_hidden:false,waktu_disarankan:"Januari 2027",alasan_rekomendasi:"Ditinjau sekolah."}]};
+ const route=harness(async(url,init)=>{forwarded={url,method:init.method,body:JSON.parse(init.body)};return Response.json({data:next});})("app/api/b4/recommendations/[id]/items/[detail]/route.ts");
+ const context={params:Promise.resolve({id:"11",detail:"22"})};
+ const r=await route.PATCH(request("/api/b4/recommendations/11/items/22",{recommendation_id:7,revision:2,reason:" Ditinjau sekolah. ",timing:"Januari 2027"}),context);
+ const result=await r.json();assert.equal(r.status,200);assert.equal(result.draft.revision,3);assert.equal(result.draft.candidates[0].detailId,22);assert.equal(result.draft.candidates[0].timing,"Januari 2027");
+ assert.equal(forwarded.method,"PATCH");assert.equal(forwarded.body.siswa_id,11);assert.equal(forwarded.body.revision,2);assert.equal(forwarded.body.alasan_rekomendasi,"Ditinjau sekolah.");
+ assert.equal(forwarded.url,"https://backend.example/api/rekomendasi-beasiswa/7/detail/22");
+ assert.equal(JSON.stringify(result).includes("PRIVATE"),false);
+});
+test("editor blocks client score changes, foreign student IDs, invalid values and cross-origin writes",async()=>{
+ let calls=0;
+ const route=harness(async()=>{calls++;return Response.json({data:rawDraft});})("app/api/b4/recommendations/[id]/items/[detail]/route.ts"),context={params:Promise.resolve({id:"11",detail:"22"})};
+ const base={recommendation_id:7,revision:2};
+ for(const body of [{...base,score:100},{...base,siswa_id:99,hidden:true},{...base,hidden:"true"},{...base,reason:" "},{...base,timing:"x".repeat(181)},{...base,revision:0,hidden:true},base]){
+  const r=await route.PATCH(request("/api/b4/recommendations/11/items/22",body),context);assert.equal(r.status,422);
+ }
+ assert.equal((await route.PATCH(request("/api/b4/recommendations/11/items/22",{...base,hidden:true},"https://untrusted.example"),context)).status,403);
+ assert.equal(calls,0);
+});
+test("delete persists through DELETE and stale edits return a reload instruction without losing scope",async()=>{
+ let forwarded;
+ const route=harness(async(url,init)=>{forwarded={url,method:init.method,body:JSON.parse(init.body)};return Response.json({data:{...rawDraft,revision:4,rekomendasi_beasiswa_detail:[]}});})("app/api/b4/recommendations/[id]/items/[detail]/route.ts");
+ const context={params:Promise.resolve({id:"11",detail:"22"})},body={recommendation_id:7,revision:3};
+ const r=await route.DELETE(request("/api/b4/recommendations/11/items/22",body),context);
+ assert.equal(r.status,200);assert.equal((await r.json()).draft.candidates.length,0);assert.equal(forwarded.method,"DELETE");assert.equal(forwarded.body.siswa_id,11);assert.equal(forwarded.body.revision,3);
+ const stale=harness(async()=>Response.json({message:"Rekomendasi berubah. Muat ulang sebelum menyimpan."},{status:409}))("app/api/b4/recommendations/[id]/items/[detail]/route.ts");
+ const conflict=await stale.PATCH(request("/api/b4/recommendations/11/items/22",{...body,hidden:true}),context);
+ assert.equal(conflict.status,409);assert.match((await conflict.json()).message,/Muat ulang/);
+});
+test("published student projection uses the school-edited reason and suggested time",()=>{
+ const result=harness()("lib/b4-recommendation-data.ts").parseStudentRecommendations({data:[{id:7,target_jenjang:"SMA",status:"Terpublikasi",beasiswa:[{
+  beasiswa_id:4,informasi:info,skor_kecocokan:100,memenuhi_syarat:true,checklist:evaluation.checklist,alasan:"Alasan revisi sekolah.",waktu_disarankan:"Januari 2027",persiapan:[] }]}]});
+ assert.equal(result[0].reason,"Alasan revisi sekolah.");assert.equal(result[0].timing,"Januari 2027");
+});

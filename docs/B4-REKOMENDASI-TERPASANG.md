@@ -7,10 +7,10 @@ Komponen tampilan RecommendationAdminView menerima data dan callback dari AdminR
 ## Penyelarasan UI 4 November 2026
 
 - Pencarian nama, kelas, angkatan, dan publikasi memakai GET /api/b4/students. Daftar kelas dan angkatan berasal dari metadata BE, tanpa menambahkan kelas contoh.
-- Filter FE publication=true/false diterjemahkan menjadi rekomendasi_published=1/0 pada GET /api/siswa. Status ini berarti siswa mempunyai setidaknya satu hasil review yang disetujui; bukan status pendaftaran beasiswa.
+- Filter FE publication=true/false diterjemahkan menjadi rekomendasi_published=1/0 pada GET /api/siswa. Status ini mengikuti batch terbaru per jenjang; batch terbaru yang masih draft menarik publikasi sebelumnya.
 - Metadata filters.cohorts dan filters.classrooms mencakup pilihan global. Identitas NISN tidak diteruskan ke DTO browser; UI hanya menampilkan masker jika NISN tersimpan.
 - Generate Ulang dan Publikasikan Ke Siswa tetap memakai endpoint yang sudah terpasang.
-- Sembunyikan, Edit, dan Hapus dipertahankan di posisi komponen FE tetapi masih dinonaktifkan. API perubahan per kandidat belum tersedia; tombol tersebut tidak melakukan perubahan semu di localStorage.
+- Sembunyikan/Tampilkan, Edit, dan Hapus aktif untuk hasil yang sudah tersimpan sebagai draft. Dialog dan posisi tombol mengikuti komponen FE. Perubahan disimpan lewat API, bukan localStorage. Pratinjau belum tersimpan memerlukan Generate Ulang dahulu.
 - Target jenjang SMA/Kuliah tetap memakai pilihan yang sudah ada pada komponen API FE.
 - Struktur profil dan kartu kelengkapan tetap dirender ketika isian kosong. Nilai TKA, RIASEC, pendanaan, dan alumni pembanding tidak diisi dari data demo.
 - Detail siswa mempertahankan kotak Referensi dari Jejak Alumni. Karena tidak ada identitas alumni pembanding individual dalam respons rekomendasi, isinya "-" dan tautannya menuju daftar Jejak Alumni.
@@ -27,6 +27,35 @@ Komponen tampilan RecommendationAdminView menerima data dan callback dari AdminR
 7. Siswa membaca hasil miliknya yang disetujui; kandidat yang tidak memenuhi syarat atau program yang diarsipkan tidak masuk kartu rekomendasi siswa.
 
 Jika koneksi putus saat generate, jangan otomatis mengulang POST. Muat ulang pratinjau untuk memeriksa apakah draft telah tersimpan.
+
+## CRUD dan sinkronisasi siswa
+
+1. Create: Generate Ulang menyimpan batch dan detail melalui Gemini; tambah katalog tetap melalui form Tambah Beasiswa FE.
+2. Read: admin membaca draft terbaru; siswa membaca hasil yang sudah ditinjau untuk profil yang terhubung ke akunnya.
+3. Update: Edit mengubah alasan kecocokan dan waktu yang disarankan. Nama, katalog, skor, dan checklist bersifat read only di dialog.
+4. Sembunyikan/Tampilkan menyimpan is_hidden. Hasil tersembunyi tidak diteruskan ke siswa.
+5. Delete: Hapus menyimpan deleted_at; detail hilang dari daftar dan publikasi tetapi riwayat database dipertahankan.
+6. Setiap perubahan menarik publikasi dan mengembalikan status pending. Publikasikan kembali setelah review; hanya kandidat tidak tersembunyi yang dinilai untuk kelayakan publikasi.
+7. revision naik setiap kali hasil diubah atau ditinjau. PATCH/DELETE detail wajib membawa revision dan siswa_id; permintaan dari versi lama ditolak 409. Hanya batch terbaru yang boleh diubah/ditinjau.
+8. UI daftar rekomendasi, detail, chat, serta Jejak Alumni siswa mengambil ulang data saat fokus/tab kembali terlihat dan setiap 20 detik ketika tab terlihat. Permintaan tidak memakai cache browser.
+9. Daftar, detail, dan kartu chat memakai proyeksi publikasi siswa yang sama. Alasan dan waktu yang diedit admin dibaca kembali dari database.
+10. Hak siswa tetap baca; endpoint pengelolaan hanya staff. Identitas siswa ditentukan dari sesi untuk pembacaan personal.
+
+FE:
+- PATCH /api/b4/recommendations/{siswa}/items/{detail}
+- DELETE /api/b4/recommendations/{siswa}/items/{detail}
+
+BE:
+- PATCH /api/rekomendasi-beasiswa/{batch}/detail/{detail}
+- DELETE /api/rekomendasi-beasiswa/{batch}/detail/{detail}
+
+Contoh payload FE PATCH (ID hanya contoh format; gunakan ID respons server):
+~~~json
+{"recommendation_id":7,"revision":2,"reason":"Alasan hasil review sekolah.","timing":"Januari 2027"}
+~~~
+Visibilitas memakai hidden:true/false pada endpoint yang sama. DELETE cukup membawa recommendation_id dan revision. FE menyisipkan siswa_id dari path dan menerjemahkan reason/timing/hidden ke nama field BE. detail adalah ID detail rekomendasi, bukan ID katalog beasiswa.
+
+Migration 2026_11_04_140000_add_recommendation_editor_fields sudah dijalankan di eightracer_db pada 4 November 2026. Kolom revision, is_hidden, waktu_disarankan, dan deleted_at telah diperiksa. Cadangan skema dan baris rekomendasi sebelum migration disimpan pada folder privat .local/sync-crud-20261104, tidak masuk Git.
 
 ## Endpoint FE -> BE
 
@@ -63,7 +92,7 @@ ID di atas hanya contoh format. Gunakan ID dari respons server. Chat menentukan 
 
 - /siswa/rekomendasi-beasiswa menampilkan kartu dari hasil yang sudah disetujui untuk akun itu.
 - /siswa/rekomendasi-beasiswa/{batch}-{beasiswa} membaca detail dari daftar milik akun yang sama.
-- Satu batch terbaru per target jenjang dipakai pada kartu agar hasil lama tidak ditampilkan berulang.
+- Hanya batch terbaru per target jenjang yang dapat tampil. Bila batch terbaru masih pending/ditolak, hasil lama tidak dimunculkan kembali sebagai pengganti.
 - /siswa/rekomendasi-beasiswa/chat mengirim pertanyaan ke BE. Konteks program dari detail menggunakan ID katalog.
 - Jika pertanyaan belum menunjuk program, BE meminta siswa menyebutkan salah satu program katalog.
 - Chat menampilkan jawaban faktual ketika Gemini tidak digunakan; tidak mengaku memakai AI pada respons llm_used=false.
@@ -85,8 +114,8 @@ TF-IDF/cosine tetap menggunakan deskripsi katalog dan data minat nyata. Jika dat
 
 ## Verifikasi
 
-- Suite backend: 178 tes (177 lulus, satu XLSX lama dilewati), 1375 assertions; tidak ada kegagalan.
-- 40 tes kontrak/form/proxy FE lulus; mencakup generate, review, publikasi ke siswa, pencegahan pertukaran ID, error provider, serta chat.
+- Suite backend: 182 tes (181 lulus, satu XLSX lama dilewati), 1460 assertions; tidak ada kegagalan. Mencakup siklus CRUD/publikasi ulang, isolasi siswa, penolakan edit skor, batch lama, dan konflik revision.
+- 46 tes kontrak/form/proxy/sinkronisasi FE lulus; mencakup generate, review, publikasi ke siswa, pencegahan pertukaran ID, error provider, serta chat.
 - TypeScript dan ESLint pada bagian yang disentuh diperiksa.
 - Pemeriksaan HTTP server utama: 872 profil, tiga angkatan, belum ada kelas aktif maupun hasil terpublikasi. Filter angkatan dan publikasi sesuai isi DB; halaman admin/siswa/chat merespons 200. Dua kandidat katalog tetap belum lengkap.
 - Render struktur admin dengan data nyata dan keadaan kosong diperiksa; tujuh aturan CSS utama cocok dengan referensi FE. Pengambilan tangkapan layar browser belum berhasil karena alat kendali browser gagal dimulai. Ini pemeriksaan struktur/CSS dan HTTP, bukan verifikasi visual di browser.
@@ -94,4 +123,12 @@ TF-IDF/cosine tetap menggunakan deskripsi katalog dan data minat nyata. Jika dat
 - Uji tulis/publikasi terisolasi dengan Gemini sungguhan juga berhasil: generate 201, review 200, dan pembacaan siswa 200; sebelum publikasi kosong, setelah publikasi satu hasil. Seluruh tabel berada pada SQLite :memory: dan hilang setelah proses selesai.
 - Tes otomatis memakai SQLite in-memory dan HTTP fake. Tidak membuat data sintetis atau mengubah nilai siswa di database sekolah.
 
-Tidak ada migration baru untuk sambungan ini. GEMINI_API_KEY tetap hanya di .env.
+GEMINI_API_KEY tetap hanya di .env.
+
+## Status data utama setelah pemasangan
+
+- Ada 872 profil dan 599 penerimaan alumni. Seluruh 599 belum memiliki penanda izin publikasi ke siswa; Jejak Alumni siswa merespons 200 dengan total 0 sesuai aturan akses.
+- Belum ada profil yang ditautkan ke akun siswa (user_id masih kosong), termasuk akun uji yang diminta terpisah dari data sekolah. Pembacaan rekomendasi personal akun uji merespons 404 "Akun belum terhubung dengan data siswa." Pemetaannya perlu dilakukan lewat provisioning akun resmi, bukan memilih siswa asli secara acak.
+- Ada dua program katalog dan nol batch rekomendasi tersimpan. Tidak ada data siswa/rekomendasi sintetis ditambahkan ke database utama untuk mengisi tampilan.
+- Uji mutasi penuh dilakukan di SQLite terisolasi. Pemeriksaan HTTP utama memastikan route baru tersedia, ID tidak ada menghasilkan 404 dan akses tulis siswa ditolak 403.
+- Publikasi alumni memerlukan konfirmasi/referensi persetujuan sekolah; kolom persetujuan tidak diisi otomatis oleh proses sinkronisasi.

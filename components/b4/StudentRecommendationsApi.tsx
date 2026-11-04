@@ -1,33 +1,18 @@
 "use client";
 
-import {useEffect,useState} from "react";
 import Link from "next/link";
-import {useRouter} from "next/navigation";
 import {GraduationCap,ShieldCheck,Sparkles,CheckCircle2,CircleHelp} from "lucide-react";
-import {useUser} from "@/context/UserContext";
-import {recommendationRequest,type StudentRecommendation} from "@/lib/b4-recommendation-data";
+import {type StudentRecommendation} from "@/lib/b4-recommendation-data";
 import {recommendationEligibility,recommendationCriterionLabel} from "@/lib/b4-recommendations";
 import B4Shell,{Avatar} from "./B4Shell";
+import {useStudentRecommendations} from "./useStudentRecommendations";
 
-function useRecommendations(){
- const {currentUser,refreshSession}=useUser(),router=useRouter();
- const [result,setResult]=useState<{data?:StudentRecommendation[];error?:string}>();
- useEffect(()=>{
-  if(currentUser.role!=="siswa")return;
-  const abort=new AbortController();
-  recommendationRequest<{data:StudentRecommendation[]}>("/api/b4/rekomendasi?role=siswa",{signal:abort.signal})
-   .then(value=>{if(!abort.signal.aborted)setResult({data:value.data});})
-   .catch(error=>{if(abort.signal.aborted)return;if(error?.status===401){void refreshSession();router.replace("/login");}setResult({error:error instanceof Error?error.message:"Rekomendasi belum dapat dimuat."});});
-  return()=>abort.abort();
- },[currentUser.id,currentUser.role,refreshSession,router]);
- return {result,allowed:currentUser.role==="siswa"};
-}
 const known=(v:string|null)=>v??"Belum tercatat";
 function Evaluation({item}:{item:StudentRecommendation}){
  return <div>{item.checklist.length?item.checklist.map((c,i)=><div key={i} className={"bc4-evaluation"+(c.status==="terpenuhi"?"":" bc4-pending")}>{c.status==="terpenuhi"?<CheckCircle2 size={30}/>:<CircleHelp size={30}/>}<span><strong>{recommendationCriterionLabel(c.criterion)}</strong>: {c.operator} {known(c.required)} · {c.status?.replaceAll("_"," ")??"Belum diketahui"}</span></div>):<p>Rincian kriteria belum tersedia.</p>}</div>;
 }
 export default function StudentRecommendationsApi(){
- const {result,allowed}=useRecommendations(),items=result?.data??[];
+ const {result,allowed}=useStudentRecommendations(),items=result?.data??[];
  return <B4Shell student showDemoProfile={false} title="Rekomendasi Beasiswa" description="Temukan peluang beasiswa yang sesuai dengan profil dan perjalanan akademikmu." dataNote="">
   <div className="bc4-note"><ShieldCheck size={35}/><div><strong>Rekomendasi Telah Ditinjau Sekolah</strong><p>Hasil yang ditampilkan telah ditinjau dan dipublikasikan Admin/BK untuk akunmu.</p></div></div>
   <h2 className="bc4-listTitle">Rekomendasi Beasiswa Untukmu</h2>
@@ -40,14 +25,14 @@ export default function StudentRecommendationsApi(){
  </B4Shell>;
 }
 export function StudentRecommendationDetailApi({id}:{id:string}){
- const {result,allowed}=useRecommendations(),item=result?.data?.find(v=>v.key===id);
+ const {result,allowed}=useStudentRecommendations(),item=result?.data?.find(v=>v.key===id);
  return <B4Shell student showDemoProfile={false} title="Detail Rekomendasi Beasiswa" description="Pelajari informasi dan alasan kecocokan beasiswa yang direkomendasikan untukmu." parent={{label:"Rekomendasi Beasiswa",href:"/siswa/rekomendasi-beasiswa"}} dataNote="">
   {!allowed?<p role="alert">Halaman ini tersedia untuk akun siswa.</p>:result?.error?<div className="bc4-empty" role="alert">{result.error}</div>:!result?<p role="status">Memuat rekomendasi sekolah…</p>:!item?<div className="bc4-empty">Rekomendasi tidak tersedia untuk akun ini atau belum dipublikasikan. <Link href="/siswa/rekomendasi-beasiswa">Kembali ke rekomendasi</Link></div>:<>
    <section className="bc4-panel bc4-recommendationHeader"><GraduationCap size={45}/><div style={{flex:1}}><h3>{item.name}</h3><p>{known(item.provider)} · {known(item.level)}</p></div><div className="bc4-score"><span>Skor Kecocokan Kriteria</span><strong>{item.complete&&item.score!==null?item.score+"/100":"Belum dapat dinilai"}</strong></div></section>
    <div className="bc4-note" style={{marginTop:28}}><div><strong>Alasan Kecocokan</strong><p>{item.reason??recommendationEligibility(item)}</p></div></div>
    <div className="bc4-detailRecGrid"><div><section className="bc4-panel"><h2>Evaluasi Kriteria Siswa</h2><Evaluation item={item}/></section>
     <section className="bc4-panel"><h2>Referensi dari Jejak Alumni</h2><div className="bc4-yellowCard"><div className="bc4-profile" style={{padding:0,border:0}}><Avatar name="-" example={false}/><div><h2>-</h2><p>-</p><span className="bc4-tag">-</span><span className="bc4-tag">-</span></div></div><p style={{margin:"15px 0"}}>Pelajari catatan alumni yang telah dipublikasikan sekolah melalui Jejak Alumni. Hasil pemeriksaan kriteria ini bukan jaminan lolos seleksi.</p><Link className="bc4-button" href="/siswa/jejak-alumni">Lihat Jejak Alumni</Link></div></section>
-   </div><div><aside className="bc4-panel"><h2>Informasi Beasiswa</h2><dl className="bc4-facts">{[["Penyelenggara",known(item.provider)],["Jenjang",known(item.level)],["Pendanaan","Belum tercatat"],["Periode",known(item.period)],["Waktu yang Disarankan",item.opens??"Periksa jadwal resmi penyelenggara"]].map(([label,value])=><div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></aside>
+   </div><div><aside className="bc4-panel"><h2>Informasi Beasiswa</h2><dl className="bc4-facts">{[["Penyelenggara",known(item.provider)],["Jenjang",known(item.level)],["Pendanaan","Belum tercatat"],["Periode",known(item.period)],["Waktu yang Disarankan",item.timing??item.opens??"-"]].map(([label,value])=><div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></aside>
     <aside className="bc4-aiCta"><h2>Masih ada yang ingin kamu ketahui?</h2><p>Tanyakan informasi beasiswa ini berdasarkan katalog sekolah.</p><Link className="bc4-button" href={"/siswa/rekomendasi-beasiswa/chat?beasiswa="+item.scholarshipId}>Tanya tentang beasiswa ini</Link></aside>
    </div></div>
   </>}

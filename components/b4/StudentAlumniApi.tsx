@@ -22,8 +22,10 @@ function useAlumni<T>(path: string) {
   const key = `${path}:${retry}:${currentUser.id}:${authStatus}`;
   useEffect(() => {
     if (!permitted) return;
-    const abort = new AbortController();
+    const abort = new AbortController(); let running = false;
     async function load() {
+      if (running || abort.signal.aborted) return;
+      running = true;
       try {
         const response = await fetch(path, { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" }, signal: abort.signal });
         const payload = await response.json();
@@ -33,8 +35,12 @@ function useAlumni<T>(path: string) {
         }
         if (!abort.signal.aborted) setResult({ key, data: payload });
       } catch (error) { if (!abort.signal.aborted) setResult({ key, error: error instanceof Error ? error.message : "Jejak Alumni belum dapat dihubungi." }); }
+      finally { running = false; }
     }
-    void load(); return () => abort.abort();
+    const visible = () => { if (document.visibilityState === "visible") void load(); };
+    void load(); window.addEventListener("focus", visible); document.addEventListener("visibilitychange", visible);
+    const timer = window.setInterval(visible, 20_000);
+    return () => { abort.abort(); window.clearInterval(timer); window.removeEventListener("focus", visible); document.removeEventListener("visibilitychange", visible); };
   }, [path, key, permitted, refreshSession]);
   const current = result?.key === key ? result : null;
   return { data: current?.data, error: !permitted ? "Masuk dengan akun siswa untuk membaca Jejak Alumni." : current?.error, retry: () => setRetry((value) => value + 1) };

@@ -4,8 +4,9 @@ import {useEffect,useRef,useState} from "react";
 import Link from "next/link";
 import {Bot,GraduationCap,Send} from "lucide-react";
 import {useUser} from "@/context/UserContext";
-import {recommendationRequest,type ScholarshipChatReply,type StudentRecommendation} from "@/lib/b4-recommendation-data";
+import {recommendationRequest,type ScholarshipChatReply} from "@/lib/b4-recommendation-data";
 import B4Shell from "./B4Shell";
+import {useStudentRecommendations} from "./useStudentRecommendations";
 
 type Message={role:"user"|"bot";text:string;recommendationId?:string};
 const suggestions=["Beasiswa apa yang cocok buat aku?","Kenapa beasiswa ini direkomendasikan?","Apa saja persyaratannya?","Apa yang perlu aku persiapkan?"];
@@ -13,15 +14,8 @@ export default function ScholarshipChatApi({recommendationId}:{recommendationId?
  const {currentUser}=useUser();
  const selected=recommendationId&&/^[1-9]\d*$/.test(recommendationId)&&Number.isSafeInteger(Number(recommendationId))?Number(recommendationId):undefined;
  const [messages,setMessages]=useState<Message[]>([]),[input,setInput]=useState(""),[busy,setBusy]=useState(false);
- const [recommendations,setRecommendations]=useState<StudentRecommendation[]>([]);
+ const {result}=useStudentRecommendations(),recommendations=result?.data??[];
  const [mode,setMode]=useState<string|null>(null),lock=useRef(false),end=useRef<HTMLDivElement>(null);
- useEffect(()=>{
-  if(currentUser.role!=="siswa")return;
-  const abort=new AbortController();
-  recommendationRequest<{data:StudentRecommendation[]}>("/api/b4/rekomendasi?role=siswa",{signal:abort.signal})
-   .then(value=>{if(!abort.signal.aborted)setRecommendations(value.data);}).catch(()=>{});
-  return()=>abort.abort();
- },[currentUser.id,currentUser.role]);
  useEffect(()=>{if(messages.length)end.current?.scrollIntoView({behavior:"smooth",block:"nearest"});},[messages,busy]);
  const context=recommendations.find(item=>item.scholarshipId===selected);
  async function send(question:string){

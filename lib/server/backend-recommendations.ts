@@ -10,14 +10,17 @@ const allowedMessages = new Set([
   "Data kriteria belum lengkap; rekomendasi tidak dapat dipublikasikan.",
   "Belum ada beasiswa yang memenuhi seluruh persyaratan.",
   "Rekomendasi sudah ditinjau. Buat draft baru untuk revisi.",
+  "Rekomendasi berubah. Muat ulang sebelum menyimpan.",
+  "Ada draft lebih baru. Muat ulang rekomendasi.",
   "Layanan rekomendasi belum tersedia.",
   "Gemini belum dapat menghasilkan rekomendasi valid. Silakan coba lagi.",
 ]);
-export async function backendRecommendations(request: NextRequest, path: string, options: { method?: "GET" | "POST" | "PATCH"; query?: URLSearchParams; body?: unknown } = {}) {
+export async function backendRecommendations(request: NextRequest, path: string, options: { method?: "GET" | "POST" | "PATCH" | "DELETE"; query?: URLSearchParams; body?: unknown } = {}) {
   const method=options.method??"GET";
   const valid=method==="GET" ? path==="/siswa" || /^\/siswa\/[1-9]\d*\/rekomendasi-beasiswa\/preview$/.test(path) || /^\/rekomendasi-beasiswa(?:\/saya|\/[1-9]\d*)?$/.test(path)
     : method==="POST" ? path==="/chat-beasiswa" || /^\/siswa\/[1-9]\d*\/rekomendasi-beasiswa\/generate$/.test(path)
-    : /^\/rekomendasi-beasiswa\/[1-9]\d*\/review$/.test(path);
+    : method==="PATCH" ? /^\/rekomendasi-beasiswa\/[1-9]\d*\/(?:review|detail\/[1-9]\d*)$/.test(path)
+    : /^\/rekomendasi-beasiswa\/[1-9]\d*\/detail\/[1-9]\d*$/.test(path);
   if(!valid)throw new AuthError(422,"Tujuan rekomendasi tidak valid.");
   const token=request.cookies.get(SESSION_COOKIE)?.value;
   if(!token)throw new AuthError(401,"Silakan masuk dengan akun sekolah.");
