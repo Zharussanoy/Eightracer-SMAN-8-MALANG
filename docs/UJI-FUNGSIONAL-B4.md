@@ -8,7 +8,7 @@ Uji harus memakai backend nyata. Hasil fixture, data browser dan draf lokal buka
 | --- | --- | --- |
 | Login, sesi, logout | Proxy FE dan cookie sesi tersedia; teruji dengan fixture | Akun BE admin/siswa, login nyata, refresh dan logout nyata |
 | Baca katalog | GET, pencarian, filter dan pagination tersedia; teruji dengan fixture | Respons katalog nyata sesuai adapter dan akses siswa ditolak |
-| Tambah/edit katalog | Draf lokal saja; tidak mengirim POST/PUT | Enum kriteria/operator, aturan field/bobot, respons detail, lalu implementasi simpan dan baca ulang |
+| Tambah/edit/arsip katalog | POST/PUT/DELETE BE sudah dipasang pada 4 November; teruji dengan fixture | Uji record khusus di BE nyata; konfirmasi seluruh enum dan aturan field/bobot |
 | Alumni/timeline/progres | Data contoh | Integrasi baca/detail dan simpan/koreksi dengan ID referensi aktual |
 | Rekomendasi/review | Simulasi browser | Generate/review nyata serta hasil yang disetujui terbaca oleh akun siswa yang tepat |
 | Chat | Jawaban contoh | Sambungan endpoint, jawaban faktual dan penanganan fallback |

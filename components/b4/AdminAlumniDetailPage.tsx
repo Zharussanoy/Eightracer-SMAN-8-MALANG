@@ -5,10 +5,18 @@ import { Eye, EyeOff, Pencil, Trash2, Upload, X } from "lucide-react";
 import B4Shell, { Avatar } from "./B4Shell";
 import { ALUMNI, progressFor, rupiah, updateDemo, useDemoData, type Progress } from "./demoStore";
 import { COLLEGE_ALUMNI } from "@/components/admin/b-4/mockData";
+import { useUser } from "@/context/UserContext";
+import AdminAlumniApi from "./AdminAlumniApi";
 
 function period(semester: number) { return `${semester % 2 ? "Ganjil" : "Genap"} ${2024 + Math.floor((semester - 1) / 2)}/${2025 + Math.floor((semester - 1) / 2)}`; }
 const blank = (semester = 4): Progress => ({ semester, period: period(semester), ipk: "", kipk: "Tidak", scholarship: "-", ukt: "", ipi: "0", showUkt: true, showIpi: false });
-export default function AdminAlumniDetailPage({ id = "dian" }: { id?: string }) {
+export default function AdminAlumniDetailPage({ id }: { id?: string }) {
+  const { authStatus, authMessage, refreshSession } = useUser();
+  if (authStatus === "authenticated") return <AdminAlumniApi timeline studentId={id} />;
+  if (authStatus !== "anonymous") return <B4Shell title="Informasi Detail Alumni" active="alumni" description="Lihat riwayat pendidikan alumni." dataNote=""><p role="status">{authStatus === "loading" ? "Memeriksa sesi akun…" : authMessage}</p>{authStatus === "unavailable" && <button onClick={() => void refreshSession()}>Coba lagi</button>}</B4Shell>;
+  return <AdminAlumniDetailDemo id={id} />;
+}
+function AdminAlumniDetailDemo({ id = "dian" }: { id?: string }) {
   const data = useDemoData();
   const row = COLLEGE_ALUMNI.find((item) => item.id === id);
   const alumni = ALUMNI.find((item) => item.id === id || item.name === row?.name);

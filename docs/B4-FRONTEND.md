@@ -1,19 +1,19 @@
 # Frontend B4 — Alumni dan Beasiswa
 
-Sebagian besar halaman modul B4 masih memakai data contoh dan belum memakai layanan AI. Login, pemeriksaan sesi dan logout sudah dihubungkan ke kontrak API BE. Pembacaan katalog beasiswa untuk sesi BE sudah disiapkan; pengujian dengan akun BE sungguhan masih menunggu akun uji. Jangan gunakan pilihan profil contoh sebagai pengganti otorisasi backend. Rincian dan batas pemeriksaan ada di `docs/INTEGRASI-API-B4.md`.
+Sebagian halaman modul B4 masih memakai data contoh dan belum memakai layanan AI. Login/sesi/logout dan katalog staff sudah memiliki sambungan API. Daftar alumni serta timeline admin telah dicocokkan dengan satu sampel BE asli. Analitik staff membaca agregat beasiswa serta dashboard UKT/IPK, dengan null dan daftar kosong dipertahankan. Rekomendasi admin kini membaca siswa dan preview kecocokan BE; generate/review/publikasi tetap nonaktif sesuai lingkup baca saja. Detail admin pada sesi BE hanya membaca riwayat dan tidak memakai formulir progres/impor lokal. Halaman siswa dan chat belum selesai integrasi. Uji tulis dengan akun BE sungguhan belum dilakukan agen. Jangan gunakan pilihan profil contoh sebagai pengganti otorisasi backend. Rincian dan batas pemeriksaan ada di `docs/INTEGRASI-API-B4.md`.
 
 ## Halaman
 
 | Peran | URL | Fungsi |
 | --- | --- | --- |
 | Admin | `/admin/alumni-perguruan-tinggi` | Pencarian dan filter alumni |
-| Admin | `/admin/alumni-perguruan-tinggi/informasi-detail?id=dian` | Edit progres, riwayat, visibilitas biaya, impor Excel |
+| Admin | `/admin/alumni-perguruan-tinggi/informasi-detail?id={siswa_id}` | Baca riwayat pada sesi BE; editor/impor lokal hanya untuk demo anonim |
 | Admin | `/admin/timeline-individu` | Riwayat sekolah dan progres per semester |
-| Admin | `/admin/analitik-beasiswa` | Visualisasi angka contoh, pengelompokan UKT |
-| Admin | `/admin/basis-data-beasiswa` | Pencarian, filter, arsip/aktifkan katalog |
+| Admin | `/admin/analitik-beasiswa` | Sesi staff: agregat BE, UKT/IPK dan unduh PDF berizin; tanpa sesi: demo berlabel |
+| Admin | `/admin/basis-data-beasiswa` | Pencarian, filter, arsip/aktifkan dan impor CSV informasi beasiswa |
 | Admin | `/admin/basis-data-beasiswa/tambah` | Tambah program dan kriteria |
-| Admin | `/admin/basis-data-beasiswa/edit?id=b4-scholarship-1` | Edit program dan kriteria |
-| Admin | `/admin/rekomendasi-beasiswa` | Tinjau, edit alasan, sembunyikan, hapus, publikasikan rekomendasi |
+| Admin | `/admin/basis-data-beasiswa/edit?id={id_beasiswa}` | Edit program dan kriteria dari endpoint detail |
+| Admin | `/admin/rekomendasi-beasiswa` | Sesi staff: pilih siswa dan preview BE baca saja; tanpa sesi: demo berlabel |
 | Siswa | `/siswa/jejak-alumni` | Pencarian/filter kartu alumni |
 | Siswa | `/siswa/jejak-alumni/dian` | Data masuk PT dan progres kuliah |
 | Siswa | `/siswa/rekomendasi-beasiswa` | Rekomendasi yang dipublikasikan untuk profil siswa |
@@ -22,7 +22,7 @@ Sebagian besar halaman modul B4 masih memakai data contoh dan belum memakai laya
 
 ## Mencoba alur
 
-1. Tanpa sesi BE, tambahkan beasiswa melalui katalog demo. Isi penyelenggara, deskripsi dan minimal satu nama kriteria, lalu **Simpan di Browser**. Pindah halaman atau refresh: data tetap tersimpan di browser yang sama. Dengan sesi BE, katalog menggunakan API baca saja; **Siapkan Draf Beasiswa Lokal** menyimpan draf terpisah, belum mengubah katalog sekolah. Untuk memulihkan draf sesudah refresh, pilih **Pulihkan draf lokal tersimpan**. Edit/arsip BE belum diaktifkan.
+1. Tanpa sesi BE, katalog demo masih menyimpan di browser. Dengan sesi staff BE, pilih **Tambah Beasiswa**, isi informasi program lalu **Simpan**. Pengaturan kriteria memerlukan tipe/operator/nilai yang didukung server. Sesudah berhasil, halaman kembali ke katalog dan membaca ulang data BE. Edit dibuka dari baris katalog, arsip/aktifkan memerlukan tindakan pengguna. Gunakan record khusus uji untuk pemeriksaan tulis.
 2. Buka rekomendasi admin. Profil awal adalah Nadia dan status awalnya draft. Tinjau lalu tekan **Publikasikan Ke Siswa**.
 3. Buka rekomendasi siswa. Pilih **Nadia Putri Wicaksono** pada pilihan profil contoh. Rekomendasi yang dipublikasikan akan terlihat.
 4. Edit alasan atau visibilitas rekomendasi di admin. Status kembali menjadi draft sampai dipublikasikan ulang.
@@ -58,7 +58,7 @@ Sumber data demo terpusat di `components/b4/demoStore.ts`. Sepakati kontrak API 
 - Batas layanan AI: input yang diizinkan, respons terstruktur, status proses, dan penanganan gagal.
 - Siswa hanya menerima rekomendasi miliknya yang telah dipublikasikan dan nominal yang boleh ditampilkan. LocalStorage dan pilihan profil harus diganti dengan sesi serta data dari backend.
 
-Halaman analitik masih menggunakan dataset contoh tersendiri. Grafik dan ringkasan belum merupakan hasil agregasi progres yang diedit di admin. Foto alumni memakai avatar pengganti sampai aset resmi tersedia.
+Halaman analitik pada sesi staff memakai hasil BE. Penerima unik tidak diperoleh dari penjumlahan distribusi program, dan grafik yang belum disediakan BE tidak diganti dengan angka contoh. Edit progres lokal pada mode demo tidak mengubah agregat BE. Foto alumni memakai avatar pengganti sampai aset resmi tersedia.
 
 ## Pemeriksaan lokal
 

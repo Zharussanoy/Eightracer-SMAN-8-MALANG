@@ -221,6 +221,12 @@
 .bc4-addCriterion { margin-top:18px; display:inline-flex; align-items:center; gap:7px; }
 .bc4-restoreDraft { margin-bottom:20px; }
 .bc4-localDraftLink { margin:0 0 20px; }
+.bc4-extraInformation > summary, .bc4-criterionSettings > summary { cursor:pointer; color:var(--b4-purple); font-size:12px; }
+.bc4-extraInformation[open] > summary, .bc4-criterionSettings[open] > summary { margin-bottom:14px; }
+.bc4-criterionSettings { padding:10px 8px 0; }
+.bc4-criterionSettings > summary { display:flex; align-items:center; gap:6px; }
+.bc4-criterionSettings > .bc4-fields { padding:14px; border:1px solid #e3d6ec; border-radius:10px; }
+.bc4-button:disabled, .b4-scholarshipActions button:disabled { opacity:.55; cursor:wait; }
 .bc4-draftStatus { margin:18px 0; color:#a13232; font-size:14px; line-height:1.6; }
 .bc4-draftStatus:empty { display:none; }
 .bc4-draftSaved { color:#256643; }
@@ -235,3 +241,35 @@
 .bc4-bubble>p:last-child { margin-bottom:0; }
 @media(max-width:1000px) { .bc4-profileRow:has(.bc4-metrics>div:nth-child(5)) { grid-template-columns:1fr; } }
 @media(max-width:540px) { .bc4-current:has(.bc4-metrics>div:nth-child(5)) .bc4-metrics { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+.bc4-liveChart { overflow-x: auto; margin-top: 24px; }
+.bc4-liveBars { display: flex; align-items: flex-end; gap: 24px; min-height: 235px; padding: 12px 8px; list-style: none; }
+.bc4-liveBars li { flex: 1 0 70px; text-align: center; font-size: 13px; }
+.bc4-liveBarArea { min-height: 185px; display: flex; align-items: center; justify-content: flex-end; flex-direction: column; border-bottom: 1px solid #ddd; margin-bottom: 8px; }
+.bc4-liveBarArea strong { color: var(--b4-purple); font-size: 13px; margin-bottom: 8px; }
+.bc4-liveBarArea > span { width: 48px; max-width: 80%; background: var(--b4-purple); border-radius: 7px 7px 0 0; }
+.bc4-analyticsLive { padding-top: 8px; }
+.bc4-analyticsLive .b4-analyticsFilters { grid-template-columns: repeat(4,minmax(0,1fr)); align-items: start; gap: 12px; }
+.bc4-analyticsLive .b4-analyticsFilters > * { min-width: 0; grid-column: auto; }
+.bc4-analyticsLive .b4-analyticsStats { margin-top: 20px; }
+.bc4-analyticsLive .b4-analyticsStats article { min-width: 0; justify-content: flex-start; gap: 16px; }
+.bc4-analyticsLive .b4-analyticsStats article > strong { display: flex; min-height: 46px; align-items: center; }
+.bc4-analyticsLive .b4-analyticsStats article > small { margin-top: auto; line-height: 1.5; }
+.bc4-analyticsLive .b4-analyticsStats article strong.bc4-metricMissing { font-size: clamp(20px,2vw,26px); line-height: 1.4; }
+.bc4-analyticsLive .b4-analyticsCard > .bc4-empty { display: grid; flex: 1; min-height: 220px; place-content: center; margin: 18px 0 0; padding: 24px 18px; border: 0; border-radius: 0; background: white; font-size: 14px; }
+.bc4-scholarshipFilter { position: relative; min-width: 0; color: #666; }
+.bc4-scholarshipFilter > summary { display: flex; height: 47px; align-items: center; justify-content: space-between; gap: 12px; padding: 0 20px; border: 1px solid var(--b4-border); border-radius: 11px; background: white; cursor: pointer; list-style: none; font-size: 14px; }
+.bc4-scholarshipFilter > summary::-webkit-details-marker { display: none; }
+.bc4-scholarshipFilter > summary > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bc4-scholarshipFilter > summary svg { flex-shrink: 0; }
+.bc4-scholarshipFilter[open] > summary { box-shadow: 0 0 0 2px #b57ce250; }
+.bc4-scholarshipOptions { position: absolute; z-index: 30; top: calc(100% + 8px); right: 0; width: max(100%,280px); max-width: calc(100vw - 48px); padding: 12px; border: 1px solid #d9c9e7; border-radius: 12px; background: white; box-shadow: 0 10px 28px #23103024; }
+.bc4-scholarshipChoices { max-height: 245px; overflow-y: auto; margin-top: 8px; }
+.bc4-scholarshipChoices > button { display: block; width: 100%; padding: 10px 12px; border: 0; border-radius: 7px; background: white; color: #27202d; text-align: left; font-size: 14px; }
+.bc4-scholarshipChoices > button:hover,.bc4-scholarshipChoices > button[aria-pressed="true"] { color: var(--b4-purple); background: #f1e9f9; }
+.bc4-scholarshipOptions > p { margin: 10px 3px 2px; color: #777; font-size: 12px; }
+@media(max-width:850px) { .bc4-analyticsLive .b4-analyticsFilters { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width:540px) { .bc4-analyticsLive { padding-top: 0; } .bc4-analyticsLive .b4-analyticsFilters { grid-template-columns: minmax(0,1fr); gap: 10px; } .bc4-analyticsLive .b4-analyticsStats article strong.bc4-metricMissing { font-size: 23px; } }
+.bc4-paginationItem { display: inline-flex; align-items: center; gap: 10px; }
+.bc4-paginationEllipsis { color: #141414; font-size: 16px; font-weight: 600; }
+.bc4-catalogActions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.bc4-catalogActions > .bc4-button { min-height: 47px; white-space: nowrap; }

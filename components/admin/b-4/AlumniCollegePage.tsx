@@ -6,6 +6,9 @@ import { ChevronDown, ChevronLeft, ChevronRight, Search, X } from "lucide-react"
 import B4Tabs from "./B4Tabs";
 import { COLLEGE_ALUMNI } from "./mockData";
 import "./college.css";
+import { useUser } from "@/context/UserContext";
+import AdminAlumniApi from "@/components/b4/AdminAlumniApi";
+import B4Shell from "@/components/b4/B4Shell";
 
 const PAGE_SIZE = 8;
 const universities = [...new Set(COLLEGE_ALUMNI.map((item) => item.university))];
@@ -28,6 +31,13 @@ function FilterSelect({ label, value, options, onChange }: {
 }
 
 export default function AlumniCollegePage() {
+  const { authStatus, authMessage, refreshSession } = useUser();
+  if (authStatus === "authenticated") return <AdminAlumniApi />;
+  if (authStatus !== "anonymous") return <B4Shell title="Alumni di Perguruan Tinggi" active="alumni" description="Lihat data alumni sekolah." dataNote=""><p role="status">{authStatus === "loading" ? "Memeriksa sesi akun…" : authMessage}</p>{authStatus === "unavailable" && <button onClick={() => void refreshSession()}>Coba lagi</button>}</B4Shell>;
+  return <AlumniCollegeDemo />;
+}
+
+function AlumniCollegeDemo() {
   const [query, setQuery] = useState("");
   const [university, setUniversity] = useState("");
   const [program, setProgram] = useState("");

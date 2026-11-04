@@ -9,6 +9,7 @@ import { isScholarshipDraft, newScholarshipDraft, scholarshipDraftErrors, type S
 import { scholarshipPeriod } from "@/lib/b4-scholarships";
 import B4Shell from "./B4Shell";
 import { updateDemo, useDemoData, type CatalogItem } from "./demoStore";
+import ScholarshipEditorApi from "./ScholarshipEditorApi";
 
 const BACK = "/admin/basis-data-beasiswa";
 
@@ -105,6 +106,7 @@ export default function ScholarshipEditorPage({ id }: { id?: string }) {
   const { authStatus, currentUser, authMessage, refreshSession } = useUser();
   const item = data.catalog.find((entry) => entry.id === id);
   const authenticated = authStatus === "authenticated";
+  if (authenticated) return <ScholarshipEditorApi id={id} />;
   return <B4Shell title={`${id ? "Edit" : "Tambah"} Basis Data Beasiswa`} description="Kelola informasi program, periode pendaftaran, dan kriteria kelayakan beasiswa." active="database" parent={{ label: "Basis Data Beasiswa", href: BACK }}
     dataNote={authenticated ? "Persiapan formulir · Draf lokal belum mengubah data sekolah." : undefined}>
     {authStatus === "loading" ? <p role="status">Memeriksa sesi akun…</p>

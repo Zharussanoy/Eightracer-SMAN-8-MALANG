@@ -5,8 +5,16 @@ import { CheckCircle2, CircleAlert, Eye, EyeOff, GraduationCap, RefreshCw, Searc
 import B4Shell, { Avatar } from "./B4Shell";
 import { STUDENTS, makeDemoRecommendations, updateDemo, useDemoData, type Recommendation } from "./demoStore";
 import { RecommendationEvaluation } from "./RecommendationParts";
+import { useUser } from "@/context/UserContext";
+import AdminRecommendationsApi from "./AdminRecommendationsApi";
 
 export default function AdminRecommendationsPage() {
+  const { authStatus, authMessage, refreshSession } = useUser();
+  if (authStatus === "authenticated") return <AdminRecommendationsApi />;
+  if (authStatus !== "anonymous") return <B4Shell title="Rekomendasi Beasiswa" description="Pelajari pratinjau rekomendasi siswa." dataNote=""><p role="status">{authStatus === "loading" ? "Memeriksa sesi akun…" : authMessage}</p>{authStatus === "unavailable" && <button onClick={() => void refreshSession()}>Coba lagi</button>}</B4Shell>;
+  return <AdminRecommendationsDemo />;
+}
+function AdminRecommendationsDemo() {
   const data = useDemoData();
   const [query, setQuery] = useState("Nadia Putri Wicaksono");
   const [classroom, setClassroom] = useState("");

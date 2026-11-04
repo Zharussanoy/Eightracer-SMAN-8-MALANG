@@ -4,8 +4,16 @@ import { useState } from "react";
 import B4Shell, { Avatar } from "./B4Shell";
 import AcademicTimeline from "./AcademicTimeline";
 import { ALUMNI, progressFor, rupiah, useDemoData } from "./demoStore";
+import { useUser } from "@/context/UserContext";
+import AdminAlumniApi from "./AdminAlumniApi";
 
 export default function AdminTimelinePage() {
+  const { authStatus, authMessage, refreshSession } = useUser();
+  if (authStatus === "authenticated") return <AdminAlumniApi timeline />;
+  if (authStatus !== "anonymous") return <B4Shell title="Timeline Individu" active="timeline" description="Lihat riwayat pendidikan alumni." dataNote=""><p role="status">{authStatus === "loading" ? "Memeriksa sesi akun…" : authMessage}</p>{authStatus === "unavailable" && <button onClick={() => void refreshSession()}>Coba lagi</button>}</B4Shell>;
+  return <AdminTimelineDemo />;
+}
+function AdminTimelineDemo() {
   const data = useDemoData();
   const [query, setQuery] = useState("Dian Permata Sari");
   const [university, setUniversity] = useState("");

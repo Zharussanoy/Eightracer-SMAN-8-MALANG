@@ -5,6 +5,9 @@ import Link from "next/link";
 import { BookOpen, ChevronDown, ChevronRight, Landmark } from "lucide-react";
 import B4Tabs from "./B4Tabs";
 import "./college.css";
+import { useUser } from "@/context/UserContext";
+import ScholarshipAnalyticsApi from "@/components/b4/ScholarshipAnalyticsApi";
+import B4Shell from "@/components/b4/B4Shell";
 
 const scholarshipData = [
   { label: "Beasiswa Unggulan Kemendikbud", count: 48 },
@@ -82,6 +85,12 @@ function formatRupiah(value: number) {
 }
 
 export default function ScholarshipAnalyticsPage() {
+  const { authStatus, authMessage, refreshSession } = useUser();
+  if (authStatus === "authenticated") return <ScholarshipAnalyticsApi />;
+  if (authStatus !== "anonymous") return <B4Shell title="Analitik Beasiswa" active="analytics" description="Lihat analitik alumni sekolah." dataNote=""><p role="status">{authStatus === "loading" ? "Memeriksa sesi akun…" : authMessage}</p>{authStatus === "unavailable" && <button onClick={() => void refreshSession()}>Coba lagi</button>}</B4Shell>;
+  return <ScholarshipAnalyticsDemo />;
+}
+function ScholarshipAnalyticsDemo() {
   const [cohort, setCohort] = useState("");
   const [university, setUniversity] = useState("");
   const [program, setProgram] = useState("");
