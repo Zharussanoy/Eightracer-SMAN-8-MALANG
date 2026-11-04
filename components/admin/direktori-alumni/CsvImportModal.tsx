@@ -9,14 +9,20 @@ import {
   CheckCircle2,
   ArrowRight,
   ChevronLeft,
+  AlertCircle,
 } from "lucide-react";
-import { AlumniItem } from "./types";
-import { SAMPLE_IMPORT_ALUMNI } from "./mockData";
 
 interface CsvImportModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onImportComplete: (newRows: AlumniItem[]) => void;
+  onImportComplete: () => void;
+}
+
+interface ImportResult {
+  message: string;
+  berhasil: number;
+  gagal: number;
+  error_detail: Array<{ sheet: string; baris: number; pesan: string }>;
 }
 
 export default function CsvImportModal({
@@ -25,36 +31,78 @@ export default function CsvImportModal({
   onImportComplete,
 }: CsvImportModalProps) {
   const [importStep, setImportStep] = useState<1 | 2 | 3>(1);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
-  const [importedRows, setImportedRows] = useState<AlumniItem[]>([]);
-  const [isProcessingValidation, setIsProcessingValidation] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const handleResetAndClose = () => {
     setImportStep(1);
+    setSelectedFile(null);
     setUploadedFileName(null);
-    setImportedRows([]);
-    setIsProcessingValidation(false);
+    setIsProcessing(false);
+    setImportResult(null);
+    setImportError(null);
     onClose();
   };
 
-  const handleFileSelected = (fileName: string) => {
-    setUploadedFileName(fileName);
+  const handleFileSelected = (file: File) => {
+    setSelectedFile(file);
+    setUploadedFileName(file.name);
     setImportStep(2);
-    setIsProcessingValidation(true);
-    setTimeout(() => {
-      setIsProcessingValidation(false);
-      setImportedRows(SAMPLE_IMPORT_ALUMNI);
-    }, 1200);
+    setImportError(null);
+    setImportResult(null);
   };
 
-  const handleExecuteImport = () => {
-    setImportStep(3);
+  const handleExecuteImport = async () => {
+    if (!selectedFile) {
+      setImportError("Tidak ada file yang dipilih.");
+      return;
+    }
+
+    setIsProcessing(true);
+    setImportError(null);
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    try {
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("eightracer_token")
+          : null;
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/alumni/import`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: formData,
+        }
+      );
+
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.message || `Request failed: ${res.status}`);
+      }
+
+      setImportResult(json);
+      setImportStep(3);
+    } catch (err: any) {
+      setImportError(err.message || "Import gagal.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleFinish = () => {
-    onImportComplete(importedRows);
+    onImportComplete();
     handleResetAndClose();
   };
 
@@ -68,12 +116,12 @@ export default function CsvImportModal({
             </div>
             <div>
               <h3 className="text-sm sm:text-base font-bold text-slate-900">
-                Import Data Alumni (Berkas CSV)
+                Import Data Alumni (Berkas Excel/CSV)
               </h3>
               <p className="text-[11px] sm:text-xs text-slate-500">
-                {importStep === 1 && "Langkah 1: Unggah berkas CSV alumni"}
-                {importStep === 2 && "Langkah 2: Validasi & preview format kolom"}
-                {importStep === 3 && "Langkah 3: Proses impor selesai"}
+                {importStep === 1 && "Langkah 1: Unggah berkas alumni"}
+                {importStep === 2 && "Langkah 2: Konfirmasi & proses import"}
+                {importStep === 3 && "Langkah 3: Hasil import"}
               </p>
             </div>
           </div>
@@ -93,12 +141,12 @@ export default function CsvImportModal({
                 onClick={() => {
                   const input = document.createElement("input");
                   input.type = "file";
-                  input.accept = ".csv";
+                  input.accept = ".csv,.xlsx,.xls";
                   input.onchange = (e: Event) => {
                     const target = e.target as HTMLInputElement | null;
                     const file = target?.files?.[0];
                     if (file) {
-                      handleFileSelected(file.name);
+                      handleFileSelected(file);
                     }
                   };
                   input.click();
@@ -109,40 +157,33 @@ export default function CsvImportModal({
                   <Upload className="w-6 h-6" />
                 </div>
                 <h4 className="text-sm font-bold text-slate-800 mb-1">
-                  Pilih berkas CSV alumni Anda
+                  Pilih berkas Excel/CSV alumni
                 </h4>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto mb-4">
-                  Tarik dan lepaskan file .csv ke sini atau klik untuk menelusuri penyimpanan lokal Anda.
+                  Mendukung .xlsx, .xls, dan .csv sesuai format spreadsheet alumni SMAN 8 Malang.
                 </p>
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-slate-700 shadow-2xs">
-                  <span>Pilih File (.csv)</span>
+                  <span>Pilih File</span>
                 </div>
               </div>
 
               <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                 <div>
                   <span className="font-bold text-slate-800 block">
-                    Ingin mencoba cepat?
+                    Format file
                   </span>
                   <span className="text-slate-500">
-                    Gunakan 3 baris data contoh alumni SMARIHASTA 2024.
+                    Gunakan file Excel asli dari Guru BK (multi-sheet: SNBP, SNBT, dll.).
                   </span>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     type="button"
-                    onClick={() => handleFileSelected("data-alumni-smarihasta-2024.csv")}
-                    className="px-3 py-1.5 rounded-lg bg-[#5F089E] text-white font-bold hover:bg-[#4D0680] transition-colors cursor-pointer"
-                  >
-                    Uji Data Contoh
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => alert("Mengunduh template CSV...")}
+                    onClick={() => alert("Template belum tersedia. Gunakan file Excel asli Guru BK.")}
                     className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 font-medium hover:bg-slate-100 transition-colors flex items-center gap-1 cursor-pointer"
                   >
                     <Download className="w-3.5 h-3.5" />
-                    <span>Template</span>
+                    <span>Info Format</span>
                   </button>
                 </div>
               </div>
@@ -151,102 +192,111 @@ export default function CsvImportModal({
 
           {importStep === 2 && (
             <div className="space-y-4">
-              {isProcessingValidation ? (
-                <div className="py-12 text-center space-y-3">
-                  <div className="w-10 h-10 border-3 border-purple-200 border-t-[#5F089E] rounded-full animate-spin mx-auto" />
-                  <p className="text-sm font-bold text-slate-800">
-                    Memvalidasi baris CSV...
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    Memeriksa integritas NISN, kolom PTN, dan format nilai rapor.
-                  </p>
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-3">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                <div className="text-xs">
+                  <span className="font-bold text-emerald-900 block">
+                    Berkas siap: {uploadedFileName}
+                  </span>
+                  <span className="text-emerald-700">
+                    File akan diproses sesuai sheet yang dikenali (SNBP, SNBT, MANDIRI, dll.).
+                  </span>
                 </div>
-              ) : (
-                <>
-                  <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-3">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                    <div className="text-xs">
-                      <span className="font-bold text-emerald-900 block">
-                        Berkas valid: {uploadedFileName}
-                      </span>
-                      <span className="text-emerald-700">
-                        {importedRows.length} baris siap dimasukkan ke database direktori.
-                      </span>
-                    </div>
-                  </div>
+              </div>
 
-                  <div className="border border-slate-200 rounded-xl overflow-hidden max-h-56 overflow-y-auto text-xs">
-                    <table className="w-full text-left">
-                      <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold sticky top-0">
-                        <tr>
-                          <th className="p-2.5">NISN</th>
-                          <th className="p-2.5">Nama</th>
-                          <th className="p-2.5">Kampus</th>
-                          <th className="p-2.5">Jalur</th>
-                          <th className="p-2.5">Nilai</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 text-slate-700">
-                        {importedRows.map((r) => (
-                          <tr key={r.id} className="hover:bg-slate-50">
-                            <td className="p-2.5 font-mono">{r.nisn}</td>
-                            <td className="p-2.5 font-semibold text-slate-900">
-                              {r.nama}
-                            </td>
-                            <td className="p-2.5">{r.kampusKode}</td>
-                            <td className="p-2.5">{r.jalur}</td>
-                            <td className="p-2.5 font-bold">{r.nilai}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setImportStep(1)}
-                      className="px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors flex items-center justify-center gap-1 cursor-pointer"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                      <span>Ganti File</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleExecuteImport}
-                      className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer text-center"
-                    >
-                      <span>Lanjutkan Simpan ke Database</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </>
+              {importError && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-2 text-xs text-rose-700">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{importError}</span>
+                </div>
               )}
+
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImportStep(1);
+                    setSelectedFile(null);
+                    setUploadedFileName(null);
+                    setImportError(null);
+                  }}
+                  className="px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>Ganti File</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExecuteImport}
+                  disabled={isProcessing}
+                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-xs font-bold transition-colors shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  {isProcessing ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Memproses...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Proses Import</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           )}
 
-          {importStep === 3 && (
-            <div className="py-6 text-center space-y-4">
-              <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
-                <CheckCircle2 className="w-8 h-8" />
-              </div>
-              <div>
-                <h4 className="text-base font-bold text-slate-900">
-                  Impor Berhasil Dilakukan!
-                </h4>
-                <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-                  Sebanyak <strong>{importedRows.length} data alumni</strong> telah
-                  berhasil dimasukkan ke dalam daftar direktori aktif.
-                </p>
+          {importStep === 3 && importResult && (
+            <div className="space-y-4">
+              <div className="py-4 text-center space-y-3">
+                <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
+                  <CheckCircle2 className="w-8 h-8" />
+                </div>
+                <div>
+                  <h4 className="text-base font-bold text-slate-900">
+                    Import Selesai
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Berhasil: <strong className="text-emerald-700">{importResult.berhasil}</strong> &middot;{" "}
+                    Gagal: <strong className="text-rose-600">{importResult.gagal}</strong>
+                  </p>
+                </div>
               </div>
 
-              <div className="pt-2">
+              {importResult.gagal > 0 && importResult.error_detail.length > 0 && (
+                <div className="border border-rose-200 rounded-xl overflow-hidden max-h-56 overflow-y-auto text-xs">
+                  <div className="bg-rose-50 px-3 py-2 font-bold text-rose-700 border-b border-rose-200">
+                    Detail Gagal ({importResult.error_detail.length} baris)
+                  </div>
+                  <table className="w-full text-left">
+                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold sticky top-0">
+                      <tr>
+                        <th className="p-2">Sheet</th>
+                        <th className="p-2">Baris</th>
+                        <th className="p-2">Pesan</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-slate-700">
+                      {importResult.error_detail.slice(0, 50).map((err, idx) => (
+                        <tr key={idx} className="hover:bg-slate-50">
+                          <td className="p-2 font-mono">{err.sheet}</td>
+                          <td className="p-2 font-mono">{err.baris}</td>
+                          <td className="p-2">{err.pesan}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              <div className="pt-2 text-center">
                 <button
                   type="button"
                   onClick={handleFinish}
                   className="px-6 py-2.5 rounded-xl bg-[#5F089E] hover:bg-[#4D0680] text-white text-xs font-bold transition-colors shadow-md cursor-pointer"
                 >
-                  Selesai &amp; Tampilkan di Tabel
+                  Selesai &amp; Refresh Tabel
                 </button>
               </div>
             </div>
