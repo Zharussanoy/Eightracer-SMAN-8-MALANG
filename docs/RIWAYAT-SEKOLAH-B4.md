@@ -1,6 +1,6 @@
 # Sambungan riwayat beasiswa sekolah
 
-Halaman `/admin/basis-data-beasiswa` sekarang membuka **Riwayat Sekolah** untuk akun staf yang sudah login. Tampilan mengikuti shell, navigasi, warna, dan tabel FE yang ada. Tombol **Katalog Program** tetap membuka katalog program dan draf lokal yang sudah tersedia sebelumnya.
+Revisi 4 November 2026: tampilan tambahan Riwayat Sekolah dan tombol pemilihan katalog sudah dibatalkan atas arahan pemilik proyek. Halaman `/admin/basis-data-beasiswa` kembali memakai komponen katalog milik FE pada branch b4. Data sekolah dipertahankan di database dan API; rancangan penyajian data ditangani tim FE.
 
 Riwayat sekolah membaca data asli melalui route FE `GET /api/b4/riwayat-beasiswa`. Route tersebut meneruskan cookie sesi HttpOnly sebagai bearer ke Laravel `GET /api/riwayat-beasiswa-sumber?include_summary=1`. Token, checksum impor, nomor kontak, dan relasi akun tidak dikirim ke tampilan. Pencarian dan filter dibatasi pada parameter yang diizinkan. Data pribadi tidak memakai cache bersama.
 
@@ -17,4 +17,4 @@ Verifikasi lokal:
 - Suite backend: 130 tes, 920 assertions, tanpa kegagalan, satu tes XLSX lama dilewati karena keterbatasan pemeriksaan berkas Windows.
 - Pemeriksaan visual otomatis belum berhasil: alat browser tidak bisa memulai sesi. Tidak ada klaim screenshot atau interaksi browser yang berhasil diuji. Halaman HTTP memberi 200; produksi belum dibangun ulang.
 
-Untuk melihat hasil lokal, buka `http://127.0.0.1:3000/admin/basis-data-beasiswa` dengan akun admin database utama lalu muat ulang halaman. Akun siswa tidak mendapat akses arsip admin. Tampilan contoh ketika belum terautentikasi mengikuti perilaku FE sebelumnya dan tidak membaca arsip sekolah.
+Bagian pemeriksaan di atas merupakan bukti pengujian sambungan API pada versi sebelumnya, bukan pernyataan bahwa tabel riwayat tambahan masih dipasang. Akun siswa tetap tidak mendapat akses arsip admin.

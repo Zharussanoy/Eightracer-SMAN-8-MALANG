@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import ScholarshipDatabaseConnected from "@/components/b4/ScholarshipDatabaseConnected";
+import ScholarshipDatabasePage from "@/components/admin/b-4/ScholarshipDatabasePage";
 
 export const metadata: Metadata = {
   title: "Basis Data Beasiswa | Eightracer",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <ScholarshipDatabaseConnected />;
+  return <ScholarshipDatabasePage />;
 }
