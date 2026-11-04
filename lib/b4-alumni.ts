@@ -1,7 +1,7 @@
 export interface AlumniRow {
   id: number; studentId: number; name: string; graduationYear: number | null;
   university: string; universityId: number; universityKind: string | null;
-  studyProgram: string; admissionPath: string; admissionStatus: string;
+  studyProgram: string; admissionPath: string | null; admissionStatus: string;
   latestStatus: string | null;
 }
 export interface AlumniFilters {
@@ -13,12 +13,13 @@ export interface AlumniPage {
 export interface AlumniProgressRow {
   id: number; semester: number | null; period: string | null; status: string | null;
   gpa: number | null; kipk: boolean | null; ukt: number | null; ipi: number | null;
-  scholarships: { name: string | null; status: string }[];
+  revision: number | null; updatedAt: string | null; published: boolean; publishFinancials: boolean;
+  scholarships: { id: number; name: string | null; status: string; amount: number | null }[];
 }
 export interface AlumniDetail extends AlumniRow {
   hasNisn: boolean; classroom: string | null; degree: string | null; admissionSubpath: string | null;
   choice: number | null; admissionYear: number | null; reportScore: number | null;
-  utbkScore: number | null; progress: AlumniProgressRow[];
+  utbkScore: number | null; progress: AlumniProgressRow[]; catalogOptions: { id: number; name: string }[];
 }
 function obj(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Respons alumni tidak sesuai kontrak.");
@@ -45,7 +46,7 @@ function row(payload: unknown): AlumniRow {
     id: integer(data.id), studentId: integer(data.siswa_id), name: text(data.nama_lengkap),
     graduationYear: maybeInteger(data.tahun_lulus), university: text(university.nama_pt),
     universityId: integer(university.id), universityKind: maybeText(university.jenis_pt),
-    studyProgram: text(data.program_studi), admissionPath: text(data.jalur_masuk),
+    studyProgram: text(data.program_studi), admissionPath: maybeText(data.jalur_masuk),
     admissionStatus: text(data.status_penerimaan), latestStatus: maybeText(data.status_terakhir),
   };
 }
@@ -70,15 +71,17 @@ export function parseAlumniDetail(payload: unknown): AlumniDetail {
     admissionSubpath: maybeText(data.sub_jalur_mandiri), choice: maybeInteger(data.pilihan_ke),
     admissionYear: maybeInteger(data.tahun_masuk_pt), reportScore: decimal(data.nilai_rapor_pendaftaran),
     utbkScore: decimal(data.skor_utbk),
+    catalogOptions: (Array.isArray(data.catalog_options) ? data.catalog_options : []).map((value) => { const item = obj(value); return { id: integer(item.id), name: text(item.nama_beasiswa) }; }),
     progress: data.progress.map((value) => {
       const item = obj(value);
       if ((item.penerima_kipk !== null && typeof item.penerima_kipk !== "boolean") || !Array.isArray(item.beasiswa)) throw new Error("Progres alumni tidak sesuai kontrak.");
       const gpa = decimal(item.ipk_terkini);
       if (gpa !== null && gpa > 4) throw new Error("IPK alumni tidak sesuai kontrak.");
-      return { id: integer(item.id), semester: maybeInteger(item.semester), period: maybeText(item.periode),
+      return { id: integer(item.id), revision: maybeInteger(item.revision), updatedAt: maybeText(item.tanggal_update),
+        published: item.is_published === true, publishFinancials: item.publish_financials === true, semester: maybeInteger(item.semester), period: maybeText(item.periode),
         status: maybeText(item.status_pendidikan), gpa, kipk: item.penerima_kipk,
         ukt: decimal(item.nominal_ukt), ipi: decimal(item.nominal_ipi),
-        scholarships: item.beasiswa.map((value) => { const scholarship = obj(value); return { name: maybeText(scholarship.nama_beasiswa), status: text(scholarship.status) }; }),
+        scholarships: item.beasiswa.map((value) => { const scholarship = obj(value); return { id: integer(scholarship.beasiswa_id), name: maybeText(scholarship.nama_beasiswa), status: text(scholarship.status), amount: decimal(scholarship.nominal_beasiswa) }; }),
       };
     }),
   };

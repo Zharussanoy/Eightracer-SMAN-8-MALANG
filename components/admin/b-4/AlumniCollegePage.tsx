@@ -6,6 +6,7 @@ import { useUser } from "@/context/UserContext";
 import { ApiError } from "@/lib/eightracer-api";
 import { getAlumniPage } from "@/lib/b4-alumni-api";
 import type { AlumniPage, AlumniFilters } from "@/lib/b4-alumni";
+import { educationStatus } from "@/lib/b4-progress";
 import Link from "next/link";
 import { ChevronDown, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 import B4Tabs from "./B4Tabs";
@@ -121,7 +122,7 @@ export default function AlumniCollegePage() {
                     {visibleRows.map((alumni) => (
                       <tr key={alumni.id}>
                         <td>{alumni.name}</td><td>{alumni.university}</td><td>{alumni.studyProgram}</td>
-                        <td>{alumni.admissionPath}</td><td>{alumni.latestStatus ?? "Progres belum tersedia"}</td>
+                        <td>{alumni.admissionPath ?? "-"}</td><td>{educationStatus(alumni.latestStatus)}</td>
                         <td><Link href={`/admin/alumni-perguruan-tinggi/informasi-detail?id=${encodeURIComponent(String(alumni.id))}`} className={"b4-detailButton"}
                           aria-label={`Lihat detail ${alumni.name}`}>Lihat Detail</Link></td>
                       </tr>
