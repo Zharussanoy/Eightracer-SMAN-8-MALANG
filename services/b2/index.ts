@@ -532,3 +532,118 @@ export const importExcelService = {
     };
   },
 };
+
+// ==========================================
+// 10. SISWA PROFILE & PASSWORD SERVICE
+// Controller: SiswaController
+// ==========================================
+export interface SiswaProfileData {
+  id: number;
+  user_id: number;
+  nisn: string;
+  nis?: string | null;
+  nama_lengkap: string;
+  nama_panggilan?: string | null;
+  jenis_kelamin: "L" | "P";
+  tempat_lahir?: string | null;
+  tanggal_lahir?: string | null;
+  agama?: string | null;
+  golongan_darah?: string | null;
+  alamat_rumah?: string | null;
+  tinggal_bersama?: string | null;
+  anak_ke?: number | null;
+  warna_favorit?: string | null;
+  makanan_favorit?: string | null;
+  bahasa_keseharian?: string | null;
+  permainan_online?: string | null;
+  permainan_offline?: string | null;
+  nilai_tka?: string | number | null;
+  catatan?: string | null;
+  user?: {
+    id: number;
+    username: string;
+    role: string;
+  };
+  nilai_rapor?: Array<{
+    id: number;
+    semester: number;
+    nilai_akhir: string | number;
+    mata_pelajaran?: {
+      nama_mapel: string;
+      kelompok: string;
+    };
+  }>;
+  asesmen_karakteristik?: Array<{
+    tipe_kepribadian?: string | null;
+    kecerdasan_majemuk_dominan?: string | null;
+    kode_riasec?: string | null;
+  }>;
+  rekomendasi_prodi?: Array<{
+    persentase_kesesuaian?: string | number;
+    alasan_rekomendasi?: string;
+    klaster?: {
+      nama_klaster: string;
+      kode_riasec_relevan?: string;
+    };
+  }>;
+}
+
+export interface UpdateProfilePayload {
+  username?: string;
+  nisn?: string;
+  nis?: string;
+  nama_lengkap?: string;
+  nama_panggilan?: string;
+  jenis_kelamin?: "L" | "P";
+  tempat_lahir?: string;
+  tanggal_lahir?: string;
+  agama?: string;
+  golongan_darah?: string;
+  alamat_rumah?: string;
+  tinggal_bersama?: string;
+  anak_ke?: number;
+  warna_favorit?: string;
+  makanan_favorit?: string;
+  bahasa_keseharian?: string;
+  permainan_online?: string;
+  permainan_offline?: string;
+  nilai_tka?: number;
+  catatan?: string;
+}
+
+export interface UpdatePasswordPayload {
+  current_password: string;
+  new_password: string;
+  new_password_confirmation: string;
+}
+
+export const siswaProfileService = {
+  // GET /v1/siswa/profile
+  getProfile: () =>
+    apiFetch<{
+      status: string;
+      message: string;
+      data: SiswaProfileData;
+    }>("/v1/siswa/profile"),
+
+  // PUT /v1/siswa/profile
+  updateProfile: (payload: UpdateProfilePayload) =>
+    apiFetch<{
+      status: string;
+      message: string;
+      data: SiswaProfileData;
+    }>("/v1/siswa/profile", {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+
+  // PUT /v1/siswa/password
+  updatePassword: (payload: UpdatePasswordPayload) =>
+    apiFetch<{
+      status: string;
+      message: string;
+    }>("/v1/siswa/password", {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+};
