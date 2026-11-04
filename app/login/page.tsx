@@ -2,9 +2,10 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { User, Lock, Eye, EyeOff } from 'lucide-react';
-import { useUser, PresetKey } from '@/context/UserContext';
+import { User, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { useUser } from '@/context/UserContext';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,7 +17,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
 
@@ -26,141 +27,137 @@ export default function LoginPage() {
     }
 
     setIsLoading(true);
-
-    setTimeout(() => {
-      const u = username.toLowerCase();
-      let preset: PresetKey = 'siswa_aktif';
-      if (u.includes('admin')) preset = 'admin';
-      else if (u.includes('guru') || u.includes('bambang') || u.includes('nip')) preset = 'guru';
-      else if (u.includes('alumni') || u.includes('nabila') || u.includes('lulus')) preset = 'siswa_alumni';
-
-      login(preset);
+    try {
+      await login(username, password);
+      router.push('/');
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Login gagal. Periksa username dan kata sandi.');
+    } finally {
       setIsLoading(false);
-      if (preset === 'admin') router.push('/admin'); else if (preset === 'guru') router.push('/guru'); else if (preset === 'siswa_alumni') router.push('/alumni'); else router.push('/siswa');
-    }, 900);
+    }
   };
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh', width: '100%', overflow: 'hidden', backgroundColor: '#D3C4E3', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif' }}>
+    <div className="relative min-h-screen w-full bg-[#D3C4E3] flex justify-center lg:justify-end overflow-hidden font-sans">
 
-      {/* ================= 0. LAPISAN AWAN ANIMASI (Z-0) ================= */}
-      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }}>
+      <div className="absolute top-4 left-4 md:top-8 md:left-8 z-50">
+        <Link
+          href="/"
+          className="flex items-center gap-1.5 md:gap-2 px-3.5 py-2 md:px-4 md:py-2.5 rounded-full bg-white/70 hover:bg-white text-slate-700 hover:text-[#5B0EA6] backdrop-blur-md shadow-xs hover:shadow-md transition-all font-semibold text-[13px] md:text-sm"
+        >
+          <ArrowLeft className="w-4 h-4 md:w-[18px] md:h-[18px]" />
+          <span className="hidden sm:inline">Kembali ke Beranda</span>
+          <span className="sm:hidden">Kembali</span>
+        </Link>
+      </div>
+
+      <div className="absolute inset-0 w-full lg:w-[55%] xl:w-[60%] h-full z-0 pointer-events-none flex flex-col justify-end">
+
         <motion.img
           src="/images/login/awan.svg"
           alt="Awan Kiri"
           animate={{ x: [-20, 20, -20], y: [-5, 5, -5] }}
           transition={{ duration: 25, repeat: Infinity, ease: 'easeInOut' }}
-          style={{ position: 'absolute', top: '8%', left: '4%', width: '220px', opacity: 0.85 }}
+          className="absolute top-[8%] left-[5%] w-[120px] lg:w-[220px] opacity-85"
         />
         <motion.img
           src="/images/login/awan.svg"
           alt="Awan Kanan"
           animate={{ x: [20, -20, 20], y: [5, -5, 5] }}
           transition={{ duration: 30, repeat: Infinity, ease: 'easeInOut' }}
-          style={{ position: 'absolute', top: '12%', right: '6%', width: '280px', opacity: 0.75 }}
+          className="absolute top-[15%] right-[10%] w-[160px] lg:w-[280px] opacity-75"
         />
         <motion.img
           src="/images/login/awan.svg"
           alt="Awan Tengah"
           animate={{ x: [-15, 15, -15] }}
           transition={{ duration: 35, repeat: Infinity, ease: 'easeInOut' }}
-          style={{ position: 'absolute', top: '22%', left: '40%', width: '150px', opacity: 0.55 }}
+          className="absolute top-[25%] left-[40%] w-[100px] lg:w-[150px] opacity-55"
         />
+
+        <div className="absolute bottom-0 left-0 w-full flex justify-center lg:justify-start">
+          <img
+            src="/images/login/sekolah.svg"
+            alt="Sekolah"
+            className="w-full min-w-[800px] lg:min-w-[1200px] h-auto object-bottom"
+          />
+        </div>
+
+        <div className="absolute bottom-0 left-0 w-full flex justify-center items-end">
+          <img
+            src="/images/login/pohon.svg"
+            alt="Pohon"
+            className="absolute bottom-0 -right-[5%] lg:right-[5%] h-[35vh] lg:h-[50vh] object-contain object-bottom"
+          />
+          <motion.img
+            src="/images/login/anak_sekolah.svg"
+            alt="Siswa"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="relative z-10 h-[25vh] lg:h-[40vh] object-contain object-bottom -mb-1 lg:-ml-[10%]"
+          />
+        </div>
       </div>
 
-      {/* ================= 1. LAPISAN BELAKANG SEKOLAH (Z-0) ================= */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', zIndex: 0, display: 'flex', justifyContent: 'center' }}>
-        <img
-          src="/images/login/sekolah.svg"
-          alt="Sekolah"
-          style={{ width: '100%', minWidth: '1000px', height: 'auto', display: 'block' }}
-        />
-      </div>
+      <div className="relative z-20 w-full max-w-[90%] sm:max-w-[420px] lg:max-w-none lg:w-[45%] xl:w-[40%] bg-white/95 lg:bg-white backdrop-blur-xl lg:backdrop-blur-none shadow-2xl lg:shadow-[-20px_0_40px_rgba(0,0,0,0.08)] rounded-[2rem] lg:rounded-none my-auto lg:my-0 min-h-[450px] lg:min-h-screen flex flex-col items-center justify-center p-8 sm:p-12 lg:p-16 xl:p-20">
 
-      {/* ================= 2. LAPISAN TENGAH (Card Login) Z-10 ================= */}
-      <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: '400px', padding: '0 16px', marginBottom: '12vh' }}>
-
-        {/* Ornamen Bintang */}
-        <motion.svg animate={{ rotate: 360 }} transition={{ duration: 50, repeat: Infinity, ease: 'linear' }} viewBox="0 0 24 24" fill="#FBBF24" style={{ position: 'absolute', left: '-10px', top: '40px', width: '32px', height: '32px', zIndex: 0, pointerEvents: 'none' }}>
-          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-        </motion.svg>
-        <motion.svg animate={{ rotate: -360 }} transition={{ duration: 40, repeat: Infinity, ease: 'linear' }} viewBox="0 0 24 24" fill="#FBBF24" style={{ position: 'absolute', right: '-30px', top: '-15px', width: '56px', height: '56px', zIndex: 0, pointerEvents: 'none' }}>
-          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-        </motion.svg>
-
-        {/* Kotak Form */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ backgroundColor: '#ffffff', borderRadius: '24px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', padding: '40px 32px 48px', position: 'relative', zIndex: 10 }}>
-
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-            <img src="/images/login/Logo.png" alt="Logo" style={{ width: '56px', height: '56px', objectFit: 'contain' }} />
-          </div>
-
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1E1B2E', margin: 0 }}>Masuk ke Akun Anda</h1>
+        <div className="w-full max-w-[400px]">
+          <div className="flex flex-col items-center mb-8 lg:mb-10">
+            <img src="/images/logo.svg" alt="Logo" className="w-14 h-14 lg:w-16 lg:h-16 object-contain mb-5" />
+            <h1 className="text-2xl lg:text-3xl font-bold text-[#1E1B2E] text-center m-0">Masuk ke Akun Anda</h1>
+            <p className="text-slate-500 text-sm mt-2 text-center">Gunakan akses yang diberikan oleh sekolah</p>
           </div>
 
           {errorMessage && (
-            <div style={{ marginBottom: '16px', padding: '8px', backgroundColor: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', color: '#B91C1C', fontSize: '12px', textAlign: 'center' }}>
+            <div className="mb-6 p-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-[#B91C1C] text-[13px] lg:text-sm text-center font-medium">
               {errorMessage}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4 lg:gap-5">
 
-            <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#F4F4F5', borderRadius: '12px', padding: '0 16px' }}>
-              <User size={18} color="#9CA3AF" />
+            <div className="flex items-center bg-[#F8FAFC] border border-slate-200 focus-within:border-[#5B0EA6] focus-within:ring-1 focus-within:ring-[#5B0EA6] rounded-xl px-4 transition-all">
+              <User className="w-5 h-5 text-slate-400 shrink-0" />
               <input
                 type="text"
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Username"
-                style={{ flex: 1, padding: '14px 12px', backgroundColor: 'transparent', border: 'none', outline: 'none', color: '#1E293B', fontSize: '14px' }}
+                placeholder="Username (NISN)"
+                className="flex-1 py-3.5 px-3 bg-transparent border-none outline-none text-[#1E293B] text-[15px] w-full placeholder:text-slate-400"
               />
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#F4F4F5', borderRadius: '12px', padding: '0 16px' }}>
-              <Lock size={18} color="#9CA3AF" />
+            <div className="flex items-center bg-[#F8FAFC] border border-slate-200 focus-within:border-[#5B0EA6] focus-within:ring-1 focus-within:ring-[#5B0EA6] rounded-xl px-4 transition-all">
+              <Lock className="w-5 h-5 text-slate-400 shrink-0" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Kata Sandi"
-                style={{ flex: 1, padding: '14px 12px', backgroundColor: 'transparent', border: 'none', outline: 'none', color: '#1E293B', fontSize: '14px' }}
+                className="flex-1 py-3.5 px-3 bg-transparent border-none outline-none text-[#1E293B] text-[15px] w-full placeholder:text-slate-400"
               />
-              <div onClick={() => setShowPassword(!showPassword)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                {showPassword ? <EyeOff size={18} color="#9CA3AF" /> : <Eye size={18} color="#9CA3AF" />}
+              <div onClick={() => setShowPassword(!showPassword)} className="cursor-pointer flex items-center p-1.5 hover:bg-slate-200 rounded-md transition-colors">
+                {showPassword ? <EyeOff className="w-5 h-5 text-slate-500" /> : <Eye className="w-5 h-5 text-slate-500" />}
               </div>
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              style={{ width: '100%', marginTop: '8px', padding: '14px', backgroundColor: '#5B0EA6', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', border: 'none', cursor: 'pointer', display: 'flex', justifyContent: 'center' }}
+              className="w-full mt-2 lg:mt-4 py-4 bg-[#5B0EA6] text-white font-bold text-[15px] rounded-xl border-none cursor-pointer flex justify-center items-center hover:bg-[#4a0b87] active:scale-[0.98] transition-all shadow-md shadow-purple-900/20"
             >
-              {isLoading ? <div style={{ width: '20px', height: '20px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%' }} className="animate-spin" /> : 'Masuk'}
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                'Masuk Sekarang'
+              )}
             </button>
           </form>
-        </motion.div>
-      </div>
 
-      <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', zIndex: 20, pointerEvents: 'none', display: 'flex', justifyContent: 'center' }}>
-
-        <img
-          src="/images/login/pohon.svg"
-          alt="Pohon"
-          style={{ position: 'absolute', bottom: 0, right: '-3%', height: '55vh', minHeight: '300px', objectFit: 'contain', objectPosition: 'bottom' }}
-        />
-
-        <motion.img
-          src="/images/login/anak_sekolah.svg"
-          alt="Siswa"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          style={{ height: '38vh', minHeight: '280px', objectFit: 'contain', objectPosition: 'bottom', marginBottom: '-5px' }}
-        />
+        </div>
       </div>
 
     </div>

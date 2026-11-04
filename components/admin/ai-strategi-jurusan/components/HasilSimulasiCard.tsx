@@ -23,15 +23,85 @@ export default function HasilSimulasiCard({ hasil, target }: HasilSimulasiCardPr
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-      {/* Banner image */}
-      <div className="relative h-36 w-full overflow-hidden shrink-0">
-        <Image
-          src="/images/hero-gate.svg"
-          alt="Banner kampus"
-          fill
-          className="object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#2d0d5e]/70 to-transparent" />
+      {/* Visual Ilustrasi Bagian Atas Box Hasil Simulasi dengan Gradasi Ungu ke Pudar/Putih di Bagian Bawah */}
+      <div className="relative h-44 sm:h-52 md:h-56 lg:h-60 w-full overflow-hidden shrink-0 bg-linear-to-b from-[#4A0B7B] via-[#7526B5] to-white">
+        {/* Layer 1: Tiga Awan di bagian atas (awan1, awan2, awan3) dengan efek pudar (mask fade) ke arah bawah */}
+        <div className="absolute inset-x-0 top-0 h-full flex pointer-events-none z-0 [mask-image:linear-gradient(to_bottom,black_25%,transparent_80%)] [-webkit-mask-image:linear-gradient(to_bottom,black_25%,transparent_80%)]">
+          <div className="relative w-1/3 h-full">
+            <Image
+              src="/images/ai-strategi-jurusan/awan1.svg"
+              alt="Awan kiri"
+              fill
+              className="object-cover object-top"
+              priority
+            />
+          </div>
+          <div className="relative w-1/3 h-full">
+            <Image
+              src="/images/ai-strategi-jurusan/awan2.svg"
+              alt="Awan tengah"
+              fill
+              className="object-cover object-top"
+              priority
+            />
+          </div>
+          <div className="relative w-1/3 h-full">
+            <Image
+              src="/images/ai-strategi-jurusan/awan3.svg"
+              alt="Awan kanan"
+              fill
+              className="object-cover object-top"
+              priority
+            />
+          </div>
+        </div>
+
+        {/* Layer Transisi Pudar ke Putih (latar belakang di belakang elemen ilustrasi utama) */}
+        <div className="absolute inset-x-0 bottom-0 h-24 sm:h-28 bg-linear-to-t from-white via-white/80 to-transparent z-5 pointer-events-none" />
+
+        {/* Layer 2: Kincir Angin di sebelah paling kiri */}
+        <div className="absolute -left-2 sm:-left-3 md:left-0 top-[28%] sm:top-[25%] w-28 sm:w-36 md:w-44 lg:w-48 aspect-[205/126] z-10 pointer-events-none">
+          <Image
+            src="/images/ai-strategi-jurusan/kincirangin.svg"
+            alt="Kincir angin"
+            fill
+            className="object-contain"
+            priority
+          />
+        </div>
+
+        {/* Layer 3: Anak Buku Terbang di sebelah kiri (tengah-kiri) */}
+        <div className="absolute left-[24%] sm:left-[25%] md:left-[26%] top-3 sm:top-5 md:top-6 w-20 sm:w-28 md:w-32 lg:w-36 aspect-[132/114] z-10 pointer-events-none">
+          <Image
+            src="/images/ai-strategi-jurusan/anakbukuterbang.svg"
+            alt="Anak di atas buku terbang"
+            fill
+            className="object-contain filter drop-shadow-sm"
+            priority
+          />
+        </div>
+
+        {/* Layer 4: Gedung Sekolah di Hasil Simulasi (sekolahdihasilsimulasi.svg) di kanan */}
+        <div className="absolute -right-2 sm:right-0 md:right-2 bottom-0 w-48 sm:w-60 md:w-72 lg:w-80 aspect-[300/210] z-10 pointer-events-none">
+          <Image
+            src="/images/ai-strategi-jurusan/sekolahdihasilsimulasi.svg"
+            alt="Gedung sekolah"
+            fill
+            className="object-contain object-bottom"
+            priority
+          />
+        </div>
+
+        {/* Layer 5: Anak di Depan Sekolah (anakdpnsekolah.svg) di depan gedung sekolah */}
+        <div className="absolute right-4 sm:right-8 md:right-12 lg:right-16 bottom-0 w-28 sm:w-36 md:w-44 lg:w-48 aspect-[168/118] z-20 pointer-events-none">
+          <Image
+            src="/images/ai-strategi-jurusan/anakdpnsekolah.svg"
+            alt="Siswa di depan sekolah"
+            fill
+            className="object-contain object-bottom filter drop-shadow-md"
+            priority
+          />
+        </div>
       </div>
 
       <div className="p-5 sm:p-6 flex flex-col gap-5 flex-1">
