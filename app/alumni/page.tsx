@@ -18,6 +18,8 @@ import {
   AlumniItem,
 } from "@/components/admin/direktori-alumni/types";
 import { INITIAL_ALUMNI } from "@/components/admin/direktori-alumni/mockData";
+import { apiFetch } from "@/lib/api";
+import { ApiAlumni, mapApiAlumniToItem } from "@/lib/alumni";
 import { useUser } from "@/context/UserContext";
 
 function AlumniPageContent() {
@@ -40,7 +42,28 @@ function AlumniPageContent() {
   }, [roleParam, displayRole.roleType]);
 
   const [activeTab, setActiveTab] = useState<AdminTab>("Direktori Alumni");
-  const [alumniList, setAlumniList] = useState<AlumniItem[]>(INITIAL_ALUMNI);
+  const [alumniList, setAlumniList] = useState<AlumniItem[]>([]);
+  const [isLoadingAlumni, setIsLoadingAlumni] = useState(true);
+
+  useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_API_URL) {
+      setAlumniList(INITIAL_ALUMNI);
+      setIsLoadingAlumni(false);
+      return;
+    }
+
+    apiFetch<{ data: ApiAlumni[] }>("/alumni?per_page=250")
+      .then((res) => {
+        setAlumniList(res.data.map(mapApiAlumniToItem));
+      })
+      .catch((err) => {
+        console.warn("Gagal fetch alumni dari API, menggunakan mock data:", err);
+        setAlumniList(INITIAL_ALUMNI);
+      })
+      .finally(() => {
+        setIsLoadingAlumni(false);
+      });
+  }, []);
   const [selectedIds, setSelectedIds] = useState<string[]>(["alm-1", "alm-2"]);
 
   // Modal State
