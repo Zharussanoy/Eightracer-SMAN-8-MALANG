@@ -100,6 +100,7 @@ export default function ScholarshipAnalyticsApi() {
         const payload = await response.json();
         if (abort.signal.aborted) return;
         if (response.status === 401) { void refreshSession(); router.replace("/login"); }
+        if (response.status === 403) void refreshSession();
         if (!response.ok) throw new Error(payload.message ?? "Analitik belum dapat dimuat.");
         setResult({ key, data: payload });
       } catch (error) { if (!abort.signal.aborted) setResult({ key, error: error instanceof Error ? error.message : "Aplikasi belum dapat dihubungi." }); }

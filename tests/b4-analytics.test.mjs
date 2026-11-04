@@ -11,6 +11,25 @@ const emptyStats = () => ({ jumlah_diketahui: 0, jumlah_belum_tercatat: 12, mini
 const analytics = () => ({ data: { as_of: "2026-11-04", jumlah_alumni_tercatat: 12, jumlah_penerima_kipk: 2, distribusi_beasiswa: [], per_angkatan: [], tren_periode: [], catatan: "contoh" } });
 const dashboard = () => ({ data: { jumlah_alumni: 12, ukt: emptyStats(), ipk: emptyStats(), per_kampus_prodi: [], tren_ipk: [] } });
 
+test("struktur terisi BE dengan universitas dan jumlah tidak merusak halaman atau menghilangkan hitungan", () => {
+  const a = analytics(), d = dashboard();
+  a.data.distribusi_beasiswa = [{ beasiswa_id: 1, nama_beasiswa: "Program Sintetis", jumlah: 2 }];
+  a.data.per_angkatan = [{ angkatan: 2024, jumlah_alumni: 3, penerima_kipk: 0 }];
+  a.data.tren_periode = [{ periode: "Periode Sintetis", jumlah_alumni: 3, penerima_kipk: 0, beasiswa: [{ beasiswa_id: 1, nama_beasiswa: "Program Sintetis", jumlah_alumni: 2, status: { proses: 1, diterima: 1, ditolak: 0 } }] }];
+  d.data.per_kampus_prodi = [{ perguruan_tinggi_id: 5, universitas: "Universitas Sintetis", program_studi: "Psikologi", jumlah_alumni: 3, ukt: { jumlah_diketahui: 3, jumlah_belum_tercatat: 0, minimum: 0, maksimum: 1000000, rata_rata: 500000 }, ipk: emptyStats(), jumlah_penerima_kipk: 0 }];
+  d.data.tren_ipk = [{ perguruan_tinggi_id: 5, universitas: "Universitas Sintetis", program_studi: "Psikologi", semester: 2, jumlah_alumni: 3, ipk: { jumlah_diketahui: 3, jumlah_belum_tercatat: 0, minimum: 3, maksimum: 4, rata_rata: 3.5 } }];
+  const result = api.parseAnalytics(a, d);
+  assert.equal(result.distribution[0].count, 2);
+  assert.equal(result.ranges[0].university, "Universitas Sintetis");
+  assert.equal(result.ranges[0].stats.minimum, 0);
+  assert.equal(result.cohorts[0].count, 0);
+  assert.equal(result.periods[0].scholarships[0].rejected, 0);
+  assert.equal(result.ipkTrend[0].stats.mean, 3.5);
+  assert.equal(result.recipients, null);
+  a.data.distribusi_beasiswa[0].jumlah = 0;
+  assert.equal(api.parseAnalytics(a, d).distribution[0].count, 0);
+});
+
 test("analitik membedakan nol, null, angka desimal teks dan nilai invalid", () => {
   assert.equal(api.analyticNumber(0), 0);
   assert.equal(api.analyticNumber("0.00"), 0);

@@ -47,7 +47,7 @@ export function parseAnalytics(analyticsPayload: unknown, dashboardPayload: unkn
   const result: AnalyticsData = {
     asOf: text(analytics.as_of), total: count(analytics.jumlah_alumni_tercatat),
     recipients: count(analytics.jumlah_penerima_beasiswa), kipk: count(analytics.jumlah_penerima_kipk),
-    distribution: rows(analytics.distribusi_beasiswa).map((item) => ({ id: count(item.beasiswa_id), label: label(item.nama_beasiswa), count: count(item.jumlah_alumni) })),
+    distribution: rows(analytics.distribusi_beasiswa).map((item) => ({ id: count(item.beasiswa_id), label: label(item.nama_beasiswa), count: count(item.jumlah_alumni ?? item.jumlah) })),
     cohorts: rows(analytics.per_angkatan).map((item) => ({ label: label(item.angkatan ?? item.tahun_lulus), count: count(item.jumlah_penerima_kipk ?? item.penerima_kipk) })),
     periods: rows(analytics.tren_periode).map((item) => ({ label: label(item.periode), count: count(item.jumlah_alumni), kipk: count(item.penerima_kipk),
       scholarships: rows(item.beasiswa ?? []).map((program) => {
@@ -55,7 +55,7 @@ export function parseAnalytics(analyticsPayload: unknown, dashboardPayload: unkn
         return { label: label(program.nama_beasiswa), count: count(program.jumlah_alumni), processing: count(status.proses), accepted: count(status.diterima), rejected: count(status.ditolak) };
       }) })),
     measuredAlumni: count(dashboard.jumlah_alumni), ukt: stats(dashboard.ukt), ipk: stats(dashboard.ipk),
-    ranges: rows(dashboard.per_kampus_prodi).map((item) => ({ university: label(item.nama_pt ?? item.nama_perguruan_tinggi), program: label(item.program_studi), count: count(item.jumlah_alumni), stats: stats(item.ukt) })),
+    ranges: rows(dashboard.per_kampus_prodi).map((item) => ({ university: label(item.universitas ?? item.nama_pt ?? item.nama_perguruan_tinggi), program: label(item.program_studi), count: count(item.jumlah_alumni), stats: stats(item.ukt) })),
     ipkTrend: rows(dashboard.tren_ipk).map((item) => ({ label: label(item.periode ?? item.semester), stats: stats(item.ipk) })),
   };
   // Tidak menjumlah distribusi menjadi penerima unik, dan tidak mengubah null menjadi 0.
