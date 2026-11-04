@@ -149,9 +149,20 @@ function AlumniPageContent() {
     }
     setShowFormModal(false);
   };
+  const handleImportComplete = () => {
+    apiFetch<{ data: ApiAlumni[] }>("/alumni?per_page=250")
+      .then((res) => setAlumniList(res.data.map(mapApiAlumniToItem)))
+      .catch((err) => console.error("Gagal refresh alumni:", err));
+  };
 
-  const handleImportComplete = (newRows: AlumniItem[]) => {
-    setAlumniList((prev) => [...newRows, ...prev]);
+  const refreshAlumni = () => {
+    apiFetch<{ data: ApiAlumni[] }>("/alumni?per_page=250")
+      .then((res) => {
+        setAlumniList(res.data.map(mapApiAlumniToItem));
+      })
+      .catch((err) => {
+        console.error("Gagal refresh alumni:", err);
+      });
   };
 
   return (
