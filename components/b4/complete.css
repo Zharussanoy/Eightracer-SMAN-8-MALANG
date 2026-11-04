@@ -145,6 +145,8 @@
 .bc4-empty { padding: 45px 20px; border: 1px dashed #cdb4e0; border-radius: 12px; color: #666; background: #fcfaff; text-align: center; line-height: 1.7; }
 .bc4-studentAlumniLive { overflow-wrap: anywhere; }
 .bc4-adminTimelineLive { margin-top: 24px; overflow-wrap: anywhere; }
+.bc4-informationLive > .bc4-grid2,.bc4-informationLive > .bc4-panel { margin-top: 24px; }
+.bc4-informationLive .bc4-infoList { grid-template-columns: minmax(0,1fr); }
 .bc4-adminTimelineLive .bc4-schoolTimeline { grid-template-columns: repeat(auto-fit,minmax(170px,1fr)); }
 .bc4-adminTimelineLive .bc4-note { margin-top: 20px; }
 .bc4-studentAlumniLive .bc4-infoList { grid-template-columns: minmax(0,1fr); }

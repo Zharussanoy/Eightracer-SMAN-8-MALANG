@@ -2,15 +2,15 @@
 
 import { useState } from "react";
 import { Building2, GraduationCap, School, UserRound } from "lucide-react";
-import type { AlumniAdmission, AlumniEvent, AlumniTimeline } from "@/lib/b4-alumni";
+import type { AlumniProfile, AlumniEvent, AlumniTimeline } from "@/lib/b4-alumni";
 
 const known = (value: string | number | null | undefined) => value ?? "Belum tercatat";
 const money = (value: number | null | undefined) => value == null ? "Belum tercatat" : `Rp${value.toLocaleString("id-ID")}`;
 const kipk = (value: boolean | null | undefined) => value == null ? "Belum tercatat" : value ? "Ya" : "Tidak";
 function scholarships(event?: AlumniEvent) { return event?.scholarships.length ? event.scholarships.map((item) => `${item.name}${item.status ? ` (${item.status})` : ""}`).join(", ") : "Belum tercatat"; }
 
-export default function AdminTimelineView({ data, profile }: { data: AlumniTimeline; profile?: AlumniAdmission }) {
-  const events = profile && data.events.some((item) => /^\d+:/.test(item.id)) ? data.events.filter((item) => item.id.startsWith(`${profile.id}:`)) : data.events;
+export default function AdminTimelineView({ data, profile }: { data: AlumniTimeline; profile?: AlumniProfile }) {
+  const events = profile?.id != null && data.events.some((item) => /^\d+:/.test(item.id)) ? data.events.filter((item) => item.id.startsWith(`${profile.id}:`)) : data.events;
   const school = events.filter((item) => item.semester === null);
   const progress = events.filter((item) => item.semester !== null);
   const current = progress.filter((item) => item.current !== false);

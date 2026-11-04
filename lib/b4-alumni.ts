@@ -17,6 +17,17 @@ export interface AlumniPage {
   total: number;
   perPage: number;
 }
+export type AlumniProfile = Omit<AlumniAdmission, "id"> & { id: number | null };
+export function parseAlumniProfile(payload: unknown, studentId: number, admissionId?: number): AlumniProfile {
+  const outer = record(payload), source = record(outer.data ?? outer);
+  if (admissionId !== undefined) {
+    const admission = parseAlumniPage({ data: [source], current_page: 1, last_page: 1, per_page: 1, total: 1 }).data[0];
+    if (admission.id !== admissionId || admission.studentId !== studentId) throw new Error("Profil penerimaan tidak sesuai alumni yang dipilih.");
+    return admission;
+  }
+  if (id(source.id) !== studentId || !text(source.nama_lengkap)) throw new Error("Profil alumni belum sesuai kontrak.");
+  return { id: null, studentId, name: text(source.nama_lengkap)!, university: null, universityId: null, program: null, admission: null, status: null, entryYear: null };
+}
 export interface AlumniEvent {
   id: string;
   kind: string;

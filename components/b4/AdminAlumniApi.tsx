@@ -4,10 +4,11 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@/context/UserContext";
-import type { AlumniAdmission, AlumniPage, AlumniTimeline } from "@/lib/b4-alumni";
+import type { AlumniProfile, AlumniPage, AlumniTimeline } from "@/lib/b4-alumni";
 import B4Shell from "./B4Shell";
 import NumberPagination from "./NumberPagination";
 import AdminTimelineView from "./AdminTimelineView";
+import AdminAlumniInformationView from "./AdminAlumniInformationView";
 
 function useAlumniRead<T>(path: string | null) {
   const { refreshSession } = useUser();
@@ -35,17 +36,17 @@ function useAlumniRead<T>(path: string | null) {
   return { ...(result?.key === key ? result : {}), retry: () => setRetry((value) => value + 1) };
 }
 
-export default function AdminAlumniApi({ timeline = false, studentId }: { timeline?: boolean; studentId?: string }) {
-  return <Suspense fallback={<p role="status">Memuat halaman alumni…</p>}><Page timeline={timeline} studentId={studentId} /></Suspense>;
+export default function AdminAlumniApi({ timeline = false, studentId, detail = false }: { timeline?: boolean; studentId?: string; detail?: boolean }) {
+  return <Suspense fallback={<p role="status">Memuat halaman alumni…</p>}><Page timeline={timeline} studentId={studentId} detail={detail} /></Suspense>;
 }
-function Page({ timeline, studentId }: { timeline: boolean; studentId?: string }) {
+function Page({ timeline, studentId, detail }: { timeline: boolean; studentId?: string; detail: boolean }) {
   const { currentUser } = useUser();
   const params = useSearchParams();
   const id = studentId ?? params.get("id");
-  return <B4Shell title={timeline ? "Timeline Individu" : "Alumni di Perguruan Tinggi"} active={timeline ? "timeline" : "alumni"}
+  return <B4Shell title={detail ? "Informasi Detail Alumni" : timeline ? "Timeline Individu" : "Alumni di Perguruan Tinggi"} active={detail ? "alumni" : timeline ? "timeline" : "alumni"}
     description="Lihat data penerimaan dan riwayat pendidikan alumni yang tercatat di sekolah." dataNote="">
     {!currentUser.schoolStaff ? <p role="alert">Akun ini belum memiliki izin membaca data alumni admin.</p>
-      : timeline && id ? <Timeline key={id} id={id} /> : <Directory timeline={timeline} />}
+      : timeline && id ? <Timeline key={`${id}:${params.get("penerimaan_id")}`} id={id} admissionId={params.get("penerimaan_id")} detail={detail} /> : <Directory timeline={timeline} />}
   </B4Shell>;
 }
 function Directory({ timeline }: { timeline: boolean }) {
@@ -82,20 +83,24 @@ function Directory({ timeline }: { timeline: boolean }) {
       </> : <div className="b4-tableFrame">
         <div className="b4-tableScroll" role="region" aria-label="Daftar alumni" tabIndex={0}><table className="b4-table">
           <thead><tr><th>Nama Alumni</th><th>Perguruan Tinggi</th><th>Program Studi</th><th>Jalur Masuk</th><th>Status Penerimaan</th><th>Aksi</th></tr></thead>
-          <tbody>{data.data.map((row) => <tr key={row.id}><td>{row.name}</td><td>{row.university ?? "Belum tercatat"}</td><td>{row.program ?? "Belum tercatat"}</td><td>{row.admission ?? "Belum tercatat"}</td><td>{row.status ?? "Belum tercatat"}</td><td><Link className="b4-detailButton" aria-label={`Lihat detail ${row.name}`} href={`/admin/alumni-perguruan-tinggi/informasi-detail?id=${row.studentId}`}>Lihat Detail</Link></td></tr>)}
+          <tbody>{data.data.map((row) => <tr key={row.id}><td>{row.name}</td><td>{row.university ?? "Belum tercatat"}</td><td>{row.program ?? "Belum tercatat"}</td><td>{row.admission ?? "Belum tercatat"}</td><td>{row.status ?? "Belum tercatat"}</td><td><Link className="b4-detailButton" aria-label={`Lihat detail ${row.name}`} href={`/admin/alumni-perguruan-tinggi/informasi-detail?id=${row.studentId}&penerimaan_id=${row.id}`}>Lihat Detail</Link></td></tr>)}
             {!data.data.length && <tr><td colSpan={6}>Tidak ada alumni yang sesuai dengan pencarian dan filter.</td></tr>}</tbody>
         </table></div>
         <div className="b4-tableFooter"><p>Menampilkan {data.data.length ? (data.currentPage - 1) * data.perPage + 1 : 0}–{data.data.length ? (data.currentPage - 1) * data.perPage + data.data.length : 0} dari {data.total} penerimaan PT</p><NumberPagination current={data.currentPage} last={data.lastPage} onChange={setPage} /></div>
       </div>}
   </>;
 }
-function Timeline({ id, profile }: { id: string; profile?: AlumniAdmission }) {
+function Timeline({ id, profile, admissionId, detail = false }: { id: string; profile?: AlumniProfile; admissionId?: string | null; detail?: boolean }) {
   const valid = /^[1-9]\d*$/.test(id) && Number.isSafeInteger(Number(id));
   const result = useAlumniRead<AlumniTimeline>(valid ? `/api/b4/alumni/${id}/timeline` : null);
+  const identity = useAlumniRead<AlumniProfile>(valid && !profile ? `/api/b4/alumni/${id}/profile${admissionId ? `?penerimaan_id=${encodeURIComponent(admissionId)}` : ""}` : null);
+  const resolved = profile ?? identity.data;
   return <>
-    {!profile && <Link className="bc4-button" href="/admin/timeline-individu">Pilih alumni lain</Link>}
+    {!profile && <Link className="bc4-button" href={detail ? "/admin/alumni-perguruan-tinggi" : "/admin/timeline-individu"}>Kembali ke daftar alumni</Link>}
+    {identity.error && <p role="alert">Profil belum dapat dimuat: {identity.error} <button className="bc4-button" onClick={identity.retry}>Coba lagi</button></p>}
+    {detail && !admissionId && <p className="b4-chartFootnote">Buka kembali melalui Lihat Detail di daftar alumni untuk memuat kampus dan program studi penerimaan yang dipilih.</p>}
     {!valid ? <p role="alert">ID alumni tidak valid. Pilih melalui daftar alumni.</p>
       : result.error ? <div className="bc4-empty"><p role="alert">{result.error}</p><button className="bc4-button" onClick={result.retry}>Coba lagi</button></div>
-        : !result.data ? <p role="status">Memuat timeline alumni…</p> : <AdminTimelineView data={result.data} profile={profile} />}
+        : !result.data || (!profile && !identity.data && !identity.error) ? <p role="status">Memuat profil dan riwayat alumni…</p> : detail ? <AdminAlumniInformationView data={result.data} profile={resolved} /> : <AdminTimelineView data={result.data} profile={resolved} />}
   </>;
 }

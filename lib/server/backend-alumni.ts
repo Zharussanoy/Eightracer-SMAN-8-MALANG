@@ -6,7 +6,7 @@ export async function readBackendAlumni(request: NextRequest, path: string) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   if (!token) throw new AuthError(401, "Silakan masuk dengan akun sekolah.");
   // Path hanya dibentuk route server, bukan URL dari browser.
-  if (!/^\/study-tracer\?/.test(path) && !/^\/alumni\/[1-9]\d*\/timeline$/.test(path) && !/^\/jejak-alumni(?:\?[a-zA-Z0-9%_=&+.-]*|\/[1-9]\d*)?$/.test(path)) throw new AuthError(422, "Alamat data alumni tidak valid.");
+  if (!/^\/study-tracer\?/.test(path) && !/^\/(?:study-tracer|siswa)\/[1-9]\d*$/.test(path) && !/^\/alumni\/[1-9]\d*\/timeline$/.test(path) && !/^\/jejak-alumni(?:\?[a-zA-Z0-9%_=&+.-]*|\/[1-9]\d*)?$/.test(path)) throw new AuthError(422, "Alamat data alumni tidak valid.");
   let base: URL;
   try { base = new URL(process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ""); }
   catch { throw new AuthError(503, "Alamat BE belum dikonfigurasi."); }

@@ -132,6 +132,13 @@ before(async () => {
     }
     const session = sessions.get(token);
     if (!session) return send(401, { message: "Sesi tidak berlaku." });
+    if (/^\/api\/study-tracer\/\d+$/.test(req.url) || /^\/api\/siswa\/\d+$/.test(req.url)) {
+      assert.equal(req.method, "GET");
+      if (!session.user.school_staff) return send(403, { message: "Tidak diizinkan." });
+      const id = Number(req.url.split("/").at(-1));
+      if (req.url.includes("study-tracer")) return send(200, { data: { id, siswa_id: id === 999 ? 72 : 71, siswa: { id: id === 999 ? 72 : 71, nama_lengkap: "Alumni Sintetis", nisn: "privat" }, perguruan_tinggi: { id: 5, nama_pt: "Kampus Sintetis" }, program_studi: "Psikologi", jalur_masuk: "SNBP", tahun_masuk_pt: 2024, status_penerimaan: "diterima" } });
+      return send(200, { data: { id, nama_lengkap: "Alumni Sintetis", nisn: "privat", no_wa: "privat", keluarga: { penghasilan: 12345 } } });
+    }
     if (/^\/api\/jejak-alumni(?:\?|\/|$)/.test(req.url)) {
       assert.equal(req.method, "GET");
       if (session.user.role !== "siswa") return send(403, { message: "Tidak diizinkan." });
@@ -320,6 +327,27 @@ test("jejak siswa hanya GET publikasi, menolak staff/tamu dan tidak membocorkan 
   assert.equal((await get("/999")).status, 404);
   assert.equal((await (await get("", empty.pair)).json()).total, 0);
   assert.equal((await fetch(`${origin}/api/b4/student-alumni/31`, { method: "POST", headers: { Cookie: student.pair } })).status, 405);
+  assert.equal(writes, before);
+});
+
+test("profil detail memisahkan ID siswa/penerimaan, menolak ketidakcocokan dan membuang data privat", async () => {
+  const admin = await login(), student = await login("siswa");
+  const get = (path, pair = admin.pair) => fetch(`${origin}/api/b4/alumni/${path}/profile`, { headers: { Cookie: pair } });
+  const before = writes;
+  assert.equal((await get("71", student.pair)).status, 403);
+  const profile = await (await fetch(`${origin}/api/b4/alumni/71/profile?penerimaan_id=31`, { headers: { Cookie: admin.pair } })).json();
+  assert.equal(profile.name, "Alumni Sintetis");
+  assert.equal(profile.studentId, 71);
+  assert.equal(profile.id, 31);
+  assert.equal(profile.university, "Kampus Sintetis");
+  const legacy = await (await get("71")).json();
+  assert.equal(legacy.name, "Alumni Sintetis");
+  assert.equal(legacy.id, null);
+  assert.equal(legacy.university, null);
+  assert.equal(JSON.stringify(legacy).includes("privat"), false);
+  assert.equal(JSON.stringify(profile).includes("nisn"), false);
+  assert.equal((await fetch(`${origin}/api/b4/alumni/71/profile?penerimaan_id=999`, { headers: { Cookie: admin.pair } })).status, 502);
+  assert.equal((await fetch(`${origin}/api/b4/alumni/71/profile?penerimaan_id=-1`, { headers: { Cookie: admin.pair } })).status, 422);
   assert.equal(writes, before);
 });
 async function login(name = "admin") {

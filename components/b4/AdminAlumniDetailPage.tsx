@@ -12,7 +12,7 @@ function period(semester: number) { return `${semester % 2 ? "Ganjil" : "Genap"}
 const blank = (semester = 4): Progress => ({ semester, period: period(semester), ipk: "", kipk: "Tidak", scholarship: "-", ukt: "", ipi: "0", showUkt: true, showIpi: false });
 export default function AdminAlumniDetailPage({ id }: { id?: string }) {
   const { authStatus, authMessage, refreshSession } = useUser();
-  if (authStatus === "authenticated") return <AdminAlumniApi timeline studentId={id} />;
+  if (authStatus === "authenticated") return <AdminAlumniApi timeline detail studentId={id} />;
   if (authStatus !== "anonymous") return <B4Shell title="Informasi Detail Alumni" active="alumni" description="Lihat riwayat pendidikan alumni." dataNote=""><p role="status">{authStatus === "loading" ? "Memeriksa sesi akun…" : authMessage}</p>{authStatus === "unavailable" && <button onClick={() => void refreshSession()}>Coba lagi</button>}</B4Shell>;
   return <AdminAlumniDetailDemo id={id} />;
 }
