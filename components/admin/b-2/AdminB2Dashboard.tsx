@@ -10,6 +10,7 @@ import {
   FileSpreadsheet,
   Filter,
   FolderOpen,
+  GraduationCap,
   Info,
   Loader2,
   MapPin,
@@ -699,6 +700,13 @@ export default function AdminB2Dashboard() {
           >
             Manajemen Data
           </button>
+          <Link
+            href="/admin/b2/master-prodi"
+            className="pb-3 text-[14px] font-semibold text-[#6E6678] hover:text-[#6941C6] transition-all flex items-center gap-1.5"
+          >
+            <GraduationCap className="w-4 h-4 text-[#7F56D9]" />
+            <span>Master Prodi &amp; Kuota SNBP</span>
+          </Link>
         </div>
       </div>
 
@@ -901,6 +909,13 @@ export default function AdminB2Dashboard() {
             >
               <SlidersHorizontal className="w-3.5 h-3.5 text-[#7F56D9]" />
               <span>Kustomisasi Bobot Penilaian</span>
+            </Link>
+            <Link
+              href="/admin/b2/master-prodi"
+              className="px-3.5 py-2 rounded-lg border border-[#D0D5DD] bg-white text-[12px] font-semibold text-[#344054] hover:border-[#7F56D9] hover:text-[#6941C6] transition-colors flex items-center gap-1.5 shadow-2xs"
+            >
+              <GraduationCap className="w-3.5 h-3.5 text-[#7F56D9]" />
+              <span>Master Prodi &amp; Kuota SNBP</span>
             </Link>
             <button
               type="button"

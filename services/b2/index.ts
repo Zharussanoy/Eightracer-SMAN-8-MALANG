@@ -351,9 +351,135 @@ export const siswaAdminService = {
 // 8. PRODI ADMIN SERVICE (B2)
 // Controller: ProdiAdminController
 // ==========================================
+export interface KlasterProdiItem {
+  id: number;
+  nama_klaster: string;
+  kode_riasec_relevan: string | null;
+  kecerdasan_relevan: string | null;
+  deskripsi: string | null;
+  kelompok_rumpun?: string | null;
+  mata_pelajaran?: Array<{
+    id: number;
+    nama_mapel: string;
+    kelompok: string;
+    pivot?: {
+      bobot_persentase?: number;
+    };
+  }>;
+  bobot_mapel_klaster?: Array<{
+    id: number;
+    klaster_id: number;
+    mata_pelajaran_id: number;
+    bobot_persentase: number;
+  }>;
+}
+
+export interface KlasterProdiPagination {
+  current_page: number;
+  data: KlasterProdiItem[];
+  first_page_url?: string;
+  from: number;
+  last_page: number;
+  last_page_url?: string;
+  next_page_url?: string | null;
+  path?: string;
+  per_page: number;
+  prev_page_url?: string | null;
+  to: number;
+  total: number;
+}
+
+export interface KlasterProdiPayload {
+  nama_klaster?: string;
+  nama_prodi?: string;
+  kode_riasec_relevan?: string;
+  kecerdasan_relevan?: string;
+  deskripsi?: string;
+  kelompok_rumpun?: string;
+}
+
+export interface PerguruanTinggiItem {
+  id: number;
+  nama_pt: string;
+  nama_singkat?: string | null;
+  jenis_pt: string;
+  kota?: string | null;
+  provinsi?: string | null;
+  akreditasi?: string | null;
+}
+
 export const prodiAdminService = {
   // GET /v1/admin/prodi
-  getAll: () => apiFetch<{ success: boolean; data: any[] }>("/v1/admin/prodi"),
+  getAll: (params?: {
+    nama_klaster?: string;
+    nama_prodi?: string;
+    kode_riasec?: string;
+    kelompok_rumpun?: string;
+    page?: number;
+  }) =>
+    apiFetch<{
+      status: string;
+      message: string;
+      data: KlasterProdiPagination;
+    }>("/v1/admin/prodi", { params }),
+
+  // GET /v1/admin/prodi/{id}
+  getById: (id: string | number) =>
+    apiFetch<{
+      status: string;
+      message: string;
+      data: KlasterProdiItem;
+    }>(`/v1/admin/prodi/${id}`),
+
+  // POST /v1/admin/prodi
+  create: (payload: KlasterProdiPayload) =>
+    apiFetch<{
+      status: string;
+      message: string;
+      data: KlasterProdiItem;
+    }>("/v1/admin/prodi", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  // PUT /v1/admin/prodi/{id}
+  update: (id: string | number, payload: KlasterProdiPayload) =>
+    apiFetch<{
+      status: string;
+      message: string;
+      data: KlasterProdiItem;
+    }>(`/v1/admin/prodi/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+
+  // DELETE /v1/admin/prodi/{id}
+  delete: (id: string | number) =>
+    apiFetch<{
+      status: string;
+      message: string;
+    }>(`/v1/admin/prodi/${id}`, {
+      method: "DELETE",
+    }),
+};
+
+export const ptnService = {
+  // GET /perguruan-tinggi
+  getAll: (params?: {
+    search?: string;
+    jenis_pt?: "Negeri" | "Swasta";
+    per_page?: number;
+    page?: number;
+  }) =>
+    apiFetch<{
+      data: PerguruanTinggiItem[];
+      meta: {
+        total: number;
+        per_page: number;
+        current_page: number;
+        last_page: number;
+      };
+    }>("/perguruan-tinggi", { params }),
 };
 
 // ==========================================
