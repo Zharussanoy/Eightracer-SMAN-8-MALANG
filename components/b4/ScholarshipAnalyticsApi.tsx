@@ -108,7 +108,7 @@ export default function ScholarshipAnalyticsApi() {
   }, [search, key, invalidYear, currentUser.schoolStaff, refreshSession, router]);
   const current = result?.key === key ? result : null;
   const data = current?.data;
-  return <B4Shell title="Analitik Beasiswa" active="analytics" description="Lihat perjalanan pendidikan dan perkembangan kuliah alumni dari masa sekolah hingga kondisi terkini." dataNote="">
+  return <B4Shell title="Analitik Beasiswa & Ringkasan Pola Per-Angkatan" active="analytics" description="Lihat perjalanan pendidikan dan perkembangan kuliah alumni dari masa sekolah hingga kondisi terkini." dataNote="">
     {!currentUser.schoolStaff ? <p role="alert">Akun ini belum memiliki izin membaca analitik sekolah.</p> : <div className="b4-analyticsPage bc4-analyticsLive">
       <div className="b4-analyticsFilters" aria-label="Filter analitik beasiswa">
         <label className="b4-searchField"><span className="b4-srOnly">Angkatan</span><input placeholder="Angkatan" inputMode="numeric" maxLength={4} value={cohort} onChange={(e) => setCohort(e.target.value)} /></label>

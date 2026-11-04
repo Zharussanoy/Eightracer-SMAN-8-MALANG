@@ -34,7 +34,7 @@ export default function B4Tabs({ active }: { active: "Alumni di PT" | "Timeline 
     <nav ref={navRef} className="b4-tabs" aria-label="Layanan Alumni dan Beasiswa">
       {tabs.map((tab) => tab.href ? (
         <Link key={tab.label} href={tab.href} className={active === tab.label ? "b4-activeTab" : undefined}
-          aria-current={active === tab.label ? "page" : undefined}>{tab.label}</Link>
+          aria-current={active === tab.label ? "page" : undefined}>{tab.label === "Analitik Beasiswa" ? "Analitik Beasiswa & Ringkasan Pola Per-Angkatan" : tab.label}</Link>
       ) : (
         <button key={tab.label} type="button" disabled title="Halaman ini belum tersedia">
           {tab.label}<span className="b4-srOnly"> (belum tersedia)</span>

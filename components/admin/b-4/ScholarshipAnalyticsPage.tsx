@@ -87,7 +87,7 @@ function formatRupiah(value: number) {
 export default function ScholarshipAnalyticsPage() {
   const { authStatus, authMessage, refreshSession } = useUser();
   if (authStatus === "authenticated") return <ScholarshipAnalyticsApi />;
-  if (authStatus !== "anonymous") return <B4Shell title="Analitik Beasiswa" active="analytics" description="Lihat analitik alumni sekolah." dataNote=""><p role="status">{authStatus === "loading" ? "Memeriksa sesi akun…" : authMessage}</p>{authStatus === "unavailable" && <button onClick={() => void refreshSession()}>Coba lagi</button>}</B4Shell>;
+  if (authStatus !== "anonymous") return <B4Shell title="Analitik Beasiswa & Ringkasan Pola Per-Angkatan" active="analytics" description="Lihat analitik alumni sekolah." dataNote=""><p role="status">{authStatus === "loading" ? "Memeriksa sesi akun…" : authMessage}</p>{authStatus === "unavailable" && <button onClick={() => void refreshSession()}>Coba lagi</button>}</B4Shell>;
   return <ScholarshipAnalyticsDemo />;
 }
 function ScholarshipAnalyticsDemo() {
@@ -124,9 +124,9 @@ function ScholarshipAnalyticsDemo() {
           <nav aria-label="Breadcrumb" className="b4-breadcrumb">
             <Link href="/#layanan">Layanan</Link><ChevronRight size={14} aria-hidden="true" />
             <span>Alumni dan Beasiswa</span><ChevronRight size={14} aria-hidden="true" />
-            <span aria-current="page">Analitik Beasiswa</span>
+            <span aria-current="page">Analitik Beasiswa &amp; Ringkasan Pola Per-Angkatan</span>
           </nav>
-          <h1 id="b4-analytics-title">Analitik Beasiswa</h1>
+          <h1 id="b4-analytics-title">Analitik Beasiswa &amp; Ringkasan Pola Per-Angkatan</h1>
           <p>Lihat perjalanan pendidikan dan perkembangan kuliah alumni dari masa sekolah hingga kondisi terkini.</p>
         </div>
       </section>
