@@ -187,7 +187,7 @@ export default function Footer() {
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-purple-300/70">
           <div className="flex items-center gap-2"></div>
           <div>
-            &copy; 2025 Eightracer - SMAN 8 MALANG. All rights reserved.
+            &copy; 2026 Eightracer - SMAN 8 MALANG. All rights reserved.
           </div>
         </div>
       </div>

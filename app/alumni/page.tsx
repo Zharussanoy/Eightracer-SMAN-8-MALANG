@@ -197,13 +197,6 @@ function AlumniPageContent() {
         onImportComplete={handleImportComplete}
       />
 
-      {/* Footer Khusus Fitur Tim B3 */}
-      <footer className="mt-auto py-6 border-t border-slate-200 bg-white text-center text-xs text-slate-400">
-        <p>
-          &copy; {new Date().getFullYear()} Eightracer SMAN 8 Malang &bull; Tim B3.
-          Sistem Informasi Kelulusan &amp; Direktori Alumni Terpadu.
-        </p>
-      </footer>
     </div>
   );
 }

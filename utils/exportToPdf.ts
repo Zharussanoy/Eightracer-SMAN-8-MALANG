@@ -2,9 +2,6 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { AlumniItem } from "@/components/admin/direktori-alumni/types";
 
-/**
- * Mapping nama jalur resmi agar tidak disingkat pada judul laporan resmi.
- */
 export const JALUR_FULL_NAME_MAP: Record<string, string> = {
   SNBP: "SELEKSI NASIONAL BERDASARKAN PRESTASI (SNBP)",
   SNBT: "SELEKSI NASIONAL BERDASARKAN TES (SNBT)",
@@ -24,9 +21,6 @@ export const JALUR_FULL_NAME_MAP: Record<string, string> = {
   LUAR_NEGERI: "PERGURUAN TINGGI LUAR NEGERI",
 };
 
-/**
- * Helper untuk mengambil nama lengkap jalur dari mapping.
- */
 export function getFullJalurName(jalur: string): string {
   if (!jalur) return "";
   const key = jalur.trim().toUpperCase();
@@ -38,10 +32,6 @@ export function getFullJalurName(jalur: string): string {
   );
 }
 
-/**
- * Helper function untuk mengonversi gambar SVG menjadi PNG Base64 via Canvas.
- * Mendukung crossOrigin dan fallback fetch blob untuk rendering optimal di jsPDF.
- */
 export async function loadSvgAsPngBase64(
   url: string,
   width = 300,
@@ -76,7 +66,6 @@ export async function loadSvgAsPngBase64(
     };
 
     img.onerror = () => {
-      // Fallback: fetch SVG teks lalu konversi via Blob URL
       fetch(url)
         .then((res) => {
           if (!res.ok) throw new Error(`HTTP error ${res.status}`);
@@ -141,20 +130,16 @@ export async function exportToPDF(
   activeYear: string = "2025/2026",
   activeKategoriPt: string = "SEMUA"
 ): Promise<void> {
-  // Inisialisasi dokumen jsPDF (A4, Landscape, mm) untuk mengakomodasi 10 kolom tabel resmi
   const doc = new jsPDF({
     orientation: "landscape",
     unit: "mm",
     format: "a4",
   });
 
-  const pageWidth = doc.internal.pageSize.getWidth(); // 297 mm
-  const pageHeight = doc.internal.pageSize.getHeight(); // 210 mm
-  const centerX = pageWidth / 2; // 148.5 mm
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const centerX = pageWidth / 2;
 
-  // ==========================================
-  // 1. KOP SURAT RESMI SEKOLAH (HEADER)
-  // ==========================================
   try {
     const [logoJatimResult, logoSman8Result] = await Promise.allSettled([
       loadSvgAsPngBase64("/images/logo_jatim.svg", 300, 420),
@@ -174,23 +159,18 @@ export async function exportToPDF(
     console.warn("Gagal merender logo SVG ke PDF:", err);
   }
 
-  // Teks Kop Surat Rata Tengah (Font Times)
   doc.setTextColor(0, 0, 0);
 
-  // Baris 1: PEMERINTAH PROVINSI JAWA TIMUR
   doc.setFont("times", "bold");
   doc.setFontSize(11);
   doc.text("PEMERINTAH PROVINSI JAWA TIMUR", centerX, 13.5, { align: "center" });
 
-  // Baris 2: DINAS PENDIDIKAN
   doc.setFontSize(12);
   doc.text("DINAS PENDIDIKAN", centerX, 18.5, { align: "center" });
 
-  // Baris 3: SMA NEGERI 8 KOTA MALANG
   doc.setFontSize(14);
   doc.text("SMA NEGERI 8 KOTA MALANG", centerX, 24.5, { align: "center" });
 
-  // Baris 4: Alamat & Kontak
   doc.setFont("times", "normal");
   doc.setFontSize(9);
   doc.text(
@@ -209,48 +189,47 @@ export async function exportToPDF(
     { align: "center" }
   );
 
-  // Garis Batas Horizontal Kop Surat (Double Line Tradisional Laporan Resmi)
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.8);
   doc.line(14, 37, pageWidth - 14, 37);
   doc.setLineWidth(0.25);
   doc.line(14, 38, pageWidth - 14, 38);
 
-  // ==========================================
-  // 2. JUDUL LAPORAN (KOORDINAT Y TERPISAH)
-  // ==========================================
   let currentY = 45;
 
-  // Baris 1 (Bold): "DAFTAR NAMA SISWA DITERIMA DI PERGURUAN TINGGI"
+  // Baris 1: Judul utama
   doc.setFont("times", "bold");
   doc.setFontSize(12);
+
+  const kategoriJudul =
+    activeKategoriPt && activeKategoriPt.trim().toUpperCase() !== "SEMUA"
+      ? activeKategoriPt.trim().toUpperCase()
+      : "NEGERI";
+
   doc.text(
-    "DAFTAR NAMA SISWA DITERIMA DI PERGURUAN TINGGI",
+    `DAFTAR NAMA SISWA DITERIMA DI PERGURUAN TINGGI ${kategoriJudul}`,
     centerX,
     currentY,
     { align: "center" }
   );
 
-  // Baris 2 (Bold): "JALUR [Nama Jalur Utuh dari Mapping]"
+  // Baris 2: Jalur masuk
   currentY += 5;
   doc.setFont("times", "bold");
   doc.setFontSize(10.5);
 
   const isSemuaJalur =
     !activeJalur || activeJalur.trim().toUpperCase() === "SEMUA";
+
   const mappedJalurName = getFullJalurName(activeJalur);
 
-  let baris2Text = isSemuaJalur
+  const baris2Text = isSemuaJalur
     ? "SEMUA JALUR MASUK PERGURUAN TINGGI"
     : `JALUR ${mappedJalurName}`;
 
-  if (activeKategoriPt && activeKategoriPt.toUpperCase() !== "SEMUA") {
-    baris2Text += ` - KATEGORI ${activeKategoriPt.toUpperCase()}`;
-  }
-
   doc.text(baris2Text, centerX, currentY, { align: "center" });
 
-  // Baris 3 (Bold): "TAHUN AJARAN [activeYear]" (Jika activeYear = 'Semua', sembunyikan baris ini)
+  // Baris 3: Tahun ajaran
   const shouldShowYear =
     Boolean(activeYear) &&
     activeYear.trim().toLowerCase() !== "semua" &&
@@ -265,17 +244,11 @@ export async function exportToPDF(
     });
   }
 
-  // ==========================================
-  // 3. TABEL UTAMA (SESUAI GAMBAR REFERENSI: 10 KOLOM)
-  // NO | NAMA | KLS | PROGRAM STUDI | PERGURUAN TINGGI | NOMOR WA | KIPK | PIL | PDSS | SERTIF
-  // ==========================================
   const mainTableRows = filteredData.map((item, index) => {
     const kls =
       item.kelas ||
       (item.angkatan ? item.angkatan.replace("Alumni ", "") : "XII MIPA 1");
-
-    const nomorWa = item.nomorWa || "-";
-    const kipk = item.isKipk ? "Ya" : "Tidak";
+    const nilaiSeleksi = item.skorUtbk ?? item.nilai ?? "-"; const kipk = item.isKipk ? "Ya" : "Tidak";
     const pil = item.pilihanKe
       ? item.pilihanKe.replace(/\D/g, "") || item.pilihanKe
       : "1";
@@ -293,7 +266,7 @@ export async function exportToPDF(
       kls,
       item.jurusan || "-",
       item.kampus || "-",
-      nomorWa,
+      nilaiSeleksi,
       kipk,
       pil,
       pdss,
@@ -312,7 +285,7 @@ export async function exportToPDF(
         "KLS",
         "PROGRAM STUDI",
         "PERGURUAN TINGGI",
-        "NOMOR WA",
+        "NILAI SELEKSI",
         "KIPK",
         "PIL",
         "PDSS",
@@ -340,22 +313,19 @@ export async function exportToPDF(
       textColor: [0, 0, 0],
     },
     columnStyles: {
-      0: { halign: "center", cellWidth: 12 }, // NO
-      1: { halign: "left", cellWidth: 46 }, // NAMA
-      2: { halign: "center", cellWidth: 22 }, // KLS
-      3: { halign: "left", cellWidth: 48 }, // PROGRAM STUDI
-      4: { halign: "left", cellWidth: 50 }, // PERGURUAN TINGGI
-      5: { halign: "center", cellWidth: 30 }, // NOMOR WA
-      6: { halign: "center", cellWidth: 16 }, // KIPK
-      7: { halign: "center", cellWidth: 13 }, // PIL
-      8: { halign: "center", cellWidth: 16 }, // PDSS
-      9: { halign: "center", cellWidth: 16 }, // SERTIF
+      0: { halign: "center", cellWidth: 12 },
+      1: { halign: "left", cellWidth: 46 },
+      2: { halign: "center", cellWidth: 20 },
+      3: { halign: "left", cellWidth: 48 },
+      4: { halign: "left", cellWidth: 48 },
+      5: { halign: "center", cellWidth: 25 },
+      6: { halign: "center", cellWidth: 16 },
+      7: { halign: "center", cellWidth: 13 },
+      8: { halign: "center", cellWidth: 16 },
+      9: { halign: "center", cellWidth: 16 },
     },
   });
 
-  // ==========================================
-  // 4. TABEL RANGKUMAN PERSEBARAN PTN (KONDISIONAL)
-  // ==========================================
   const isJalurFiltered = Boolean(activeJalur && activeJalur.trim() !== "");
 
   if (isJalurFiltered && filteredData.length > 0) {
@@ -394,7 +364,6 @@ export async function exportToPDF(
       .lastAutoTable.finalY;
     let summaryStartY = lastMainTableY + 8;
 
-    // Cek batas tinggi landscape (210mm)
     if (summaryStartY + 45 > pageHeight - 20) {
       doc.addPage();
       summaryStartY = 18;
@@ -445,9 +414,6 @@ export async function exportToPDF(
     });
   }
 
-  // ==========================================
-  // 5. BAGIAN TANDA TANGAN (FOOTER)
-  // ==========================================
   const margin = 10;
   const lastTableFinalY =
     (doc as unknown as { lastAutoTable: { finalY: number } })
@@ -455,22 +421,19 @@ export async function exportToPDF(
 
   let signY = lastTableFinalY + margin;
 
-  // Ruang tanda tangan di format landscape membutuhkan minimal ~40 mm
   if (signY + 40 > pageHeight - 15) {
     doc.addPage();
     signY = 20;
   }
 
-  // Format tanggal Indonesia resmi: e.g. "3 November 2026"
   const formattedDate = new Intl.DateTimeFormat("id-ID", {
     day: "numeric",
     month: "long",
     year: "numeric",
   }).format(new Date());
 
-  const signGap = 22; // Jarak kosong tanda tangan fisik
+  const signGap = 22;
 
-  // Sebelah Kiri: Mengetahui, Kepala Sekolah
   const leftX = 35;
   doc.setFont("times", "normal");
   doc.setFontSize(10);
@@ -484,7 +447,6 @@ export async function exportToPDF(
   doc.setFontSize(9);
   doc.text("NIP. 196609121989032010", leftX, signY + 4.5 + signGap + 4.5);
 
-  // Sebelah Kanan: Malang, [Tanggal], Koordinator BK (sejajar vertikal)
   const rightX = pageWidth - 85;
   doc.setFont("times", "normal");
   doc.setFontSize(10);
@@ -498,9 +460,6 @@ export async function exportToPDF(
   doc.setFontSize(9);
   doc.text("NIP. 198412162009032002", rightX, signY + 4.5 + signGap + 4.5);
 
-  // ==========================================
-  // PENOMORAN HALAMAN OTOMATIS
-  // ==========================================
   const totalPages = doc.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
@@ -515,7 +474,6 @@ export async function exportToPDF(
     );
   }
 
-  // Unduh dokumen PDF
   const sanitizedJalur = (activeJalur || "SEMUA").replace(/[^a-zA-Z0-9]/g, "_");
   const sanitizedKategori = (activeKategoriPt || "SEMUA").replace(
     /[^a-zA-Z0-9]/g,
