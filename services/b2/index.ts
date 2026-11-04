@@ -139,10 +139,19 @@ export const eligibilitasService = {
     }
 
     const blob = await response.blob();
+    let filename = `laporan-eligibilitas-${new Date().toISOString().slice(0, 10)}.csv`;
+    const disposition = response.headers.get("content-disposition");
+    if (disposition && disposition.includes("filename=")) {
+      const match = disposition.match(/filename="?([^";]+)"?/);
+      if (match && match[1]) {
+        filename = match[1];
+      }
+    }
+
     const downloadUrl = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = downloadUrl;
-    link.download = `laporan-eligibilitas-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     link.remove();

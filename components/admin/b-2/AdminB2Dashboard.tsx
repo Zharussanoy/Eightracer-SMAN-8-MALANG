@@ -201,14 +201,23 @@ export default function AdminB2Dashboard() {
   // Integrasi Ekspor Laporan Eligibilitas (LaporanEligibilitasController)
   const [isExportingExcel, setIsExportingExcel] = useState(false);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [pdfPreviewModalOpen, setPdfPreviewModalOpen] = useState(false);
+  const [pdfReportData, setPdfReportData] = useState<{
+    metadata: {
+      judul: string;
+      tanggal_unduh: string;
+      total_siswa: number;
+    };
+    daftar_peringkat: any[];
+  } | null>(null);
 
-  const handleDownloadExcel = async () => {
+  const handleDownloadExcel = async (params?: { kelas?: string; jurusan_id?: number | string }) => {
     try {
       setIsExportingExcel(true);
-      await eligibilitasService.downloadExportExcel();
+      await eligibilitasService.downloadExportExcel(params);
       setCalcNotification({
         type: "success",
-        message: "Laporan eligibilitas format Excel/CSV berhasil diunduh!",
+        message: "Laporan eligibilitas format Excel/CSV berhasil diunduh dari backend!",
       });
     } catch (err: any) {
       setCalcNotification({
@@ -220,228 +229,166 @@ export default function AdminB2Dashboard() {
     }
   };
 
-  const handleCetakPdf = async () => {
+  const handleCetakPdf = async (filterKelasParam?: string) => {
     try {
       setIsExportingPdf(true);
-      const res = await eligibilitasService.getExportPdfData();
-      const metadata = res?.data?.metadata || {
-        judul: "Laporan Hasil Pemeringkatan Eligibilitas Siswa",
-        tanggal_unduh: new Date().toLocaleString("id-ID"),
-        total_siswa: 0,
-      };
-      const daftar = res?.data?.daftar_peringkat || [];
-
-      // Siapkan jendela cetak dengan kop resmi SMAN 8 Malang
-      const printWindow = window.open("", "_blank");
-      if (!printWindow) {
-        throw new Error("Popup diblokir oleh browser. Izinkan popup untuk mencetak laporan.");
+      const res = await eligibilitasService.getExportPdfData({
+        kelas: filterKelasParam && filterKelasParam !== "Semua Kelas" ? filterKelasParam : undefined,
+      });
+      if (res?.data) {
+        setPdfReportData(res.data);
+        setPdfPreviewModalOpen(true);
+      } else {
+        throw new Error("Gagal mengambil data laporan eligibilitas dari backend.");
       }
-
-      const rowsHtml = daftar
-        .map((item) => {
-          const statusBadge =
-            item.status_eligible === "eligible" || item.status_eligible === "Eligible"
-              ? '<span style="background-color:#DCFCE7;color:#148557;padding:3px 8px;border-radius:9999px;font-weight:bold;font-size:11px;">Eligible</span>'
-              : item.status_eligible === "cadangan" || item.status_eligible === "Cadangan"
-              ? '<span style="background-color:#FEF0C7;color:#B54708;padding:3px 8px;border-radius:9999px;font-weight:bold;font-size:11px;">Cadangan</span>'
-              : '<span style="background-color:#FEE4E2;color:#D92D20;padding:3px 8px;border-radius:9999px;font-weight:bold;font-size:11px;">Tidak Eligible</span>';
-
-          return `
-            <tr>
-              <td style="text-align:center;font-weight:bold;">${item.peringkat}</td>
-              <td>${item.siswa?.nisn || "-"}</td>
-              <td>${item.siswa?.nis || "-"}</td>
-              <td style="font-weight:600;">${item.siswa?.nama_lengkap || "-"}</td>
-              <td style="text-align:center;">${item.siswa?.kelas || "-"}</td>
-              <td style="text-align:right;">${item.rincian_skor?.rapor ?? "-"}</td>
-              <td style="text-align:right;">${item.rincian_skor?.tka ?? "-"}</td>
-              <td style="text-align:right;">${item.rincian_skor?.prestasi ?? "-"}</td>
-              <td style="text-align:right;">${item.rincian_skor?.presensi ?? "-"}</td>
-              <td style="text-align:right;">${item.rincian_skor?.karakter ?? "-"}</td>
-              <td style="text-align:right;">${item.rincian_skor?.organisasi ?? "-"}</td>
-              <td style="text-align:right;font-weight:bold;color:#1F1729;">${Number(item.total_skor_akhir).toFixed(2)}</td>
-              <td style="text-align:center;">${statusBadge}</td>
-            </tr>
-          `;
-        })
-        .join("");
-
-      const docHtml = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8" />
-          <title>${metadata.judul} - SMAN 8 MALANG</title>
-          <style>
-            @page {
-              size: A4 landscape;
-              margin: 12mm;
-            }
-            body {
-              font-family: Arial, Helvetica, sans-serif;
-              color: #1a1a1a;
-              margin: 0;
-              padding: 10px;
-              font-size: 11px;
-            }
-            .kop {
-              display: flex;
-              align-items: center;
-              border-bottom: 3px double #000;
-              padding-bottom: 8px;
-              margin-bottom: 14px;
-            }
-            .kop-text {
-              flex: 1;
-              text-align: center;
-            }
-            .kop-text h2 {
-              margin: 0;
-              font-size: 15px;
-              font-weight: bold;
-              text-transform: uppercase;
-              letter-spacing: 0.5px;
-            }
-            .kop-text h1 {
-              margin: 2px 0;
-              font-size: 18px;
-              font-weight: 800;
-              text-transform: uppercase;
-              letter-spacing: 1px;
-            }
-            .kop-text p {
-              margin: 1px 0;
-              font-size: 10px;
-              color: #444;
-            }
-            .doc-title {
-              text-align: center;
-              margin: 14px 0 10px;
-            }
-            .doc-title h3 {
-              margin: 0;
-              font-size: 14px;
-              font-weight: 800;
-              text-decoration: underline;
-              letter-spacing: 0.5px;
-            }
-            .meta-bar {
-              display: flex;
-              justify-content: space-between;
-              margin-bottom: 10px;
-              font-size: 11px;
-              color: #333;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-top: 5px;
-            }
-            th, td {
-              border: 1px solid #777;
-              padding: 5px 6px;
-              font-size: 10px;
-            }
-            th {
-              background-color: #f2f4f8;
-              text-align: center;
-              font-weight: bold;
-            }
-            tr:nth-child(even) {
-              background-color: #fafafa;
-            }
-            .ttd-container {
-              margin-top: 25px;
-              display: flex;
-              justify-content: flex-end;
-              page-break-inside: avoid;
-            }
-            .ttd-box {
-              width: 260px;
-              text-align: center;
-              font-size: 11px;
-            }
-            .ttd-space {
-              height: 60px;
-            }
-            @media print {
-              .no-print { display: none; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="kop">
-            <div class="kop-text">
-              <h2>PEMERINTAH PROVINSI JAWA TIMUR</h2>
-              <h2>DINAS PENDIDIKAN</h2>
-              <h1>SMA NEGERI 8 MALANG (SMARIHASTA)</h1>
-              <p>Jalan Veteran No. 19 Malang, Jawa Timur 65145 | Telp: (0341) 551096 | Website: sman8malang.sch.id</p>
-            </div>
-          </div>
-
-          <div class="doc-title">
-            <h3>${metadata.judul.toUpperCase()}</h3>
-            <p style="margin:2px 0;font-size:11px;color:#555;">Tahun Ajaran 2026/2027</p>
-          </div>
-
-          <div class="meta-bar">
-            <span><strong>Waktu Ekspor:</strong> ${metadata.tanggal_unduh}</span>
-            <span><strong>Total Peserta:</strong> ${metadata.total_siswa} Siswa</span>
-          </div>
-
-          <table>
-            <thead>
-              <tr>
-                <th style="width:35px;">Rank</th>
-                <th>NISN</th>
-                <th>NIS</th>
-                <th>Nama Lengkap</th>
-                <th>Kelas</th>
-                <th>Rapor</th>
-                <th>TKA</th>
-                <th>Prestasi</th>
-                <th>Presensi</th>
-                <th>Karakter</th>
-                <th>Organisasi</th>
-                <th>Total Skor</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rowsHtml}
-            </tbody>
-          </table>
-
-          <div class="ttd-container">
-            <div class="ttd-box">
-              <p>Malang, ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</p>
-              <p>Kepala SMA Negeri 8 Malang,</p>
-              <div class="ttd-space"></div>
-              <p><strong>Drs. H. Moh. Sulthon, M.Pd.</strong></p>
-              <p style="font-size:10px;color:#555;">NIP. 19680512 199403 1 008</p>
-            </div>
-          </div>
-
-          <script>
-            window.onload = function() {
-              window.focus();
-              window.print();
-            };
-          </script>
-        </body>
-        </html>
-      `;
-
-      printWindow.document.open();
-      printWindow.document.write(docHtml);
-      printWindow.document.close();
     } catch (err: any) {
       setCalcNotification({
         type: "error",
-        message: err?.message || "Gagal menyiapkan dokumen cetak PDF.",
+        message: err?.message || "Gagal memuat pratinjau dokumen PDF laporan eligibilitas.",
       });
     } finally {
       setIsExportingPdf(false);
+    }
+  };
+
+  const handlePrintReport = () => {
+    if (!pdfReportData) return;
+
+    const printFrame = document.createElement("iframe");
+    printFrame.style.position = "fixed";
+    printFrame.style.right = "0";
+    printFrame.style.bottom = "0";
+    printFrame.style.width = "0";
+    printFrame.style.height = "0";
+    printFrame.style.border = "0";
+    document.body.appendChild(printFrame);
+
+    const metadata = pdfReportData.metadata;
+    const daftar = pdfReportData.daftar_peringkat || [];
+
+    const rowsHtml = daftar
+      .map((item) => {
+        const statusBadge =
+          item.status_eligible === "eligible" || item.status_eligible === "Eligible"
+            ? '<span style="background-color:#DCFCE7;color:#148557;padding:2px 8px;border-radius:9999px;font-weight:bold;font-size:10px;">Eligible</span>'
+            : item.status_eligible === "cadangan" || item.status_eligible === "Cadangan"
+            ? '<span style="background-color:#FEF0C7;color:#B54708;padding:2px 8px;border-radius:9999px;font-weight:bold;font-size:10px;">Cadangan</span>'
+            : '<span style="background-color:#FEE4E2;color:#D92D20;padding:2px 8px;border-radius:9999px;font-weight:bold;font-size:10px;">Tidak Eligible</span>';
+
+        return `
+          <tr>
+            <td style="text-align:center;font-weight:bold;">${item.peringkat}</td>
+            <td>${item.siswa?.nisn || "-"}</td>
+            <td>${item.siswa?.nis || "-"}</td>
+            <td style="font-weight:600;">${item.siswa?.nama_lengkap || "-"}</td>
+            <td style="text-align:center;">${item.siswa?.kelas || "-"}</td>
+            <td style="text-align:right;">${item.rincian_skor?.rapor !== undefined ? Number(item.rincian_skor.rapor).toFixed(1) : "-"}</td>
+            <td style="text-align:right;">${item.rincian_skor?.tka !== undefined ? Number(item.rincian_skor.tka).toFixed(1) : "-"}</td>
+            <td style="text-align:right;">${item.rincian_skor?.prestasi !== undefined ? Number(item.rincian_skor.prestasi).toFixed(1) : "-"}</td>
+            <td style="text-align:right;">${item.rincian_skor?.presensi !== undefined ? Number(item.rincian_skor.presensi).toFixed(1) : "-"}</td>
+            <td style="text-align:right;">${item.rincian_skor?.karakter !== undefined ? Number(item.rincian_skor.karakter).toFixed(1) : "-"}</td>
+            <td style="text-align:right;">${item.rincian_skor?.organisasi !== undefined ? Number(item.rincian_skor.organisasi).toFixed(1) : "-"}</td>
+            <td style="text-align:right;font-weight:bold;color:#1F1729;">${Number(item.total_skor_akhir).toFixed(2)}</td>
+            <td style="text-align:center;">${statusBadge}</td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    const docHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>${metadata.judul} - SMAN 8 MALANG</title>
+        <style>
+          @page { size: A4 landscape; margin: 12mm; }
+          body { font-family: Arial, Helvetica, sans-serif; color: #1a1a1a; margin: 0; padding: 10px; font-size: 11px; }
+          .kop { display: flex; align-items: center; border-bottom: 3px double #000; padding-bottom: 8px; margin-bottom: 14px; }
+          .kop-text { flex: 1; text-align: center; }
+          .kop-text h2 { margin: 0; font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+          .kop-text h1 { margin: 2px 0; font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+          .kop-text p { margin: 1px 0; font-size: 10px; color: #444; }
+          .doc-title { text-align: center; margin: 14px 0 10px; }
+          .doc-title h3 { margin: 0; font-size: 14px; font-weight: 800; text-decoration: underline; letter-spacing: 0.5px; }
+          .meta-bar { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 11px; color: #333; }
+          table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+          th, td { border: 1px solid #777; padding: 5px 6px; font-size: 10px; }
+          th { background-color: #f2f4f8; text-align: center; font-weight: bold; }
+          tr:nth-child(even) { background-color: #fafafa; }
+          .ttd-container { margin-top: 25px; display: flex; justify-content: flex-end; page-break-inside: avoid; }
+          .ttd-box { width: 260px; text-align: center; font-size: 11px; }
+          .ttd-space { height: 55px; }
+        </style>
+      </head>
+      <body>
+        <div class="kop">
+          <div class="kop-text">
+            <h2>PEMERINTAH PROVINSI JAWA TIMUR</h2>
+            <h2>DINAS PENDIDIKAN</h2>
+            <h1>SMA NEGERI 8 MALANG (SMARIHASTA)</h1>
+            <p>Jalan Veteran No. 19 Malang, Jawa Timur 65145 | Telp: (0341) 551096 | Website: sman8malang.sch.id</p>
+          </div>
+        </div>
+
+        <div class="doc-title">
+          <h3>${metadata.judul.toUpperCase()}</h3>
+          <p style="margin:2px 0;font-size:11px;color:#555;">Tahun Ajaran 2026/2027</p>
+        </div>
+
+        <div class="meta-bar">
+          <span><strong>Waktu Ekspor:</strong> ${metadata.tanggal_unduh}</span>
+          <span><strong>Total Peserta:</strong> ${metadata.total_siswa} Siswa</span>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width:35px;">Rank</th>
+              <th>NISN</th>
+              <th>NIS</th>
+              <th>Nama Lengkap</th>
+              <th>Kelas</th>
+              <th>Rapor</th>
+              <th>TKA</th>
+              <th>Prestasi</th>
+              <th>Presensi</th>
+              <th>Karakter</th>
+              <th>Organisasi</th>
+              <th>Total Skor</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+
+        <div class="ttd-container">
+          <div class="ttd-box">
+            <p>Malang, ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</p>
+            <p>Kepala SMA Negeri 8 Malang,</p>
+            <div class="ttd-space"></div>
+            <p><strong>Drs. H. Moh. Sulthon, M.Pd.</strong></p>
+            <p style="font-size:10px;color:#555;">NIP. 19680512 199403 1 008</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const doc = printFrame.contentWindow?.document;
+    if (doc) {
+      doc.open();
+      doc.write(docHtml);
+      doc.close();
+      printFrame.contentWindow?.focus();
+      printFrame.contentWindow?.print();
+      setTimeout(() => {
+        if (document.body.contains(printFrame)) {
+          document.body.removeChild(printFrame);
+        }
+      }, 3000);
     }
   };
 
@@ -1203,7 +1150,7 @@ export default function AdminB2Dashboard() {
               <button
                 type="button"
                 disabled={isExportingPdf}
-                onClick={handleCetakPdf}
+                onClick={() => handleCetakPdf()}
                 title="Cetak Laporan Dokumen PDF Resmi (Kop SMARIHASTA)"
                 className="h-9 px-3.5 rounded-lg bg-white border border-[#D0D5DD] text-[#344054] hover:border-[#7F56D9] hover:text-[#6941C6] text-[12px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
               >
@@ -1218,7 +1165,7 @@ export default function AdminB2Dashboard() {
               <button
                 type="button"
                 disabled={isExportingExcel}
-                onClick={handleDownloadExcel}
+                onClick={() => handleDownloadExcel()}
                 title="Unduh Laporan Excel / CSV dari Backend"
                 className="h-9 px-4 rounded-lg bg-[#7F56D9] hover:bg-[#6941C6] text-white text-[12px] font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer disabled:opacity-60"
               >
@@ -2174,6 +2121,182 @@ export default function AdminB2Dashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* ─── MODAL PRATINJAU DOKUMEN LAPORAN ELIGIBILITAS PDF ─── */}
+      {pdfPreviewModalOpen && pdfReportData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden border border-[#D0D5DD]">
+            {/* Modal Header */}
+            <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-[#EAECF0] bg-[#FAF9FE]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#F4EBFF] text-[#7F56D9] flex items-center justify-center shrink-0">
+                  <Printer className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-[16px] font-bold text-[#1F1729]">
+                    Pratinjau Laporan Eligibilitas Siswa
+                  </h3>
+                  <p className="text-[11px] text-[#6E6678]">
+                    Dokumen resmi SMA Negeri 8 Malang siap dicetak atau disimpan sebagai PDF
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handlePrintReport}
+                  className="px-4 py-2 rounded-lg bg-[#7F56D9] hover:bg-[#6941C6] text-white text-[12px] font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Cetak / Simpan PDF</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleDownloadExcel()}
+                  disabled={isExportingExcel}
+                  className="px-3.5 py-2 rounded-lg bg-white border border-[#D0D5DD] text-[#344054] hover:border-[#7F56D9] hover:text-[#6941C6] text-[12px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
+                >
+                  <Download className="w-4 h-4 text-[#7F56D9]" />
+                  <span>Unduh Excel</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPdfPreviewModalOpen(false)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-[#667085] hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body: Document Preview */}
+            <div className="flex-1 overflow-y-auto p-6 sm:p-8 bg-[#F4F5F7]">
+              <div className="bg-white p-8 sm:p-10 rounded-xl shadow-sm border border-[#E4E7EC] max-w-4xl mx-auto text-[#1A1A1A]">
+                {/* Kop Surat SMAN 8 Malang */}
+                <div className="border-b-[3px] border-double border-black pb-3 mb-4 text-center">
+                  <h2 className="text-[14px] font-bold uppercase tracking-wide m-0">
+                    Pemerintah Provinsi Jawa Timur
+                  </h2>
+                  <h2 className="text-[14px] font-bold uppercase tracking-wide m-0">
+                    Dinas Pendidikan
+                  </h2>
+                  <h1 className="text-[18px] font-black uppercase tracking-wider text-[#1F1729] my-0.5">
+                    SMA Negeri 8 Malang (SMARIHASTA)
+                  </h1>
+                  <p className="text-[10px] text-[#444] m-0">
+                    Jalan Veteran No. 19 Malang, Jawa Timur 65145 | Telp: (0341) 551096 | Website: sman8malang.sch.id
+                  </p>
+                </div>
+
+                {/* Judul Laporan */}
+                <div className="text-center my-4">
+                  <h3 className="text-[14px] font-extrabold uppercase underline tracking-wide text-[#1F1729]">
+                    {pdfReportData.metadata.judul}
+                  </h3>
+                  <p className="text-[11px] text-[#667085] mt-1">
+                    Tahun Ajaran 2026/2027 • Kuota SNBP Resmi Sekolah
+                  </p>
+                </div>
+
+                {/* Metadata Row */}
+                <div className="flex items-center justify-between text-[11px] text-[#475467] mb-3 bg-[#F8F9FC] p-2.5 rounded-lg border border-[#EAECF0]">
+                  <span>
+                    <strong>Waktu Ekspor:</strong> {pdfReportData.metadata.tanggal_unduh}
+                  </span>
+                  <span>
+                    <strong>Total Siswa Terdata:</strong> {pdfReportData.metadata.total_siswa} Siswa
+                  </span>
+                </div>
+
+                {/* Tabel Peringkat */}
+                <div className="overflow-x-auto border border-[#D0D5DD] rounded-lg">
+                  <table className="w-full text-left text-[11px] border-collapse">
+                    <thead>
+                      <tr className="bg-[#F2F4F8] border-b border-[#D0D5DD] text-[#344054] font-bold">
+                        <th className="p-2 text-center w-10 border-r border-[#D0D5DD]">Rank</th>
+                        <th className="p-2 border-r border-[#D0D5DD]">NISN</th>
+                        <th className="p-2 border-r border-[#D0D5DD]">Nama Lengkap</th>
+                        <th className="p-2 text-center border-r border-[#D0D5DD]">Kelas</th>
+                        <th className="p-2 text-right border-r border-[#D0D5DD]">Rapor</th>
+                        <th className="p-2 text-right border-r border-[#D0D5DD]">TKA</th>
+                        <th className="p-2 text-right border-r border-[#D0D5DD]">Prestasi</th>
+                        <th className="p-2 text-right border-r border-[#D0D5DD]">Presensi</th>
+                        <th className="p-2 text-right border-r border-[#D0D5DD]">Karakter</th>
+                        <th className="p-2 text-right border-r border-[#D0D5DD]">Total Skor</th>
+                        <th className="p-2 text-center">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#EAECF0]">
+                      {pdfReportData.daftar_peringkat.map((row) => (
+                        <tr key={row.peringkat} className="hover:bg-slate-50">
+                          <td className="p-2 text-center font-bold text-[#6941C6] border-r border-[#EAECF0]">
+                            {row.peringkat}
+                          </td>
+                          <td className="p-2 text-[#475467] border-r border-[#EAECF0]">
+                            {row.siswa?.nisn || "-"}
+                          </td>
+                          <td className="p-2 font-semibold text-[#1F1729] border-r border-[#EAECF0]">
+                            {row.siswa?.nama_lengkap || "-"}
+                          </td>
+                          <td className="p-2 text-center text-[#475467] border-r border-[#EAECF0]">
+                            {row.siswa?.kelas || "-"}
+                          </td>
+                          <td className="p-2 text-right text-[#344054] border-r border-[#EAECF0]">
+                            {row.rincian_skor?.rapor !== undefined ? Number(row.rincian_skor.rapor).toFixed(1) : "-"}
+                          </td>
+                          <td className="p-2 text-right text-[#344054] border-r border-[#EAECF0]">
+                            {row.rincian_skor?.tka !== undefined ? Number(row.rincian_skor.tka).toFixed(1) : "-"}
+                          </td>
+                          <td className="p-2 text-right text-[#344054] border-r border-[#EAECF0]">
+                            {row.rincian_skor?.prestasi !== undefined ? Number(row.rincian_skor.prestasi).toFixed(1) : "-"}
+                          </td>
+                          <td className="p-2 text-right text-[#344054] border-r border-[#EAECF0]">
+                            {row.rincian_skor?.presensi !== undefined ? Number(row.rincian_skor.presensi).toFixed(1) : "-"}
+                          </td>
+                          <td className="p-2 text-right text-[#344054] border-r border-[#EAECF0]">
+                            {row.rincian_skor?.karakter !== undefined ? Number(row.rincian_skor.karakter).toFixed(1) : "-"}
+                          </td>
+                          <td className="p-2 text-right font-bold text-[#1F1729] border-r border-[#EAECF0]">
+                            {Number(row.total_skor_akhir).toFixed(2)}
+                          </td>
+                          <td className="p-2 text-center">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                row.status_eligible === "Eligible" || row.status_eligible === "eligible"
+                                  ? "bg-[#DCFCE7] text-[#148557]"
+                                  : row.status_eligible === "Cadangan" || row.status_eligible === "cadangan"
+                                  ? "bg-[#FEF0C7] text-[#B54708]"
+                                  : "bg-[#FEE4E2] text-[#D92D20]"
+                              }`}
+                            >
+                              {row.status_eligible}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Tanda Tangan */}
+                <div className="mt-8 flex justify-end">
+                  <div className="w-64 text-center text-[11px] text-[#1F1729]">
+                    <p className="m-0">
+                      Malang, {new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                    </p>
+                    <p className="m-0 font-medium">Kepala SMA Negeri 8 Malang,</p>
+                    <div className="h-16" />
+                    <p className="m-0 font-bold underline">Drs. H. Moh. Sulthon, M.Pd.</p>
+                    <p className="m-0 text-[10px] text-[#667085]">NIP. 19680512 199403 1 008</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
