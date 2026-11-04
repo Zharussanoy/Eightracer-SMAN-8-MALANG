@@ -1,6 +1,20 @@
 # Rekomendasi beasiswa B4 - sambungan terpasang
 
-Dikerjakan langsung di C:\eightracer. Layout memakai komponen FE branch b4. Pilihan siswa, pratinjau, tombol Generate Rekomendasi dan Publikasikan Ke Siswa mengikuti komponen AdminRecommendationsApi dari FE; tombol yang sebelumnya dinonaktifkan kini tersambung. Kartu/detail siswa dan chat memakai susunan halaman FE yang ada. Sesi yang terautentikasi tidak menggunakan siswa, skor, referensi alumni, maupun jawaban contoh dari demoStore.
+Dikerjakan langsung di C:\eightracer. Tampilan admin mengikuti susunan AdminRecommendationsPage pada repo FE branch b4: empat filter, profil siswa dan status publikasi, tiga kartu kelengkapan, lalu kartu rekomendasi. StudentRecommendationsPage dan ScholarshipChatPage menjadi acuan kartu/detail siswa dan percakapan. CSS utama dan navbar FE dipertahankan.
+
+Komponen tampilan RecommendationAdminView menerima data dan callback dari AdminRecommendationsApi. Sesi yang terautentikasi tidak menggunakan nama siswa, skor, referensi alumni, maupun jawaban contoh dari demoStore. Informasi yang belum tersedia tetap "-" atau belum diketahui.
+
+## Penyelarasan UI 4 November 2026
+
+- Pencarian nama, kelas, angkatan, dan publikasi memakai GET /api/b4/students. Daftar kelas dan angkatan berasal dari metadata BE, tanpa menambahkan kelas contoh.
+- Filter FE publication=true/false diterjemahkan menjadi rekomendasi_published=1/0 pada GET /api/siswa. Status ini berarti siswa mempunyai setidaknya satu hasil review yang disetujui; bukan status pendaftaran beasiswa.
+- Metadata filters.cohorts dan filters.classrooms mencakup pilihan global. Identitas NISN tidak diteruskan ke DTO browser; UI hanya menampilkan masker jika NISN tersimpan.
+- Generate Ulang dan Publikasikan Ke Siswa tetap memakai endpoint yang sudah terpasang.
+- Sembunyikan, Edit, dan Hapus dipertahankan di posisi komponen FE tetapi masih dinonaktifkan. API perubahan per kandidat belum tersedia; tombol tersebut tidak melakukan perubahan semu di localStorage.
+- Target jenjang SMA/Kuliah tetap memakai pilihan yang sudah ada pada komponen API FE.
+- Struktur profil dan kartu kelengkapan tetap dirender ketika isian kosong. Nilai TKA, RIASEC, pendanaan, dan alumni pembanding tidak diisi dari data demo.
+- Detail siswa mempertahankan kotak Referensi dari Jejak Alumni. Karena tidak ada identitas alumni pembanding individual dalam respons rekomendasi, isinya "-" dan tautannya menuju daftar Jejak Alumni.
+- Kartu beasiswa pada chat hanya menautkan detail apabila program terdapat pada hasil yang sudah dipublikasikan untuk siswa tersebut.
 
 ## Alur admin
 
@@ -71,10 +85,11 @@ TF-IDF/cosine tetap menggunakan deskripsi katalog dan data minat nyata. Jika dat
 
 ## Verifikasi
 
-- 177 tes backend / 1363 assertions, satu tes XLSX lama dilewati karena prasyarat yang belum tersedia.
-- 38 tes kontrak/form/proxy FE lulus; mencakup generate, review, publikasi ke siswa, pencegahan pertukaran ID, error provider, serta chat.
+- Suite backend: 178 tes (177 lulus, satu XLSX lama dilewati), 1375 assertions; tidak ada kegagalan.
+- 40 tes kontrak/form/proxy FE lulus; mencakup generate, review, publikasi ke siswa, pencegahan pertukaran ID, error provider, serta chat.
 - TypeScript dan ESLint pada bagian yang disentuh diperiksa.
-- Server utama: daftar 872 profil, dua kandidat dari katalog, status pratinjau belum lengkap; endpoint dan halaman rekomendasi merespons.
+- Pemeriksaan HTTP server utama: 872 profil, tiga angkatan, belum ada kelas aktif maupun hasil terpublikasi. Filter angkatan dan publikasi sesuai isi DB; halaman admin/siswa/chat merespons 200. Dua kandidat katalog tetap belum lengkap.
+- Render struktur admin dengan data nyata dan keadaan kosong diperiksa; tujuh aturan CSS utama cocok dengan referensi FE. Pengambilan tangkapan layar browser belum berhasil karena alat kendali browser gagal dimulai. Ini pemeriksaan struktur/CSS dan HTTP, bukan verifikasi visual di browser.
 - Gemini diuji langsung dengan dua kandidat terdeidentifikasi dan responsnya lolos validasi. Uji ini tidak membuat draft pada database sekolah.
 - Uji tulis/publikasi terisolasi dengan Gemini sungguhan juga berhasil: generate 201, review 200, dan pembacaan siswa 200; sebelum publikasi kosong, setelah publikasi satu hasil. Seluruh tabel berada pada SQLite :memory: dan hilang setelah proses selesai.
 - Tes otomatis memakai SQLite in-memory dan HTTP fake. Tidak membuat data sintetis atau mengubah nilai siswa di database sekolah.

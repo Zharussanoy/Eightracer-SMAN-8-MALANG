@@ -7,7 +7,7 @@ import {GraduationCap,ShieldCheck,Sparkles,CheckCircle2,CircleHelp} from "lucide
 import {useUser} from "@/context/UserContext";
 import {recommendationRequest,type StudentRecommendation} from "@/lib/b4-recommendation-data";
 import {recommendationEligibility,recommendationCriterionLabel} from "@/lib/b4-recommendations";
-import B4Shell from "./B4Shell";
+import B4Shell,{Avatar} from "./B4Shell";
 
 function useRecommendations(){
  const {currentUser,refreshSession}=useUser(),router=useRouter();
@@ -46,8 +46,8 @@ export function StudentRecommendationDetailApi({id}:{id:string}){
    <section className="bc4-panel bc4-recommendationHeader"><GraduationCap size={45}/><div style={{flex:1}}><h3>{item.name}</h3><p>{known(item.provider)} · {known(item.level)}</p></div><div className="bc4-score"><span>Skor Kecocokan Kriteria</span><strong>{item.complete&&item.score!==null?item.score+"/100":"Belum dapat dinilai"}</strong></div></section>
    <div className="bc4-note" style={{marginTop:28}}><div><strong>Alasan Kecocokan</strong><p>{item.reason??recommendationEligibility(item)}</p></div></div>
    <div className="bc4-detailRecGrid"><div><section className="bc4-panel"><h2>Evaluasi Kriteria Siswa</h2><Evaluation item={item}/></section>
-    <section className="bc4-panel"><h2>Referensi dari Jejak Alumni</h2><div className="bc4-yellowCard"><p>Pelajari catatan alumni yang telah dipublikasikan sekolah melalui Jejak Alumni. Hasil pemeriksaan kriteria ini bukan jaminan lolos seleksi.</p><Link className="bc4-button" href="/siswa/jejak-alumni">Lihat Jejak Alumni</Link></div></section>
-   </div><div><aside className="bc4-panel"><h2>Informasi Beasiswa</h2><dl className="bc4-facts">{[["Penyelenggara",known(item.provider)],["Jenjang",known(item.level)],["Pendanaan","Belum tercatat"],["Periode",known(item.period)],["Waktu yang Disarankan",item.opens??"Periksa jadwal resmi penyelenggara"]].map(([label,value])=><div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>{item.preparations.length>0&&<ul>{item.preparations.map((v,i)=><li key={i}>{v}</li>)}</ul>}</aside>
+    <section className="bc4-panel"><h2>Referensi dari Jejak Alumni</h2><div className="bc4-yellowCard"><div className="bc4-profile" style={{padding:0,border:0}}><Avatar name="-" example={false}/><div><h2>-</h2><p>-</p><span className="bc4-tag">-</span><span className="bc4-tag">-</span></div></div><p style={{margin:"15px 0"}}>Pelajari catatan alumni yang telah dipublikasikan sekolah melalui Jejak Alumni. Hasil pemeriksaan kriteria ini bukan jaminan lolos seleksi.</p><Link className="bc4-button" href="/siswa/jejak-alumni">Lihat Jejak Alumni</Link></div></section>
+   </div><div><aside className="bc4-panel"><h2>Informasi Beasiswa</h2><dl className="bc4-facts">{[["Penyelenggara",known(item.provider)],["Jenjang",known(item.level)],["Pendanaan","Belum tercatat"],["Periode",known(item.period)],["Waktu yang Disarankan",item.opens??"Periksa jadwal resmi penyelenggara"]].map(([label,value])=><div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></aside>
     <aside className="bc4-aiCta"><h2>Masih ada yang ingin kamu ketahui?</h2><p>Tanyakan informasi beasiswa ini berdasarkan katalog sekolah.</p><Link className="bc4-button" href={"/siswa/rekomendasi-beasiswa/chat?beasiswa="+item.scholarshipId}>Tanya tentang beasiswa ini</Link></aside>
    </div></div>
   </>}

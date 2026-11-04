@@ -85,3 +85,19 @@ test("chat rejects an injected student ID and handles a factual answer without c
  const good=await route.POST(request("/api/b4/recommendations/chat",{message:"Periksa beasiswa"}));
  const result=await good.json();assert.equal(good.status,200);assert.equal(result.llmUsed,false);assert.equal(result.suggestions[0].name,"Program Uji");
 });
+
+test("student filters project real classroom/cohort metadata without exposing NISN",()=>{
+ const parse=harness()("lib/b4-students.ts").parseRecommendationStudents;
+ const p=parse({data:{data:[{id:11,nama_lengkap:"Siswa Uji",nisn:"PRIVATE_NISN",tahun_lulus:2026,
+  riwayat_kelas:[{tanggal_selesai:null,kelas:{id:9,nama_kelas:"XII IPA 1"}}]}],current_page:1,last_page:1,per_page:20,total:1},
+  filters:{cohorts:[2025,2026],classrooms:[{id:9,nama_kelas:"XII IPA 1"}]}});
+ assert.equal(p.data[0].classroom,"XII IPA 1");assert.equal(p.data[0].hasNisn,true);
+ assert.deepEqual(Array.from(p.filters.cohorts),["2025","2026"]);assert.equal(JSON.stringify(p).includes("PRIVATE_NISN"),false);
+});
+test("FE publication and class filters are translated to the existing protected student API",async()=>{
+ let forwarded;const route=harness(async url=>{forwarded=new URL(url);return Response.json({data:{data:[],current_page:1,last_page:1,per_page:20,total:0},filters:{cohorts:[],classrooms:[]}});})("app/api/b4/students/route.ts");
+ const r=await route.GET(new NextRequest("http://localhost:3000/api/b4/students?publication=true&kelas_id=9&angkatan=2026",{headers:{Cookie:"eightracer_session=test-only-token"}}));
+ assert.equal(r.status,200);assert.equal(forwarded.searchParams.get("rekomendasi_published"),"1");assert.equal(forwarded.searchParams.get("kelas_id"),"9");
+ assert.equal(forwarded.searchParams.has("publication"),false);
+ const invalid=await route.GET(new NextRequest("http://localhost:3000/api/b4/students?publication=invalid",{headers:{Cookie:"eightracer_session=test-only-token"}}));assert.equal(invalid.status,422);
+});
