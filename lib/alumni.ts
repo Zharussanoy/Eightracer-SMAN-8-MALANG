@@ -3,6 +3,16 @@ import { AlumniItem } from "@/components/admin/direktori-alumni/types";
 export interface ApiAlumni {
   id: number;
   nama: string;
+  nisn?: string | null;
+  kelas?: string | null;
+  nomor_wa?: string | null;
+  jenis_kampus?: AlumniItem["jenisKampus"] | null;
+  jalur_lainnya?: string | null;
+  lembaga_penyalur?: string | null;
+  pelamar_kipk?: "YA" | "TIDAK" | null;
+  beasiswa?: string | null;
+  beasiswa_lainnya?: string | null;
+  pekerjaan?: string | null;
   tahun_lulus: string | null;
   univ: string | null;
   univ_singkat: string | null;
@@ -27,17 +37,17 @@ export interface ApiAlumni {
 export function mapApiAlumniToItem(api: ApiAlumni): AlumniItem {
   return {
     id: String(api.id),
-    nisn: "-",
+    nisn: api.nisn ?? "-",
     nama: api.nama,
-    kelas: "-",
+    kelas: api.kelas ?? "-",
     angkatan: api.tahun_lulus ? `Alumni ${api.tahun_lulus}` : "-",
     kampus: api.univ ?? "-",
     kampusKode: api.univ_singkat ?? "-",
-    jenisKampus: undefined,
+    jenisKampus: api.jenis_kampus ?? undefined,
     jurusan: api.prodi ?? "-",
     jalur: api.jalur_masuk ?? "-",
-    nomorWa: undefined,
-    pilihanKe: api.pilihan_ke ? `Pilihan ${api.pilihan_ke}` : "-",
+    nomorWa: api.nomor_wa ?? undefined,
+    pilihanKe: api.pilihan_ke == null ? "-" : api.pilihan_ke === 0 ? "Tanpa Pilihan" : String(api.pilihan_ke),
     statusPdss: undefined,
     statusPenerimaan: api.status_penerimaan ?? "-",
     jenjang: api.strata ?? "-",
@@ -47,5 +57,11 @@ export function mapApiAlumniToItem(api: ApiAlumni): AlumniItem {
       (s) => s.nama_kompetisi || "-"
     ),
     isKipk: api.is_kipk,
+    jalurLainnya: api.jalur_lainnya ?? api.sub_jalur ?? undefined,
+    lembagaPenyalur: api.jenis_kampus === "Luar Negeri" ? api.lembaga_penyalur ?? "" : "",
+    pelamarKipk: api.pelamar_kipk ?? "",
+    beasiswa: api.beasiswa ?? "",
+    beasiswaLainnya: api.beasiswa_lainnya ?? "",
+    pekerjaan: api.pekerjaan ?? "",
   };
 }

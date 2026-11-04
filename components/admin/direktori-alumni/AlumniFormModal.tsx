@@ -4,20 +4,23 @@ import { useState, useEffect } from "react";
 import {
   X,
   School,
-  TrendingUp,
   Award,
-  Check,
   CheckSquare,
   Square,
   Phone,
 } from "lucide-react";
-import { AlumniItem, KategoriPerguruanTinggi, JalurMasuk } from "./types";
+import { AlumniItem, KategoriPerguruanTinggi } from "./types";
+import {
+  KELAS_OPTIONS, JENIS_KAMPUS_OPTIONS, PILIHAN_OPTIONS,
+  JALUR_OPTIONS, BEASISWA_OPTIONS, WHATSAPP_PATTERN,
+  normalizePendataan, validatePendataan,
+} from "@/lib/pendataan";
 import { AVAILABLE_CERTIFICATES } from "./mockData";
 
 interface AlumniFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (alumniData: Omit<AlumniItem, "id">, editId?: string | null) => void;
+  onSave: (alumniData: Omit<AlumniItem, "id">, editId?: string | null) => void | Promise<void>;
   initialData?: AlumniItem | null;
 }
 
@@ -29,13 +32,13 @@ export default function AlumniFormModal({
 }: AlumniFormModalProps) {
   const [formNama, setFormNama] = useState("");
   const [formNisn, setFormNisn] = useState("");
-  const [formKelas, setFormKelas] = useState("XII MIPA 1");
+  const [formKelas, setFormKelas] = useState("");
   const [formNomorWa, setFormNomorWa] = useState("");
   const [formKampus, setFormKampus] = useState("Universitas Brawijaya");
   const [formJenisKampus, setFormJenisKampus] =
     useState<KategoriPerguruanTinggi>("Negeri");
   const [formJurusan, setFormJurusan] = useState("");
-  const [formJalur, setFormJalur] = useState<JalurMasuk>("SNBP");
+  const [formJalur, setFormJalur] = useState<string>("SNBP");
   const [formPilihanKe, setFormPilihanKe] = useState("1");
   const [formStatusPdss, setFormStatusPdss] = useState("Eligible");
   const [formStatusPenerimaan, setFormStatusPenerimaan] =
@@ -45,23 +48,36 @@ export default function AlumniFormModal({
   const [formSkorUtbk, setFormSkorUtbk] = useState("");
   const [formSelectedCerts, setFormSelectedCerts] = useState<string[]>([]);
   const [formIsKipk, setFormIsKipk] = useState(false);
+  const [formKampusKode, setFormKampusKode] = useState("");
+  const [formJalurLainnya, setFormJalurLainnya] = useState("");
+  const [formLembagaPenyalur, setFormLembagaPenyalur] = useState("");
+  const [formPelamarKipk, setFormPelamarKipk] = useState<"YA" | "TIDAK" | "">("");
+  const [formBeasiswa, setFormBeasiswa] = useState("");
+  const [formBeasiswaLainnya, setFormBeasiswaLainnya] = useState("");
+  const [formError, setFormError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const [customCertInput, setCustomCertInput] = useState("");
 
   useEffect(() => {
     const timer = setTimeout(() => {
+      setFormError("");
+      setFormKampusKode(initialData?.kampusKode || "");
+      setFormJalurLainnya(initialData?.jalurLainnya || "");
+      setFormLembagaPenyalur(initialData?.lembagaPenyalur || "");
+      setFormPelamarKipk(initialData?.pelamarKipk || "");
+      setFormBeasiswa(initialData?.beasiswa || "");
+      setFormBeasiswaLainnya(initialData?.beasiswaLainnya || "");
       if (initialData) {
-        setFormNama(initialData.nama || "");
+        setFormNama((initialData.nama || "").toUpperCase());
         setFormNisn(initialData.nisn || "");
         setFormKelas(initialData.kelas || "XII MIPA 1");
         setFormNomorWa(initialData.nomorWa || "");
-        setFormKampus(initialData.kampus || "Universitas Brawijaya");
-        setFormJenisKampus(initialData.jenisKampus || "Negeri");
-        setFormJurusan(initialData.jurusan || "");
-        setFormJalur((initialData.jalur as JalurMasuk) || "SNBP");
+        setFormKampus((initialData.kampus || "").toUpperCase());
+        setFormJenisKampus(initialData.jenisKampus === "Kedinasan" ? "Ikatan Dinas" : initialData.jenisKampus || "Negeri");
+        setFormJurusan((initialData.jurusan || "").toUpperCase());
+        setFormJalur(initialData.jalur || "SNBP");
         setFormPilihanKe(
-          initialData.pilihanKe
-            ? initialData.pilihanKe.replace(/\D/g, "") || "1"
-            : "1"
+          initialData.pilihanKe === "Tanpa Pilihan" ? "Tanpa Pilihan" : initialData.pilihanKe?.replace(/\D/g, "") || ""
         );
         setFormStatusPdss(initialData.statusPdss || "Eligible");
         setFormStatusPenerimaan(initialData.statusPenerimaan || "Lolos / Diterima");
@@ -73,7 +89,7 @@ export default function AlumniFormModal({
       } else {
         setFormNama("");
         setFormNisn("");
-        setFormKelas("XII MIPA 1");
+        setFormKelas("");
         setFormNomorWa("");
         setFormKampus("Universitas Brawijaya");
         setFormJenisKampus("Negeri");
@@ -110,31 +126,33 @@ export default function AlumniFormModal({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const campusName = formKampus.toUpperCase();
     let kampusKode = "PTN";
-    if (formKampus.includes("Brawijaya")) kampusKode = "UB";
-    else if (formKampus.includes("Teknologi Bandung")) kampusKode = "ITB";
-    else if (formKampus.includes("Gadjah Mada")) kampusKode = "UGM";
-    else if (formKampus.includes("Negeri Malang")) kampusKode = "UM";
-    else if (formKampus.includes("ITS") || formKampus.includes("Sepuluh Nopember")) kampusKode = "ITS";
-    else if (formKampus.includes("Airlangga")) kampusKode = "UNAIR";
-    else if (formKampus.includes("Indonesia")) kampusKode = "UI";
-    else if (formKampus.includes("Diponegoro")) kampusKode = "UNDIP";
-    else if (formKampus.includes("STAN")) kampusKode = "STAN";
-    else if (formKampus.includes("Telkom")) kampusKode = "TELKOM";
-    else if (formKampus.includes("Nanyang") || formKampus.includes("NTU")) kampusKode = "NTU";
+    if (campusName.includes("BRAWIJAYA")) kampusKode = "UB";
+    else if (campusName.includes("TEKNOLOGI BANDUNG")) kampusKode = "ITB";
+    else if (campusName.includes("GADJAH MADA")) kampusKode = "UGM";
+    else if (campusName.includes("NEGERI MALANG")) kampusKode = "UM";
+    else if (campusName.includes("ITS") || campusName.includes("SEPULUH NOPEMBER")) kampusKode = "ITS";
+    else if (campusName.includes("AIRLANGGA")) kampusKode = "UNAIR";
+    else if (campusName.includes("INDONESIA")) kampusKode = "UI";
+    else if (campusName.includes("DIPONEGORO")) kampusKode = "UNDIP";
+    else if (campusName.includes("STAN")) kampusKode = "STAN";
+    else if (campusName.includes("TELKOM")) kampusKode = "TELKOM";
+    else if (campusName.includes("NANYANG") || campusName.includes("NTU")) kampusKode = "NTU";
 
-    const payload: Omit<AlumniItem, "id"> = {
-      nama: formNama || "Alumni Smarihasta",
-      nisn: formNisn || "005" + Math.floor(1000000 + Math.random() * 9000000),
-      kelas: formKelas || "XII MIPA 1",
-      angkatan: "Alumni 2024",
+    const payload: Omit<AlumniItem, "id"> = normalizePendataan({
+      ...initialData,
+      nama: formNama,
+      nisn: formNisn,
+      kelas: formKelas,
+      angkatan: initialData?.angkatan || "Alumni 2024",
       kampus: formKampus,
-      kampusKode,
+      kampusKode: formKampusKode.trim().toUpperCase() || kampusKode,
       jenisKampus: formJenisKampus,
-      jurusan: formJurusan || "Program Studi",
+      jurusan: formJurusan,
       jalur: formJalur,
       nomorWa: formNomorWa,
       pilihanKe: formPilihanKe,
@@ -145,10 +163,32 @@ export default function AlumniFormModal({
       skorUtbk: formSkorUtbk ? parseFloat(formSkorUtbk) : null,
       sertifikat: formSelectedCerts,
       isKipk: formIsKipk,
-    };
+      jalurLainnya: formJalurLainnya,
+      lembagaPenyalur: formLembagaPenyalur,
+      pelamarKipk: formPelamarKipk,
+      beasiswa: formBeasiswa,
+      beasiswaLainnya: formBeasiswaLainnya,
+    });
+    const error = validatePendataan({
+      ...payload,
+      kelas: payload.kelas || "",
+      nomorWa: payload.nomorWa || "",
+      jenisKampus: payload.jenisKampus || "",
+      tahunLulus: Number(payload.angkatan.replace(/\D/g, "")),
+      nilaiRapor: payload.nilai,
+    });
+    if (error) { setFormError(error); return; }
 
-    onSave(payload, initialData ? initialData.id : null);
-    onClose();
+    setIsSaving(true);
+    setFormError("");
+    try {
+      await onSave(payload, initialData ? initialData.id : null);
+      onClose();
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : "Data gagal disimpan. Silakan coba lagi.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -201,7 +241,7 @@ export default function AlumniFormModal({
                     required
                     placeholder="Contoh: Naysilla Salsa Ardiyati"
                     value={formNama}
-                    onChange={(e) => setFormNama(e.target.value)}
+                    onChange={(e) => setFormNama(e.target.value.toUpperCase())}
                     className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
                   />
                 </div>
@@ -227,14 +267,16 @@ export default function AlumniFormModal({
                   <label className="block text-xs font-bold text-slate-700 mb-1">
                     Kelas (KLS)
                   </label>
-                  <input
-                    type="text"
+                  <select
                     required
-                    placeholder="Contoh: XII MIPA 1"
                     value={formKelas}
                     onChange={(e) => setFormKelas(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
-                  />
+                  >
+                    <option value="">Pilih Kelas</option>
+                    {formKelas && !KELAS_OPTIONS.includes(formKelas) && <option value={formKelas}>{formKelas} (data lama, pilih kelas terkini)</option>}
+                    {KELAS_OPTIONS.map((value) => <option key={value} value={value}>{value}</option>)}
+                  </select>
                 </div>
 
                 <div>
@@ -244,7 +286,10 @@ export default function AlumniFormModal({
                   <div className="relative">
                     <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
-                      type="text"
+                      type="tel"
+                      required
+                      pattern={WHATSAPP_PATTERN}
+                      title="Gunakan format 08xxx atau +628xxx tanpa spasi."
                       placeholder="081234567890"
                       value={formNomorWa}
                       onChange={(e) => setFormNomorWa(e.target.value)}
@@ -260,23 +305,7 @@ export default function AlumniFormModal({
                   <label className="block text-xs font-bold text-slate-700 mb-1">
                     Perguruan Tinggi
                   </label>
-                  <select
-                    value={formKampus}
-                    onChange={(e) => setFormKampus(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
-                  >
-                    <option value="Universitas Brawijaya">Universitas Brawijaya (UB)</option>
-                    <option value="Institut Teknologi Bandung">Institut Teknologi Bandung (ITB)</option>
-                    <option value="Universitas Gadjah Mada">Universitas Gadjah Mada (UGM)</option>
-                    <option value="Universitas Negeri Malang">Universitas Negeri Malang (UM)</option>
-                    <option value="ITS Surabaya">ITS Surabaya</option>
-                    <option value="Universitas Airlangga">Universitas Airlangga (UNAIR)</option>
-                    <option value="Universitas Indonesia">Universitas Indonesia (UI)</option>
-                    <option value="Universitas Diponegoro">Universitas Diponegoro (UNDIP)</option>
-                    <option value="Politeknik Keuangan Negara STAN">PKN STAN (Kedinasan)</option>
-                    <option value="Telkom University">Telkom University (Swasta)</option>
-                    <option value="Nanyang Technological University">Nanyang Technological University (Luar Negeri)</option>
-                  </select>
+                  <input type="text" required value={formKampus} onChange={(e) => setFormKampus(e.target.value.toUpperCase())} placeholder="Nama lengkap, contoh: UNIVERSITAS BRAWIJAYA" className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15" />
                 </div>
 
                 <div>
@@ -286,16 +315,14 @@ export default function AlumniFormModal({
                   <select
                     value={formJenisKampus}
                     onChange={(e) =>
-                      setFormJenisKampus(
-                        e.target.value as KategoriPerguruanTinggi
-                      )
+                      {
+                        setFormJenisKampus(e.target.value as KategoriPerguruanTinggi);
+                        if (e.target.value !== "Luar Negeri") setFormLembagaPenyalur("");
+                      }
                     }
                     className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
                   >
-                    <option value="Negeri">Negeri (PTN)</option>
-                    <option value="Swasta">Swasta (PTS)</option>
-                    <option value="Kedinasan">Kedinasan (PTK)</option>
-                    <option value="Luar Negeri">Luar Negeri</option>
+                    {JENIS_KAMPUS_OPTIONS.map((value) => <option key={value} value={value}>{value}</option>)}
                   </select>
                 </div>
               </div>
@@ -304,14 +331,14 @@ export default function AlumniFormModal({
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Program Studi (Jurusan)
+                    Program Studi / Jurusan (Nama Lengkap)
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="Contoh: Teknik Informatika"
+                    placeholder="Nama lengkap, contoh: TEKNIK INFORMATIKA"
                     value={formJurusan}
-                    onChange={(e) => setFormJurusan(e.target.value)}
+                    onChange={(e) => setFormJurusan(e.target.value.toUpperCase())}
                     className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
                   />
                 </div>
@@ -341,15 +368,10 @@ export default function AlumniFormModal({
                   </label>
                   <select
                     value={formJalur}
-                    onChange={(e) => setFormJalur(e.target.value as JalurMasuk)}
+                    onChange={(e) => { setFormJalur(e.target.value); if (e.target.value !== "Lainnya") setFormJalurLainnya(""); }}
                     className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
                   >
-                    <option value="SNBP">SNBP (Prestasi)</option>
-                    <option value="SNBT">SNBT (Tes UTBK)</option>
-                    <option value="Mandiri">Mandiri / Swasta</option>
-                    <option value="Kedinasan">Kedinasan</option>
-                    <option value="SPAN-PTKIN">SPAN-PTKIN</option>
-                    <option value="Luar Negeri">Luar Negeri</option>
+                    {JALUR_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                   </select>
                 </div>
 
@@ -362,8 +384,8 @@ export default function AlumniFormModal({
                     onChange={(e) => setFormPilihanKe(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
                   >
-                    <option value="1">Pilihan 1</option>
-                    <option value="2">Pilihan 2</option>
+                    <option value="">Pilih Pilihan Ke</option>
+                    {PILIHAN_OPTIONS.map((value) => <option key={value} value={value}>{value}</option>)}
                   </select>
                 </div>
 
@@ -381,6 +403,96 @@ export default function AlumniFormModal({
                   </select>
                 </div>
               </div>
+
+              <div>
+                <label htmlFor="edit-kampusKode" className="block text-xs font-bold text-slate-700 mb-1">
+                  Kode Kampus (Singkatan)
+                </label>
+                <input
+                  id="edit-kampusKode"
+                  type="text"
+
+                  value={formKampusKode}
+                  onChange={(e) => setFormKampusKode(e.target.value.toUpperCase())}
+                  className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
+                />
+              </div>
+              {formJalur === "Lainnya" && (
+              <div>
+                <label htmlFor="edit-jalurLainnya" className="block text-xs font-bold text-slate-700 mb-1">
+                  Nama Jalur Masuk Lainnya
+                </label>
+                <input
+                  id="edit-jalurLainnya"
+                  type="text"
+                  required
+                  value={formJalurLainnya}
+                  onChange={(e) => setFormJalurLainnya(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
+                />
+              </div>
+              )}
+              {formJenisKampus === "Luar Negeri" && (
+              <div>
+                <label htmlFor="edit-lembagaPenyalur" className="block text-xs font-bold text-slate-700 mb-1">
+                  Lembaga Penyalur
+                </label>
+                <input
+                  id="edit-lembagaPenyalur"
+                  type="text"
+
+                  value={formLembagaPenyalur}
+                  onChange={(e) => setFormLembagaPenyalur(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
+                />
+              </div>
+              )}
+              <div>
+                <label htmlFor="edit-pelamarKipk" className="block text-xs font-bold text-slate-700 mb-1">Pelamar Bantuan KIP-K</label>
+                <select
+                  id="edit-pelamarKipk"
+                  value={formPelamarKipk}
+                  onChange={(e) => setFormPelamarKipk(e.target.value as "YA" | "TIDAK" | "")}
+                  className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
+                >
+                  <option value="">Pilih Pelamar Bantuan KIP-K</option>
+                  <option value="YA">YA</option>
+                  <option value="TIDAK">TIDAK</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="edit-beasiswa" className="block text-xs font-bold text-slate-700 mb-1">Beasiswa</label>
+                <select
+                  id="edit-beasiswa"
+                  value={formBeasiswa}
+                  onChange={(e) => {
+                    setFormBeasiswa(e.target.value);
+                    if (e.target.value !== "Lainnya") setFormBeasiswaLainnya("");
+                  }}
+                  className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
+                >
+                  <option value="">Pilih Beasiswa</option>
+                  {BEASISWA_OPTIONS.map((value) => <option key={value} value={value}>{value}</option>)}
+                </select>
+              </div>
+              {formBeasiswa === "Lainnya" && (
+              <div>
+                <label htmlFor="edit-beasiswaLainnya" className="block text-xs font-bold text-slate-700 mb-1">
+                  Nama Beasiswa Lainnya
+                </label>
+                <input
+                  id="edit-beasiswaLainnya"
+                  type="text"
+                  required
+                  value={formBeasiswaLainnya}
+                  onChange={(e) => setFormBeasiswaLainnya(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
+                />
+              </div>
+              )}
+              <p className="text-xs text-slate-500">
+                Beasiswa hanya mencatat bantuan yang sudah diterima, bukan yang baru didaftarkan.
+              </p>
 
               {/* Rapor & KIP-K */}
               <div className="pt-2 border-t border-slate-100">
@@ -481,6 +593,7 @@ export default function AlumniFormModal({
             </div>
           </div>
 
+          {formError && <p role="alert" className="text-xs text-slate-500">{formError}</p>}
           {/* Footer Modal Actions */}
           <div className="mt-6 pt-4 border-t border-slate-200/80 flex items-center justify-end gap-3">
             <button
@@ -492,6 +605,7 @@ export default function AlumniFormModal({
             </button>
             <button
               type="submit"
+              disabled={isSaving}
               className="px-6 py-2.5 rounded-xl bg-[#5F089E] hover:bg-[#4d0680] text-white font-bold text-xs shadow-md shadow-purple-900/15 transition-all cursor-pointer"
             >
               Simpan Data Alumni

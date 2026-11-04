@@ -20,11 +20,27 @@ import {
 import { INITIAL_ALUMNI } from "@/components/admin/direktori-alumni/mockData";
 import { apiFetch } from "@/lib/api";
 import { ApiAlumni, mapApiAlumniToItem } from "@/lib/alumni";
+import { FormDataPendataan } from "@/types/user";
+import { mapPendataanToItem, normalizePendataan, pendataanStorageKey, validatePendataan } from "@/lib/pendataan";
 import { useUser } from "@/context/UserContext";
+
+// B3 records remain local until a backend write contract is available.
+function withSavedPendataan(items: AlumniItem[], userId: string): AlumniItem[] {
+  try {
+    const saved = localStorage.getItem(pendataanStorageKey(userId));
+    if (!saved) return items;
+    const data = normalizePendataan(JSON.parse(saved) as FormDataPendataan);
+    if (validatePendataan(data)) return items;
+    const item = mapPendataanToItem(data, `pendataan:${userId}`);
+    return [item, ...items.filter((entry) => entry.id !== item.id && entry.nisn !== item.nisn)];
+  } catch {
+    return items;
+  }
+}
 
 function AlumniPageContent() {
   const searchParams = useSearchParams();
-  const { getDisplayRole } = useUser();
+  const { getDisplayRole, currentUser } = useUser();
   const displayRole = getDisplayRole();
 
   // Role ditentukan secara dinamis dari context (atau URL override bila ada)
@@ -47,23 +63,28 @@ function AlumniPageContent() {
 
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_API_URL) {
-      setAlumniList(INITIAL_ALUMNI);
-      setIsLoadingAlumni(false);
-      return;
+      const timer = setTimeout(() => {
+        setAlumniList(withSavedPendataan(INITIAL_ALUMNI, currentUser.id));
+        setIsLoadingAlumni(false);
+      }, 0);
+      return () => clearTimeout(timer);
     }
 
+    let cancelled = false;
     apiFetch<{ data: ApiAlumni[] }>("/alumni?per_page=250")
       .then((res) => {
-        setAlumniList(res.data.map(mapApiAlumniToItem));
+        if (!cancelled) setAlumniList(withSavedPendataan(res.data.map(mapApiAlumniToItem), currentUser.id));
       })
       .catch((err) => {
+        if (cancelled) return;
         console.warn("Gagal fetch alumni dari API, menggunakan mock data:", err);
-        setAlumniList(INITIAL_ALUMNI);
+        setAlumniList(withSavedPendataan(INITIAL_ALUMNI, currentUser.id));
       })
       .finally(() => {
-        setIsLoadingAlumni(false);
+        if (!cancelled) setIsLoadingAlumni(false);
       });
-  }, []);
+    return () => { cancelled = true; };
+  }, [currentUser.id]);
   const [selectedIds, setSelectedIds] = useState<string[]>(["alm-1", "alm-2"]);
 
   // Modal State
@@ -140,6 +161,22 @@ function AlumniPageContent() {
     alumniData: Omit<AlumniItem, "id">,
     editId?: string | null
   ) => {
+    if (editId === `pendataan:${currentUser.id}`) {
+      const saved = localStorage.getItem(pendataanStorageKey(currentUser.id));
+      if (!saved) throw new Error("Data pendataan lokal tidak ditemukan.");
+      const previous: FormDataPendataan = JSON.parse(saved);
+      const updated = normalizePendataan({
+        ...previous,
+        ...alumniData,
+        kelas: alumniData.kelas || "",
+        nomorWa: alumniData.nomorWa || "",
+        jenisKampus: alumniData.jenisKampus || "",
+        nilaiRapor: alumniData.nilai,
+      });
+      const error = validatePendataan(updated);
+      if (error) throw new Error(error);
+      localStorage.setItem(pendataanStorageKey(currentUser.id), JSON.stringify(updated));
+    }
     if (editId) {
       setAlumniList((prev) =>
         prev.map((item) =>
@@ -164,7 +201,7 @@ function AlumniPageContent() {
   const refreshAlumni = () => {
     apiFetch<{ data: ApiAlumni[] }>("/alumni?per_page=250")
       .then((res) => {
-        setAlumniList(res.data.map(mapApiAlumniToItem));
+        setAlumniList(withSavedPendataan(res.data.map(mapApiAlumniToItem), currentUser.id));
       })
       .catch((err) => {
         console.error("Gagal refresh alumni:", err);
@@ -212,7 +249,14 @@ function AlumniPageContent() {
 
         {/* Konten Tab 4: Formulir Pendataan Mandiri (Khusus Alumni & Admin) */}
         {activeTab === "Formulir Pendataan" && (
-          <AdminFormSection role={currentRole} />
+          <AdminFormSection
+            key={currentUser.id}
+            role={currentRole}
+            onSaveSuccess={(data) => {
+              const item = mapPendataanToItem(data, `pendataan:${currentUser.id}`);
+              setAlumniList((previous) => [item, ...previous.filter((entry) => entry.id !== item.id && entry.nisn !== item.nisn)]);
+            }}
+          />
         )}
       </main>
 

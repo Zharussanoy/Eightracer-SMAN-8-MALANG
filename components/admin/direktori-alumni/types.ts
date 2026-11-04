@@ -10,6 +10,7 @@ export type B3Role = AdminRole;
 export type B3Tab = AdminTab;
 
 export type KategoriPerguruanTinggi =
+  | "Ikatan Dinas"
   | "Negeri"
   | "Swasta"
   | "Kedinasan"
@@ -43,6 +44,12 @@ export interface AlumniItem {
   nilai: number;
   skorUtbk?: number | null;
   sertifikat: string[]; // SERTIF
+  jalurLainnya?: string;
+  lembagaPenyalur?: string;
+  pelamarKipk?: "YA" | "TIDAK" | "";
+  beasiswa?: string;
+  beasiswaLainnya?: string;
+  pekerjaan?: string;
   isKipk: boolean; // KIPK (true = KIP-K / Ya, false = Reguler / Tidak)
 }
 

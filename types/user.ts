@@ -35,17 +35,26 @@ export interface UserProfile {
 export interface FormDataPendataan {
   nisn: string;
   nama: string;
+  kelas: string;
+  nomorWa: string;
   angkatan: string;
   tahunLulus: number;
   kampus: string;
   kampusKode: string;
+  jenisKampus: string;
+  pilihanKe: string;
+  lembagaPenyalur?: string;
   jurusan: string;
   jenjang: "S1" | "D4" | "D3" | string;
   jalur: "SNBP" | "SNBT" | "Mandiri" | string;
+  jalurLainnya?: string;
   statusPenerimaan: string;
   nilaiRapor: number;
   skorUtbk?: number | null;
   pekerjaan?: string;
   isKipk: boolean;
+  pelamarKipk?: "YA" | "TIDAK" | "";
+  beasiswa?: string;
+  beasiswaLainnya?: string;
   sertifikat: string[];
 }
