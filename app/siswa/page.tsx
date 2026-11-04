@@ -21,6 +21,7 @@ import SiswaProfileCard from "@/components/siswa/b-2/SiswaProfileCard";
 import { useEffect, useState } from "react";
 import { useUser } from "@/context/UserContext";
 import { akademikService, asesmenService } from "@/services/b2";
+import { Plus, X, CheckCircle2, Loader2 } from "lucide-react";
 import { AkademikMapelRow } from "@/components/siswa/b-2/AkademikTablePanel";
 import { TrendItem } from "@/components/siswa/b-2/AkademikTrendPanel";
 import { RekomendasiProdiItem } from "@/components/siswa/b-2/KarakteristikRekomendasiProdi";
@@ -101,6 +102,13 @@ export default function SiswaDashboardPage() {
   const [selectedCatatanId, setSelectedCatatanId] = useState<string>("1001");
   const [catatanSearch, setCatatanSearch] = useState<string>("");
   const [catatanPage, setCatatanPage] = useState<number>(1);
+  const [showTambahCatatanModal, setShowTambahCatatanModal] = useState(false);
+  const [tambahSemester, setTambahSemester] = useState<number>(1);
+  const [tambahJenis, setTambahJenis] = useState<string>("Kedisiplinan");
+  const [tambahPoin, setTambahPoin] = useState<string>("+5");
+  const [tambahDeskripsi, setTambahDeskripsi] = useState<string>("");
+  const [isSavingNewCatatan, setIsSavingNewCatatan] = useState<boolean>(false);
+  const [catatanActionFeedback, setCatatanActionFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -329,6 +337,70 @@ export default function SiswaDashboardPage() {
       (c) => c.id === selectedCatatanId || c.idCatatan === selectedCatatanId
     ) || catatanList[0];
 
+  const handleAddNewCatatan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!tambahDeskripsi.trim()) {
+      alert("Mohon isi deskripsi catatan!");
+      return;
+    }
+
+    try {
+      setIsSavingNewCatatan(true);
+      const isStudent = currentPreset === "siswa_aktif" || currentUser.role === "siswa";
+      const payload: any = {
+        catatan_karakter: [
+          {
+            semester: tambahSemester,
+            jenis_catatan: tambahJenis,
+            poin_disiplin: parseInt(tambahPoin.replace(/\D/g, "")) || 5,
+            deskripsi: tambahDeskripsi.trim(),
+            tanggal_pencatatan: new Date().toISOString().slice(0, 10),
+          },
+        ],
+      };
+      if (!isStudent) {
+        payload.siswa_id = 1;
+      }
+
+      const res = await akademikService.storePresensiKarakter(payload);
+
+      const newId = res?.data?.catatan_karakter?.[res.data.catatan_karakter.length - 1]?.id
+        ? String(res.data.catatan_karakter[res.data.catatan_karakter.length - 1].id)
+        : String(Date.now());
+
+      const newCatatan: CatatanSiswaItem = {
+        id: newId,
+        idCatatan: newId,
+        idSiswa: "1",
+        semester: tambahSemester,
+        jenisCatatan: tambahJenis,
+        poinDisiplin: tambahPoin.startsWith("+") || tambahPoin.startsWith("-") ? tambahPoin : `+${tambahPoin}`,
+        deskripsiCatatan: tambahDeskripsi.trim(),
+        tanggalPencatatan: new Date().toISOString().slice(0, 10),
+        tanggalLengkap: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
+        kategoriSubtitle: "Karakter",
+        tanggal: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }),
+        kategori: tambahJenis,
+        judul: tambahJenis,
+        ringkasan: tambahDeskripsi.trim(),
+        pencatat: currentUser.name || "Guru/Wali Kelas",
+        pencatatLengkap: `${currentUser.name || "Wali Kelas"} · SMAN 8 Malang`,
+        status: "Selesai",
+      };
+
+      setCatatanList([newCatatan, ...catatanList]);
+      setSelectedCatatanId(newId);
+      setShowTambahCatatanModal(false);
+      setTambahDeskripsi("");
+      setCatatanActionFeedback("Catatan karakter siswa berhasil dicatat ke API!");
+      setTimeout(() => setCatatanActionFeedback(null), 4000);
+    } catch (err: any) {
+      alert("Gagal menambahkan catatan karakter: " + (err?.message || "Terjadi kesalahan"));
+    } finally {
+      setIsSavingNewCatatan(false);
+    }
+  };
+
   const handleSaveCatatan = async (updated: CatatanSiswaItem) => {
     setCatatanList((prev) =>
       prev.map((c) =>
@@ -337,7 +409,9 @@ export default function SiswaDashboardPage() {
     );
 
     try {
+      const isStudent = currentPreset === "siswa_aktif" || currentUser.role === "siswa";
       await akademikService.storePresensiKarakter({
+        siswa_id: isStudent ? undefined : 1,
         catatan_karakter: [
           {
             semester: Number(updated.semester) || 1,
@@ -348,6 +422,8 @@ export default function SiswaDashboardPage() {
           },
         ],
       });
+      setCatatanActionFeedback("Perubahan catatan karakter berhasil disimpan ke API!");
+      setTimeout(() => setCatatanActionFeedback(null), 4000);
     } catch (err: any) {
       console.warn("Gagal sinkronisasi catatan karakter ke backend:", err?.message);
     }
@@ -491,7 +567,14 @@ export default function SiswaDashboardPage() {
                     className="font-bold text-[18px] text-[#5F089E]"
                     style={{ fontFamily: "Montserrat, sans-serif" }}
                   >
-                    NP
+                    {biodata.nama
+                      ? biodata.nama
+                          .split(" ")
+                          .map((w) => w[0])
+                          .slice(0, 2)
+                          .join("")
+                          .toUpperCase()
+                      : "TS"}
                   </span>
                 </div>
 
@@ -500,23 +583,42 @@ export default function SiswaDashboardPage() {
                     className="font-bold text-[16px] text-[#14141C] leading-snug"
                     style={{ fontFamily: "Montserrat, sans-serif" }}
                   >
-                    Tegar Saputra
+                    {biodata.nama || "Tegar Saputra"}
                   </h2>
                   <p
                     className="font-normal text-[11px] text-[#6E6B78] mt-0.5"
                     style={{ fontFamily: "Montserrat, sans-serif" }}
                   >
-                    NISN 0061284731 <span className="mx-1">•</span> Kelas XII-A <span className="mx-1">•</span> SMA Negeri 8 Malang
+                    NISN {biodata.nisn || "0061284731"} <span className="mx-1">•</span> Kelas XII-A <span className="mx-1">•</span> SMA Negeri 8 Malang
                   </p>
-                  <div className="mt-1.5">
+                  <div className="mt-1.5 flex items-center gap-2">
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[7px] bg-[#E0F5E8] text-[#148557] font-semibold text-[10px]">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#148557]"></span>
                       Aktif
                     </span>
+                    <span className="text-[10px] text-[#6E6B78]">
+                      Total {catatanList.length} Catatan Terdata
+                    </span>
                   </div>
                 </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setShowTambahCatatanModal(true)}
+                className="h-[38px] px-4 rounded-[9px] bg-[#5F089E] hover:bg-[#520492] text-white font-semibold text-[11px] flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-98"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Tambah Catatan Karakter</span>
+              </button>
             </div>
+
+            {catatanActionFeedback && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-xs flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{catatanActionFeedback}</span>
+              </div>
+            )}
 
 
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_390px] xl:grid-cols-[1fr_420px] gap-6 items-start">
@@ -540,6 +642,119 @@ export default function SiswaDashboardPage() {
                 />
               )}
             </div>
+
+            {showTambahCatatanModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
+                <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-[#DECFE8] overflow-hidden">
+                  <div className="px-5 py-4 bg-[#F0E6F5] border-b border-[#DECFE8] flex items-center justify-between">
+                    <div>
+                      <h3 className="text-[15px] font-bold text-[#14141C]">
+                        Tambah Catatan Karakter Siswa
+                      </h3>
+                      <p className="text-[11px] text-[#6E6B78] mt-0.5">
+                        Pencatatan langsung ke API backend untuk {biodata.nama || "Siswa"}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowTambahCatatanModal(false)}
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-white/60 transition-colors cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleAddNewCatatan} className="p-5 space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[11px] font-semibold text-[#6E6B78] uppercase tracking-wider block mb-1">
+                          Semester
+                        </label>
+                        <select
+                          value={tambahSemester}
+                          onChange={(e) => setTambahSemester(Number(e.target.value))}
+                          className="w-full h-9 px-3 text-[12px] font-medium border border-[#DECFE8] rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-[#5F089E]"
+                        >
+                          <option value={1}>Semester 1</option>
+                          <option value={2}>Semester 2</option>
+                          <option value={3}>Semester 3</option>
+                          <option value={4}>Semester 4</option>
+                          <option value={5}>Semester 5</option>
+                          <option value={6}>Semester 6</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-semibold text-[#6E6B78] uppercase tracking-wider block mb-1">
+                          Poin Disiplin
+                        </label>
+                        <input
+                          type="text"
+                          value={tambahPoin}
+                          onChange={(e) => setTambahPoin(e.target.value)}
+                          placeholder="+5 atau -5"
+                          className="w-full h-9 px-3 text-[12px] font-bold border border-[#DECFE8] rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-[#5F089E]"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-semibold text-[#6E6B78] uppercase tracking-wider block mb-1">
+                        Jenis / Kategori Catatan
+                      </label>
+                      <input
+                        type="text"
+                        value={tambahJenis}
+                        onChange={(e) => setTambahJenis(e.target.value)}
+                        placeholder="Contoh: Kedisiplinan, Kepemimpinan, Prestasi"
+                        className="w-full h-9 px-3 text-[12px] font-medium border border-[#DECFE8] rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-[#5F089E]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-semibold text-[#6E6B78] uppercase tracking-wider block mb-1">
+                        Deskripsi Catatan
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={tambahDeskripsi}
+                        onChange={(e) => setTambahDeskripsi(e.target.value)}
+                        placeholder="Tuliskan catatan observasi karakter siswa secara objektif..."
+                        className="w-full p-3 text-[12px] border border-[#DECFE8] rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-[#5F089E]"
+                      />
+                    </div>
+
+                    <div className="pt-2 flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowTambahCatatanModal(false)}
+                        disabled={isSavingNewCatatan}
+                        className="px-4 py-2 rounded-lg bg-white border border-[#DECFE8] text-[#6E6B78] hover:text-[#14141C] text-[12px] font-medium transition-colors cursor-pointer"
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSavingNewCatatan}
+                        className="px-4 py-2 rounded-lg bg-[#5F089E] hover:bg-[#520492] text-white text-[12px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs disabled:opacity-50"
+                      >
+                        {isSavingNewCatatan ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Menyimpan...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 className="w-4 h-4" />
+                            Simpan ke Server
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

@@ -160,10 +160,32 @@ export const benchmarkService = {
     apiFetch<{ status: string; message: string; data: any }>("/v1/siswa/benchmark-alumni", { params }),
 };
 
-// ==========================================
-// 5. AKADEMIK & RAPOR SERVICE (B2)
-// Controller: AkademikController
-// ==========================================
+export interface PresensiKarakterPayload {
+  siswa_id?: string | number;
+  presensi?: Array<{
+    semester: number;
+    jumlah_hadir: number;
+    jumlah_sakit?: number;
+    jumlah_izin?: number;
+    jumlah_alpa?: number;
+    persentase_kehadiran?: number;
+  }>;
+  catatan_karakter?: Array<{
+    semester: number;
+    jenis_catatan?: string;
+    poin_disiplin?: number;
+    deskripsi: string;
+    tanggal_pencatatan?: string;
+  }>;
+  organisasi?: Array<{
+    jenis_organisasi?: string;
+    nama_organisasi: string;
+    jabatan: string;
+    bobot_jabatan?: number;
+    periode_jabatan?: string;
+  }>;
+}
+
 export const akademikService = {
   // GET /v1/siswa/akademik
   getAkademik: (params?: { siswa_id?: string | number }) =>
@@ -204,31 +226,7 @@ export const akademikService = {
     }),
 
   // POST /v1/siswa/akademik/presensi-karakter
-  storePresensiKarakter: (payload: {
-    siswa_id?: string | number;
-    presensi?: Array<{
-      semester: number;
-      jumlah_hadir: number;
-      jumlah_sakit?: number;
-      jumlah_izin?: number;
-      jumlah_alpa?: number;
-      persentase_kehadiran?: number;
-    }>;
-    catatan_karakter?: Array<{
-      semester: number;
-      jenis_catatan?: string;
-      poin_disiplin?: number;
-      deskripsi: string;
-      tanggal_pencatatan?: string;
-    }>;
-    organisasi?: Array<{
-      jenis_organisasi?: string;
-      nama_organisasi: string;
-      jabatan: string;
-      bobot_jabatan?: number;
-      periode_jabatan?: string;
-    }>;
-  }) =>
+  storePresensiKarakter: (payload: PresensiKarakterPayload) =>
     apiFetch<{ status: string; message: string; data?: any }>(
       "/v1/siswa/akademik/presensi-karakter",
       {

@@ -96,6 +96,9 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
   const [kehadiranForm, setKehadiranForm] = useState({
     semester1: "97%",
     semester2: "99%",
+    semester3: "98%",
+    semester4: "98%",
+    semester5: "99%",
     sakit: "0%",
     izin: "0%",
     alfa: "1%",
@@ -190,6 +193,10 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
 
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingPresensi, setIsSavingPresensi] = useState(false);
+  const [presensiSuccessMsg, setPresensiSuccessMsg] = useState<string | null>(null);
+  const [isAddingCatatan, setIsAddingCatatan] = useState(false);
+  const [catatanSuccessMsg, setCatatanSuccessMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!siswaId) return;
@@ -246,15 +253,21 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
         }
 
         // Sinkronisasi data Presensi / Kehadiran dari backend
-        if (resAkademik?.data?.rekap_presensi && resAkademik.data.rekap_presensi.length > 0) {
-          const sem1 = resAkademik.data.rekap_presensi.find((r: any) => r.semester === 1);
-          const sem2 = resAkademik.data.rekap_presensi.find((r: any) => r.semester === 2);
+        const presensiList = resAkademik?.data?.presensi || resAkademik?.data?.rekap_presensi;
+        if (Array.isArray(presensiList) && presensiList.length > 0) {
+          const semMap: Record<number, any> = {};
+          presensiList.forEach((r: any) => {
+            semMap[r.semester] = r;
+          });
           setKehadiranForm({
-            semester1: sem1?.persentase_kehadiran ? `${sem1.persentase_kehadiran}%` : "97%",
-            semester2: sem2?.persentase_kehadiran ? `${sem2.persentase_kehadiran}%` : "99%",
-            sakit: sem1?.jumlah_sakit !== undefined ? `${sem1.jumlah_sakit}%` : "0%",
-            izin: sem1?.jumlah_izin !== undefined ? `${sem1.jumlah_izin}%` : "0%",
-            alfa: sem1?.jumlah_alpa !== undefined ? `${sem1.jumlah_alpa}%` : "1%",
+            semester1: semMap[1]?.persentase_kehadiran ? `${semMap[1].persentase_kehadiran}%` : "97%",
+            semester2: semMap[2]?.persentase_kehadiran ? `${semMap[2].persentase_kehadiran}%` : "99%",
+            semester3: semMap[3]?.persentase_kehadiran ? `${semMap[3].persentase_kehadiran}%` : "98%",
+            semester4: semMap[4]?.persentase_kehadiran ? `${semMap[4].persentase_kehadiran}%` : "98%",
+            semester5: semMap[5]?.persentase_kehadiran ? `${semMap[5].persentase_kehadiran}%` : "99%",
+            sakit: semMap[1]?.jumlah_sakit !== undefined ? `${semMap[1].jumlah_sakit}%` : "0%",
+            izin: semMap[1]?.jumlah_izin !== undefined ? `${semMap[1].jumlah_izin}%` : "0%",
+            alfa: semMap[1]?.jumlah_alpa !== undefined ? `${semMap[1].jumlah_alpa}%` : "1%",
           });
         }
 
@@ -390,49 +403,28 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
         });
       }
 
-      // 3. Simpan Presensi & Catatan Karakter ke Backend
+      // 3. Simpan Presensi ke Backend
       const parsePercent = (val: string) => {
         const num = parseFloat(String(val).replace("%", "").trim());
         return isNaN(num) ? 0 : num;
       };
 
-      const sem1Hadir = Math.round((parsePercent(kehadiranForm.semester1) / 100) * 100);
-      const sem2Hadir = Math.round((parsePercent(kehadiranForm.semester2) / 100) * 100);
-
-      const presensiPayload = [
-        {
-          semester: 1,
-          jumlah_hadir: sem1Hadir > 0 ? sem1Hadir : 95,
-          jumlah_sakit: Math.round(parsePercent(kehadiranForm.sakit)),
-          jumlah_izin: Math.round(parsePercent(kehadiranForm.izin)),
-          jumlah_alpa: Math.round(parsePercent(kehadiranForm.alfa)),
-          persentase_kehadiran: parsePercent(kehadiranForm.semester1) || 97,
-        },
-        {
-          semester: 2,
-          jumlah_hadir: sem2Hadir > 0 ? sem2Hadir : 98,
-          jumlah_sakit: Math.round(parsePercent(kehadiranForm.sakit)),
-          jumlah_izin: Math.round(parsePercent(kehadiranForm.izin)),
-          jumlah_alpa: Math.round(parsePercent(kehadiranForm.alfa)),
-          persentase_kehadiran: parsePercent(kehadiranForm.semester2) || 99,
-        },
-      ];
-
-      const catatanPayload = riwayatCatatan.map((c) => {
-        const semNum = parseInt(c.semester.replace(/\D/g, "")) || 1;
+      const presensiPayload = [1, 2, 3, 4, 5].map((sem) => {
+        const semKey = `semester${sem}` as keyof typeof kehadiranForm;
+        const pct = parsePercent(kehadiranForm[semKey] || "98");
         return {
-          semester: semNum >= 1 && semNum <= 6 ? semNum : 1,
-          jenis_catatan: c.tipeKatatan || "Kedisiplinan",
-          poin_disiplin: Number(c.nilaiBobotKuantitatif) || 85,
-          deskripsi: c.catatan || "-",
-          tanggal_pencatatan: c.tanggal ? c.tanggal.replace(/\//g, "-") : undefined,
+          semester: sem,
+          jumlah_hadir: Math.round((pct / 100) * 100),
+          jumlah_sakit: Math.round(parsePercent(kehadiranForm.sakit)),
+          jumlah_izin: Math.round(parsePercent(kehadiranForm.izin)),
+          jumlah_alpa: Math.round(parsePercent(kehadiranForm.alfa)),
+          persentase_kehadiran: pct,
         };
       });
 
       await akademikService.storePresensiKarakter({
         siswa_id: siswaId,
         presensi: presensiPayload,
-        catatan_karakter: catatanPayload.length > 0 ? catatanPayload : undefined,
       });
 
       // 4. Simpan Asesmen Minat RIASEC & Multiple Intelligence ke Backend
@@ -486,27 +478,95 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
     }
   };
 
-  const handleTambahCatatan = () => {
+  const handleSimpanPresensi = async () => {
+    try {
+      setIsSavingPresensi(true);
+      setPresensiSuccessMsg(null);
+      const parsePercent = (val: string) => {
+        const num = parseFloat(String(val).replace("%", "").trim());
+        return isNaN(num) ? 0 : num;
+      };
+
+      const presensiPayload = [1, 2, 3, 4, 5].map((sem) => {
+        const semKey = `semester${sem}` as keyof typeof kehadiranForm;
+        const pct = parsePercent(kehadiranForm[semKey] || "98");
+        return {
+          semester: sem,
+          jumlah_hadir: Math.round((pct / 100) * 100),
+          jumlah_sakit: Math.round(parsePercent(kehadiranForm.sakit)),
+          jumlah_izin: Math.round(parsePercent(kehadiranForm.izin)),
+          jumlah_alpa: Math.round(parsePercent(kehadiranForm.alfa)),
+          persentase_kehadiran: pct,
+        };
+      });
+
+      await akademikService.storePresensiKarakter({
+        siswa_id: siswaId,
+        presensi: presensiPayload,
+      });
+
+      setPresensiSuccessMsg("Data presensi kehadiran semester 1-5 berhasil disimpan ke database!");
+      setTimeout(() => setPresensiSuccessMsg(null), 4000);
+    } catch (err: any) {
+      alert("Gagal menyimpan presensi: " + (err?.message || "Terjadi kesalahan"));
+    } finally {
+      setIsSavingPresensi(false);
+    }
+  };
+
+  const handleTambahCatatan = async () => {
     if (!catatanBaru.catatan.trim()) {
       alert("Harap isi deskripsi catatan!");
       return;
     }
 
-    const baru: CatatanKarakter = {
-      id: Date.now().toString(),
-      tanggal: catatanBaru.tanggal,
-      semester: catatanBaru.semester,
-      kelas: defaultSiswa.kelas,
-      tipeKatatan: catatanBaru.tipe,
-      catatan: catatanBaru.catatan,
-      nilaiBobotKuantitatif: Number(catatanBaru.bobot) || 80,
-    };
+    try {
+      setIsAddingCatatan(true);
+      setCatatanSuccessMsg(null);
 
-    setRiwayatCatatan([baru, ...riwayatCatatan]);
-    setCatatanBaru({
-      ...catatanBaru,
-      catatan: "",
-    });
+      const semNum = parseInt(catatanBaru.semester.replace(/\D/g, "")) || 1;
+      const validSem = semNum >= 1 && semNum <= 6 ? semNum : 1;
+
+      const res = await akademikService.storePresensiKarakter({
+        siswa_id: siswaId,
+        catatan_karakter: [
+          {
+            semester: validSem,
+            jenis_catatan: catatanBaru.tipe || "Kedisiplinan",
+            poin_disiplin: Number(catatanBaru.bobot) || 85,
+            deskripsi: catatanBaru.catatan.trim(),
+            tanggal_pencatatan: catatanBaru.tanggal || new Date().toISOString().slice(0, 10),
+          },
+        ],
+      });
+
+      const newId = res?.data?.catatan_karakter?.[res.data.catatan_karakter.length - 1]?.id
+        ? String(res.data.catatan_karakter[res.data.catatan_karakter.length - 1].id)
+        : Date.now().toString();
+
+      const baru: CatatanKarakter = {
+        id: newId,
+        tanggal: catatanBaru.tanggal,
+        semester: catatanBaru.semester,
+        kelas: defaultSiswa.kelas,
+        tipeKatatan: catatanBaru.tipe,
+        catatan: catatanBaru.catatan,
+        nilaiBobotKuantitatif: Number(catatanBaru.bobot) || 80,
+      };
+
+      setRiwayatCatatan([baru, ...riwayatCatatan]);
+      setCatatanBaru({
+        ...catatanBaru,
+        catatan: "",
+      });
+
+      setCatatanSuccessMsg("Catatan karakter siswa berhasil dicatat dan disimpan ke database!");
+      setTimeout(() => setCatatanSuccessMsg(null), 4000);
+    } catch (err: any) {
+      alert("Gagal menambahkan catatan karakter: " + (err?.message || "Terjadi kesalahan"));
+    } finally {
+      setIsAddingCatatan(false);
+    }
   };
 
   const handleAddTkaPilihan = () => {
@@ -866,75 +926,106 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
         <div className="bg-white border border-[#E9D5FF] rounded-2xl p-5 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-[#F3E8FF] pb-4">
             <div>
-              <h3 className="text-[16px] font-bold text-[#1F2937]">Kehadiran</h3>
+              <h3 className="text-[16px] font-bold text-[#1F2937]">Kehadiran / Presensi Siswa</h3>
               <p className="text-[12px] text-[#6B7280] mt-0.5">
-                Distribusi persentase kehadiran siswa semester 1-5, format persen.
+                Distribusi persentase kehadiran siswa semester 1-5 dan rekap ketidakhadiran.
               </p>
             </div>
-            <button
-              type="button"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#6305B0] hover:bg-[#530494] text-white text-[12px] font-medium shrink-0 cursor-pointer"
-            >
-              <Upload className="w-3.5 h-3.5" />
-              Import (PDF/Excel)
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleSimpanPresensi}
+                disabled={isSavingPresensi}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#6305B0] hover:bg-[#530494] text-white text-[12px] font-semibold shrink-0 cursor-pointer disabled:opacity-50 transition-all shadow-xs"
+              >
+                {isSavingPresensi ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Menyimpan Presensi...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    Simpan Presensi
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-            <div>
-              <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider block mb-1">
-                Semester 1
-              </label>
-              <input
-                type="text"
-                value={kehadiranForm.semester1}
-                onChange={(e) => setKehadiranForm({ ...kehadiranForm, semester1: e.target.value })}
-                className="w-full h-9 px-3 text-[13px] border border-[#E9D5FF] rounded-lg bg-[#FAF7FC] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#6305B0]"
-              />
+          {presensiSuccessMsg && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-xs flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>{presensiSuccessMsg}</span>
             </div>
-            <div>
-              <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider block mb-1">
-                Semester 2
-              </label>
-              <input
-                type="text"
-                value={kehadiranForm.semester2}
-                onChange={(e) => setKehadiranForm({ ...kehadiranForm, semester2: e.target.value })}
-                className="w-full h-9 px-3 text-[13px] border border-[#E9D5FF] rounded-lg bg-[#FAF7FC] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#6305B0]"
-              />
+          )}
+
+          <div>
+            <p className="text-[11px] font-bold text-[#6305B0] uppercase tracking-wider mb-2">
+              Persentase Kehadiran Semester 1 - 5
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              {[1, 2, 3, 4, 5].map((sem) => {
+                const key = `semester${sem}` as keyof typeof kehadiranForm;
+                return (
+                  <div key={sem}>
+                    <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider block mb-1">
+                      Semester {sem}
+                    </label>
+                    <input
+                      type="text"
+                      value={kehadiranForm[key]}
+                      onChange={(e) => setKehadiranForm({ ...kehadiranForm, [key]: e.target.value })}
+                      placeholder="98%"
+                      className="w-full h-9 px-3 text-[13px] font-bold text-[#1F2937] border border-[#E9D5FF] rounded-lg bg-[#FAF7FC] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#6305B0]"
+                    />
+                  </div>
+                );
+              })}
             </div>
-            <div>
-              <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider block mb-1">
-                Sakit
-              </label>
-              <input
-                type="text"
-                value={kehadiranForm.sakit}
-                onChange={(e) => setKehadiranForm({ ...kehadiranForm, sakit: e.target.value })}
-                className="w-full h-9 px-3 text-[13px] border border-[#E9D5FF] rounded-lg bg-[#FAF7FC] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#6305B0]"
-              />
-            </div>
-            <div>
-              <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider block mb-1">
-                Izin
-              </label>
-              <input
-                type="text"
-                value={kehadiranForm.izin}
-                onChange={(e) => setKehadiranForm({ ...kehadiranForm, izin: e.target.value })}
-                className="w-full h-9 px-3 text-[13px] border border-[#E9D5FF] rounded-lg bg-[#FAF7FC] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#6305B0]"
-              />
-            </div>
-            <div>
-              <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider block mb-1">
-                Alfa
-              </label>
-              <input
-                type="text"
-                value={kehadiranForm.alfa}
-                onChange={(e) => setKehadiranForm({ ...kehadiranForm, alfa: e.target.value })}
-                className="w-full h-9 px-3 text-[13px] border border-[#E9D5FF] rounded-lg bg-[#FAF7FC] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#6305B0]"
-              />
+          </div>
+
+          <div className="pt-1">
+            <p className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider mb-2">
+              Rekapitulasi Ketidakhadiran
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider block mb-1">
+                  Sakit (Persentase / Hari)
+                </label>
+                <input
+                  type="text"
+                  value={kehadiranForm.sakit}
+                  onChange={(e) => setKehadiranForm({ ...kehadiranForm, sakit: e.target.value })}
+                  placeholder="0%"
+                  className="w-full h-9 px-3 text-[13px] border border-[#E9D5FF] rounded-lg bg-[#FAF7FC] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#6305B0]"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider block mb-1">
+                  Izin (Persentase / Hari)
+                </label>
+                <input
+                  type="text"
+                  value={kehadiranForm.izin}
+                  onChange={(e) => setKehadiranForm({ ...kehadiranForm, izin: e.target.value })}
+                  placeholder="0%"
+                  className="w-full h-9 px-3 text-[13px] border border-[#E9D5FF] rounded-lg bg-[#FAF7FC] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#6305B0]"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider block mb-1">
+                  Alfa / Tanpa Keterangan
+                </label>
+                <input
+                  type="text"
+                  value={kehadiranForm.alfa}
+                  onChange={(e) => setKehadiranForm({ ...kehadiranForm, alfa: e.target.value })}
+                  placeholder="0%"
+                  className="w-full h-9 px-3 text-[13px] border border-[#E9D5FF] rounded-lg bg-[#FAF7FC] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#6305B0]"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -1035,6 +1126,13 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
               Import (PDF/Excel)
             </button>
           </div>
+
+          {catatanSuccessMsg && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-xs flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>{catatanSuccessMsg}</span>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-7 space-y-3">
@@ -1173,9 +1271,19 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
               <button
                 type="button"
                 onClick={handleTambahCatatan}
-                className="w-full py-2 bg-[#6305B0] hover:bg-[#530494] text-white text-[12px] font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                disabled={isAddingCatatan}
+                className="w-full py-2 bg-[#6305B0] hover:bg-[#530494] text-white text-[12px] font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-xs"
               >
-                <Plus className="w-4 h-4" /> Tambah Catatan Baru
+                {isAddingCatatan ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Menyimpan Catatan...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" /> Simpan Catatan Baru
+                  </>
+                )}
               </button>
             </div>
           </div>
