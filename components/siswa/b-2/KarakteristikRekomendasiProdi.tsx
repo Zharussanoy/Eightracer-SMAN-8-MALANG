@@ -30,11 +30,11 @@ export default function KarakteristikRekomendasiProdi({
       </p>
 
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4 items-stretch">
         {activeProdis.map((item) => (
           <div
             key={item.nama}
-            className="rounded-[10px] bg-white border-[1.5px] border-[#DECFE8] p-3.5 flex flex-col justify-between shadow-2xs hover:border-[#6305B0]/50 transition-colors"
+            className="rounded-[10px] bg-white border-[1.5px] border-[#DECFE8] p-3.5 flex flex-col justify-between shadow-2xs hover:border-[#6305B0]/50 transition-colors h-full"
           >
 
             <p

@@ -14,7 +14,6 @@ import {
 } from "@/components/siswa/b-2/DashboardCards";
 import KarakteristikMetricsCard from "@/components/siswa/b-2/KarakteristikMetricsCard";
 import KarakteristikProfileCard from "@/components/siswa/b-2/KarakteristikProfileCard";
-import KarakteristikRekomendasiProdi from "@/components/siswa/b-2/KarakteristikRekomendasiProdi";
 import RekomProdiSAW from "@/components/siswa/b-2/RekomProdiSAW";
 import RankingEligibilitas from "@/components/siswa/b-2/RankingEligibilitas";
 import PerbandinganNilai from "@/components/siswa/b-2/PerbandinganNilai";
@@ -25,7 +24,6 @@ import { akademikService, asesmenService } from "@/services/b2";
 import { Plus, X, CheckCircle2, Loader2 } from "lucide-react";
 import { AkademikMapelRow } from "@/components/siswa/b-2/AkademikTablePanel";
 import { TrendItem } from "@/components/siswa/b-2/AkademikTrendPanel";
-import { RekomendasiProdiItem } from "@/components/siswa/b-2/KarakteristikRekomendasiProdi";
 
 import {
   BiodataSiswa,
@@ -33,6 +31,7 @@ import {
   INITIAL_BIODATA_SISWA,
   KarakteristikMetric,
   KarakteristikProfileSummary,
+  METRIK_KARAKTERISTIK,
   MOCK_CATATAN_LIST,
   NILAI_AKADEMIK,
   OVERALL_SKOR,
@@ -90,7 +89,6 @@ export default function SiswaDashboardPage() {
   const [liveSummaryCards, setLiveSummaryCards] = useState<
     Array<{ label: string; value: string; detail: string }>
   >([]);
-  const [liveProdis, setLiveProdis] = useState<RekomendasiProdiItem[]>([]);
   const [liveKarakteristikSummary, setLiveKarakteristikSummary] = useState<Partial<KarakteristikProfileSummary>>({});
   const [liveMetrics, setLiveMetrics] = useState<KarakteristikMetric[]>([]);
   const [isLoadingAkademik, setIsLoadingAkademik] = useState(false);
@@ -283,7 +281,9 @@ export default function SiswaDashboardPage() {
             }));
           }
 
-          const metricsList: KarakteristikMetric[] = [];
+          // Menjaga agar 5 baris metrik karakteristik selalu lengkap dan seimbang sesuai UI/UX Figma (Gambar 1)
+          const updatedMetrics: KarakteristikMetric[] = METRIK_KARAKTERISTIK.map((m) => ({ ...m }));
+
           if (riasec) {
             const riasecScores = [
               riasec.realistic_score,
@@ -295,33 +295,32 @@ export default function SiswaDashboardPage() {
             ].filter((s) => s !== null && s !== undefined).map(Number);
 
             const maxRiasec = riasecScores.length > 0 ? Math.max(...riasecScores) : 92;
-            metricsList.push({
-              kategori: `Minat RIASEC (${riasec.kode_hasil || "Utama"})`,
-              persentase: maxRiasec,
-            });
+            const idxRiasec = updatedMetrics.findIndex((m) => m.kategori.toLowerCase().includes("riasec"));
+            if (idxRiasec !== -1) {
+              updatedMetrics[idxRiasec] = {
+                kategori: "Riasec",
+                persentase: maxRiasec,
+              };
+            }
           }
 
           if (Array.isArray(multiple_intelligence) && multiple_intelligence.length > 0) {
-            multiple_intelligence.forEach((mi) => {
-              metricsList.push({
-                kategori: mi.jenis_kecerdasan,
-                persentase: Number(mi.skor),
-              });
-            });
+            const validScores = multiple_intelligence
+              .map((mi) => Number(mi.skor))
+              .filter((s) => !isNaN(s) && s > 0);
+            const avgMi = validScores.length > 0
+              ? Math.round(validScores.reduce((a, b) => a + b, 0) / validScores.length)
+              : 88;
+            const idxKm = updatedMetrics.findIndex((m) => m.kategori.toLowerCase().includes("kecerdasan"));
+            if (idxKm !== -1) {
+              updatedMetrics[idxKm] = {
+                kategori: "Kecerdasan Majemuk",
+                persentase: avgMi,
+              };
+            }
           }
 
-          if (metricsList.length > 0) {
-            setLiveMetrics(metricsList);
-          }
-
-          if (rekomendasi_prodi && Array.isArray(rekomendasi_prodi) && rekomendasi_prodi.length > 0) {
-            setLiveProdis(
-              rekomendasi_prodi.map((p: any) => ({
-                nama: p.nama_prodi || p.prodi?.nama_prodi || "Teknik Informatika",
-                persentase: Math.round(parseFloat(p.skor_kesesuaian || p.persentase || 85)),
-              }))
-            );
-          }
+          setLiveMetrics(updatedMetrics);
         }
       })
       .finally(() => {
@@ -488,28 +487,26 @@ export default function SiswaDashboardPage() {
         )}
 
         {activeTab === "Karakteristik" && (
-          <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 lg:gap-7 items-start">
+          <div className="flex flex-col gap-6 sm:gap-7">
+            {/* ── BAGIAN ATAS: Profil Siswa & Metrik Karakteristik Sejajar ── */}
+            <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 lg:gap-7 items-start">
+              <KarakteristikProfileCard
+                summary={{
+                  nama: biodata.nama,
+                  nisn: biodata.nisn,
+                  kelas: biodata.kelas,
+                  akumulasiNilaiRapor: liveSummaryCards[0]?.value ? parseFloat(liveSummaryCards[0].value) : 88.5,
+                  ...liveKarakteristikSummary,
+                }}
+              />
 
-            <KarakteristikProfileCard
-              summary={{
-                nama: biodata.nama,
-                nisn: biodata.nisn,
-                kelas: biodata.kelas,
-                akumulasiNilaiRapor: liveSummaryCards[0]?.value ? parseFloat(liveSummaryCards[0].value) : 88.5,
-                ...liveKarakteristikSummary,
-              }}
-            />
-
-
-            <div className="flex flex-col gap-6">
               <KarakteristikMetricsCard
                 metrics={liveMetrics.length > 0 ? liveMetrics : undefined}
               />
-              <KarakteristikRekomendasiProdi
-                prodis={liveProdis.length > 0 ? liveProdis : undefined}
-              />
-              <RekomProdiSAW />
             </div>
+
+            {/* ── BAGIAN UTAMA: Rekomendasi Program Studi (Metode SAW) ── */}
+            <RekomProdiSAW />
           </div>
         )}
 

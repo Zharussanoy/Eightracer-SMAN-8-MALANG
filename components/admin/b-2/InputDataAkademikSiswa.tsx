@@ -1176,7 +1176,6 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
             </div>
             <button
               type="button"
-              onClick={() => handleOpenImportModal("Catatan Karakter Siswa")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#6305B0] hover:bg-[#530494] text-white text-[12px] font-medium shrink-0 cursor-pointer"
             >
               <Upload className="w-3.5 h-3.5" />

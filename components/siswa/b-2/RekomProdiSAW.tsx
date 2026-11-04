@@ -811,9 +811,9 @@ export default function RekomProdiSAW() {
       {/* ──────────────────────────────────────────────────────────
           MAIN CONTENT: GRID 2 KOLOM (SIMULASI vs HASIL)
          ────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 lg:gap-7 items-start">
         {/* ── PANEL KIRI (INPUT & BOBOT KRITERIA) ── */}
-        <div className="lg:col-span-4 space-y-4">
+        <div className="space-y-4">
           {/* Kartu Parameter Siswa */}
           <div className="rounded-[16px] border border-slate-200 bg-white p-4.5 sm:p-5 shadow-xs space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -1031,7 +1031,7 @@ export default function RekomProdiSAW() {
         </div>
 
         {/* ── PANEL KANAN (HASIL REKOMENDASI SAW) ── */}
-        <div className="lg:col-span-8 space-y-4">
+        <div className="space-y-4 min-w-0">
           {/* Bar Kontrol & Filter Hasil */}
           <div className="bg-white rounded-[16px] p-3.5 sm:p-4 border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
