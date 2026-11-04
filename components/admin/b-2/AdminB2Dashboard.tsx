@@ -507,6 +507,81 @@ export default function AdminB2Dashboard() {
     to: 0,
   });
 
+  // State Modal Tambah Siswa Baru (B2 Admin)
+  const [isAddSiswaModalOpen, setIsAddSiswaModalOpen] = useState(false);
+  const [isAddingSiswa, setIsAddingSiswa] = useState(false);
+  const [addSiswaError, setAddSiswaError] = useState<string | null>(null);
+  const [formSiswaNisn, setFormSiswaNisn] = useState("");
+  const [formSiswaNis, setFormSiswaNis] = useState("");
+  const [formSiswaNama, setFormSiswaNama] = useState("");
+  const [formSiswaPanggilan, setFormSiswaPanggilan] = useState("");
+  const [formSiswaGender, setFormSiswaGender] = useState<"L" | "P">("L");
+  const [formSiswaUsername, setFormSiswaUsername] = useState("");
+  const [formSiswaPassword, setFormSiswaPassword] = useState("");
+  const [formSiswaTempatLahir, setFormSiswaTempatLahir] = useState("");
+  const [formSiswaTanggalLahir, setFormSiswaTanggalLahir] = useState("");
+  const [formSiswaNilaiTka, setFormSiswaNilaiTka] = useState("");
+  const [formSiswaAlamat, setFormSiswaAlamat] = useState("");
+
+  const handleOpenAddSiswaModal = () => {
+    setFormSiswaNisn("");
+    setFormSiswaNis("");
+    setFormSiswaNama("");
+    setFormSiswaPanggilan("");
+    setFormSiswaGender("L");
+    setFormSiswaUsername("");
+    setFormSiswaPassword("");
+    setFormSiswaTempatLahir("");
+    setFormSiswaTanggalLahir("");
+    setFormSiswaNilaiTka("");
+    setFormSiswaAlamat("");
+    setAddSiswaError(null);
+    setIsAddSiswaModalOpen(true);
+  };
+
+  const handleSaveNewSiswa = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formSiswaNisn.trim()) {
+      setAddSiswaError("NISN siswa wajib diisi.");
+      return;
+    }
+    if (!formSiswaNama.trim()) {
+      setAddSiswaError("Nama Lengkap Siswa wajib diisi.");
+      return;
+    }
+
+    try {
+      setIsAddingSiswa(true);
+      setAddSiswaError(null);
+
+      const payload: any = {
+        nisn: formSiswaNisn.trim(),
+        nama_lengkap: formSiswaNama.trim(),
+        jenis_kelamin: formSiswaGender,
+      };
+
+      if (formSiswaNis.trim()) payload.nis = formSiswaNis.trim();
+      if (formSiswaPanggilan.trim()) payload.nama_panggilan = formSiswaPanggilan.trim();
+      if (formSiswaUsername.trim()) payload.username = formSiswaUsername.trim();
+      if (formSiswaPassword.trim()) payload.password = formSiswaPassword.trim();
+      if (formSiswaTempatLahir.trim()) payload.tempat_lahir = formSiswaTempatLahir.trim();
+      if (formSiswaTanggalLahir.trim()) payload.tanggal_lahir = formSiswaTanggalLahir.trim();
+      if (formSiswaAlamat.trim()) payload.alamat_rumah = formSiswaAlamat.trim();
+      if (formSiswaNilaiTka.trim() && !isNaN(Number(formSiswaNilaiTka))) {
+        payload.nilai_tka = Number(formSiswaNilaiTka);
+      }
+
+      const res = await siswaAdminService.create(payload);
+      alert(res?.message || `Siswa "${formSiswaNama}" berhasil didaftarkan ke sistem.`);
+      setIsAddSiswaModalOpen(false);
+      fetchLiveSiswa(1, "", "");
+    } catch (err: any) {
+      setAddSiswaError(err?.message || "Gagal menambahkan data siswa ke sistem.");
+    } finally {
+      setIsAddingSiswa(false);
+    }
+  };
+
   const fetchLiveSiswa = async (page: number = 1, nama?: string, kelas?: string) => {
     try {
       setIsSiswaLoading(true);
@@ -1346,6 +1421,7 @@ export default function AdminB2Dashboard() {
             </button>
             <button
               type="button"
+              onClick={handleOpenAddSiswaModal}
               className="px-4 py-2 rounded-lg bg-[#7F56D9] hover:bg-[#6941C6] active:bg-[#53389E] text-white text-[12px] font-semibold transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
             >
               <UserPlus className="w-3.5 h-3.5" />
@@ -1855,6 +1931,242 @@ export default function AdminB2Dashboard() {
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* MODAL TAMBAH SISWA BARU */}
+      {isAddSiswaModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isAddingSiswa) setIsAddSiswaModalOpen(false);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in"
+        >
+          <div className="relative w-full max-w-[560px] max-h-[90vh] flex flex-col rounded-2xl bg-white shadow-xl border border-[#E9D7FE] overflow-hidden text-[#1F2937]">
+            {/* Header Modal */}
+            <div className="flex items-center justify-between p-5 border-b border-[#EAECF0] bg-[#FAF9FE] shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-[#F4EBFF] text-[#7F56D9] flex items-center justify-center">
+                  <UserPlus className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-[15px] text-[#1F1729]">
+                    Tambah Data Siswa Baru
+                  </h3>
+                  <p className="text-[11px] text-[#6E6678]">
+                    Daftarkan identitas induk siswa &amp; akun portal Eightracer
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={isAddingSiswa}
+                onClick={() => setIsAddSiswaModalOpen(false)}
+                className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Body Form */}
+            <form onSubmit={handleSaveNewSiswa} className="p-5 space-y-4 text-[12px] overflow-y-auto flex-1">
+              {addSiswaError && (
+                <div className="p-3 rounded-xl bg-[#FEE4E2] border border-[#FECDCA] text-[#D92D20] text-[11px] flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{addSiswaError}</span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                    NISN <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={20}
+                    placeholder="Contoh: 0061284739"
+                    value={formSiswaNisn}
+                    onChange={(e) => setFormSiswaNisn(e.target.value)}
+                    className="w-full px-3.5 py-2 rounded-lg border border-[#D0D5DD] font-mono text-[#1F1729] focus:outline-hidden focus:ring-2 focus:ring-[#7F56D9]/20 focus:border-[#7F56D9]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                    NIS (Nomor Induk Sekolah)
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={20}
+                    placeholder="Contoh: 12849"
+                    value={formSiswaNis}
+                    onChange={(e) => setFormSiswaNis(e.target.value)}
+                    className="w-full px-3.5 py-2 rounded-lg border border-[#D0D5DD] font-mono text-[#1F1729] focus:outline-hidden focus:ring-2 focus:ring-[#7F56D9]/20 focus:border-[#7F56D9]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                  Nama Lengkap Siswa <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Contoh: Raka Danendra Pratama"
+                  value={formSiswaNama}
+                  onChange={(e) => setFormSiswaNama(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-lg border border-[#D0D5DD] text-[#1F1729] focus:outline-hidden focus:ring-2 focus:ring-[#7F56D9]/20 focus:border-[#7F56D9]"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                    Nama Panggilan
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: Raka"
+                    value={formSiswaPanggilan}
+                    onChange={(e) => setFormSiswaPanggilan(e.target.value)}
+                    className="w-full px-3.5 py-2 rounded-lg border border-[#D0D5DD] text-[#1F1729] focus:outline-hidden focus:ring-2 focus:ring-[#7F56D9]/20 focus:border-[#7F56D9]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                    Jenis Kelamin <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formSiswaGender}
+                    onChange={(e) => setFormSiswaGender(e.target.value as "L" | "P")}
+                    className="w-full px-3 py-2 rounded-lg border border-[#D0D5DD] bg-white text-[#1F1729] focus:outline-hidden focus:ring-1 focus:ring-[#7F56D9]"
+                  >
+                    <option value="L">Laki-laki (L)</option>
+                    <option value="P">Perempuan (P)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Akun Portal Siswa */}
+              <div className="p-3.5 rounded-xl bg-[#FAF9FE] border border-[#E9D7FE] space-y-3">
+                <p className="font-semibold text-[11.5px] text-[#53389E] flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-[#7F56D9]" />
+                  Informasi Akun Portal Eightracer:
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10.5px] font-medium text-[#475467] mb-1">
+                      Username (Opsional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Default: NISN"
+                      value={formSiswaUsername}
+                      onChange={(e) => setFormSiswaUsername(e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-lg border border-[#D0D5DD] bg-white text-[11.5px] text-[#1F1729]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10.5px] font-medium text-[#475467] mb-1">
+                      Password (Opsional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Default: password123"
+                      value={formSiswaPassword}
+                      onChange={(e) => setFormSiswaPassword(e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-lg border border-[#D0D5DD] bg-white text-[11.5px] text-[#1F1729]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                    Tempat Lahir
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Kota Lahir"
+                    value={formSiswaTempatLahir}
+                    onChange={(e) => setFormSiswaTempatLahir(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-[#D0D5DD] text-[#1F1729]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                    Tanggal Lahir
+                  </label>
+                  <input
+                    type="date"
+                    value={formSiswaTanggalLahir}
+                    onChange={(e) => setFormSiswaTanggalLahir(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-[#D0D5DD] text-[#1F1729]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                    Skor TKA Awal
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="100"
+                    placeholder="Contoh: 88.5"
+                    value={formSiswaNilaiTka}
+                    onChange={(e) => setFormSiswaNilaiTka(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-[#D0D5DD] text-[#1F1729]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                  Alamat Rumah
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Alamat domisili siswa..."
+                  value={formSiswaAlamat}
+                  onChange={(e) => setFormSiswaAlamat(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-[#D0D5DD] text-[#1F1729]"
+                />
+              </div>
+
+              {/* Footer Modal Form */}
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#EAECF0]">
+                <button
+                  type="button"
+                  disabled={isAddingSiswa}
+                  onClick={() => setIsAddSiswaModalOpen(false)}
+                  className="px-4 py-2 rounded-lg border border-[#D0D5DD] text-[#344054] hover:bg-slate-50 font-semibold transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isAddingSiswa}
+                  className="px-4 py-2 rounded-lg bg-[#7F56D9] hover:bg-[#6941C6] text-white font-semibold transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {isAddingSiswa ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Mendaftarkan...</span>
+                    </>
+                  ) : (
+                    <span>Daftarkan Siswa</span>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

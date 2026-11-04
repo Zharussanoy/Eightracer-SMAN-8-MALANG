@@ -328,7 +328,7 @@ export const siswaAdminService = {
 
   // POST /v1/admin/siswa
   create: (payload: any) =>
-    apiFetch<{ success: boolean; message: string; data?: any }>("/v1/admin/siswa", {
+    apiFetch<{ success?: boolean; status?: string; message: string; data?: any }>("/v1/admin/siswa", {
       method: "POST",
       body: JSON.stringify(payload),
     }),
