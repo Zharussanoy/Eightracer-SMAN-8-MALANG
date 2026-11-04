@@ -43,14 +43,13 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Navigasi Utama: HANYA 1. Beranda, 2. Tentang Kami, 3. Layanan, 4. Tim Pengembang */}
+          {/* Navigasi Utama: Beranda, Tentang Kami, Layanan, Tim Pengembang */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
             {/* 1. Beranda */}
             <Link
               href="/"
-              className={`transition-colors ${
-                isHome ? "text-[#5F089E] font-semibold" : "hover:text-[#5F089E]"
-              }`}
+              className={`transition-colors ${isHome ? "text-[#5F089E] font-semibold" : "hover:text-[#5F089E]"
+                }`}
             >
               Beranda
             </Link>
@@ -76,9 +75,8 @@ export default function Navbar() {
               >
                 <span>Layanan</span>
                 <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-200 ${
-                    servicesDropdownOpen ? "rotate-180 text-[#5F089E]" : ""
-                  }`}
+                  className={`w-4 h-4 transition-transform duration-200 ${servicesDropdownOpen ? "rotate-180 text-[#5F089E]" : ""
+                    }`}
                 />
               </Link>
 
@@ -125,9 +123,8 @@ export default function Navbar() {
             {/* 4. Tim Pengembang */}
             <Link
               href="/tim-pengembang"
-              className={`transition-colors ${
-                isTeam ? "text-[#5F089E] font-semibold" : "hover:text-[#5F089E]"
-              }`}
+              className={`transition-colors ${isTeam ? "text-[#5F089E] font-semibold" : "hover:text-[#5F089E]"
+                }`}
             >
               Tim Pengembang
             </Link>
@@ -138,11 +135,10 @@ export default function Navbar() {
             <div className="hidden md:flex items-center gap-3">
               <Link
                 href="/profile"
-                className={`flex items-center gap-2.5 p-1.5 pl-3 pr-2 rounded-full border transition-all cursor-pointer group ${
-                  isProfile
-                    ? "bg-purple-100/70 border-purple-300 ring-2 ring-purple-500/20 shadow-xs"
-                    : "bg-slate-50/80 hover:bg-purple-50/70 border-slate-200/90 hover:border-purple-300"
-                }`}
+                className={`flex items-center gap-2.5 p-1.5 pl-3 pr-2 rounded-full border transition-all cursor-pointer group ${isProfile
+                  ? "bg-purple-100/70 border-purple-300 ring-2 ring-purple-500/20 shadow-xs"
+                  : "bg-slate-50/80 hover:bg-purple-50/70 border-slate-200/90 hover:border-purple-300"
+                  }`}
                 title="Buka Halaman Profil Pengguna"
               >
                 {/* Badge Role */}
@@ -173,20 +169,13 @@ export default function Navbar() {
             <div className="hidden md:flex items-center gap-4">
               <Link
                 href="/login"
-                className="text-sm font-semibold text-slate-700 hover:text-[#5F089E] px-4 py-2 transition-colors"
-              >
-                Masuk
-              </Link>
-              <Link
-                href="/register"
                 className="text-sm font-semibold text-white bg-[#5F089E] hover:bg-[#4d0680] active:bg-[#3d0566] px-6 py-2.5 rounded-full shadow-md shadow-purple-900/25 hover:shadow-lg transition-all transform hover:-translate-y-0.5"
               >
-                Daftar
+                Masuk
               </Link>
             </div>
           )}
 
-          {/* Mobile menu button */}
           <div className="flex md:hidden">
             <button
               type="button"
@@ -204,10 +193,8 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-purple-100 bg-white px-4 pt-4 pb-6 space-y-4 animate-in slide-in-from-top-2 duration-150">
-          {/* Card Profil jika sudah login */}
           {isLoggedIn && (
             <Link
               href="/profile"
@@ -242,16 +229,14 @@ export default function Navbar() {
             </Link>
           )}
 
-          {/* Navigasi Utama */}
           <div className="flex flex-col space-y-2 font-medium text-slate-700">
             <Link
               href="/"
               onClick={() => setMobileMenuOpen(false)}
-              className={`px-3 py-2 rounded-lg transition-colors ${
-                isHome
-                  ? "text-purple-700 font-semibold bg-purple-50"
-                  : "hover:bg-purple-50"
-              }`}
+              className={`px-3 py-2 rounded-lg transition-colors ${isHome
+                ? "text-purple-700 font-semibold bg-purple-50"
+                : "hover:bg-purple-50"
+                }`}
             >
               Beranda
             </Link>
@@ -272,32 +257,23 @@ export default function Navbar() {
             <Link
               href="/tim-pengembang"
               onClick={() => setMobileMenuOpen(false)}
-              className={`px-3 py-2 rounded-lg transition-colors ${
-                isTeam
-                  ? "text-purple-700 font-semibold bg-purple-50"
-                  : "hover:bg-purple-50"
-              }`}
+              className={`px-3 py-2 rounded-lg transition-colors ${isTeam
+                ? "text-purple-700 font-semibold bg-purple-50"
+                : "hover:bg-purple-50"
+                }`}
             >
               Tim Pengembang
             </Link>
           </div>
 
-          {/* Tombol Masuk & Daftar jika belum login */}
           {!isLoggedIn && (
             <div className="pt-4 border-t border-purple-100 flex flex-col gap-2">
               <Link
                 href="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center py-2.5 rounded-full font-semibold text-[#5F089E] border border-[#5F089E]/30 hover:bg-purple-50 transition-colors"
-              >
-                Masuk
-              </Link>
-              <Link
-                href="/register"
-                onClick={() => setMobileMenuOpen(false)}
                 className="w-full text-center py-2.5 rounded-full font-semibold text-white bg-[#5F089E] hover:bg-[#4d0680] transition-colors shadow-md shadow-purple-900/20"
               >
-                Daftar Sekarang
+                Masuk
               </Link>
             </div>
           )}

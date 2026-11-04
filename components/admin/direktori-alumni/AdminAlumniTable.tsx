@@ -14,12 +14,12 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
-  MessageCircle,
 } from "lucide-react";
 import { AlumniItem, AdminRole, KategoriPerguruanTinggi } from "./types";
 import { exportToPDF } from "@/utils/exportToPdf";
 import { apiFetch } from "@/lib/api";
 import { ApiAlumni } from "@/lib/alumni";
+import SearchableSelect, { Option } from "./SearchableSelect";
 
 interface AdminAlumniTableProps {
   role: AdminRole;
@@ -69,6 +69,28 @@ export default function AdminAlumniTable({
   const [filterKipk, setFilterKipk] = useState("SEMUA");
   const [isExporting, setIsExporting] = useState(false);
 
+  // 1. Ekstrak Opsi Kampus Dinamis dari alumniList
+  const kampusOptions: Option[] = useMemo(() => {
+    const map = new Map<string, string>();
+
+    alumniList.forEach((item) => {
+      if (item.kampusKode && item.kampus) {
+        map.set(item.kampusKode, `${item.kampus} (${item.kampusKode})`);
+      }
+    });
+
+    const dynamicOptions: Option[] = Array.from(map.entries()).map(
+      ([kode, nama]) => ({
+        value: kode,
+        label: nama,
+      })
+    );
+
+    dynamicOptions.sort((a, b) => a.label.localeCompare(b.label));
+
+    return [{ value: "SEMUA", label: "Pilih Kampus (Semua)" }, ...dynamicOptions];
+  }, [alumniList]);
+
   const handleExportPDF = async () => {
     try {
       setIsExporting(true);
@@ -86,9 +108,9 @@ export default function AdminAlumniTable({
     }
   };
 
+  // 2. Logika Pemfilteran Data Alumni
   const filteredAlumni = useMemo(() => {
     return alumniList.filter((item) => {
-      // 1. Pencarian
       const matchSearch =
         item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.nisn.includes(searchQuery) ||
@@ -96,30 +118,26 @@ export default function AdminAlumniTable({
         item.kampus.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (item.kelas && item.kelas.toLowerCase().includes(searchQuery.toLowerCase()));
 
-      // 2. Filter Kategori Perguruan Tinggi (Negeri, Swasta, Kedinasan, Luar Negeri)
       const itemKategori: KategoriPerguruanTinggi =
         item.jenisKampus ||
         (item.kampusKode === "STAN"
           ? "Kedinasan"
           : item.kampusKode === "TELKOM"
-          ? "Swasta"
-          : item.kampusKode === "NTU"
-          ? "Luar Negeri"
-          : "Negeri");
+            ? "Swasta"
+            : item.kampusKode === "NTU"
+              ? "Luar Negeri"
+              : "Negeri");
 
       const matchKategoriPt =
         filterKategoriPt === "SEMUA" || itemKategori === filterKategoriPt;
 
-      // 3. Filter Kampus Spesifik
       const matchKampus =
         filterKampus === "SEMUA" || item.kampusKode === filterKampus;
 
-      // 4. Filter Jalur Masuk
       const matchJalur =
         filterJalur === "SEMUA" ||
         item.jalur.toUpperCase() === filterJalur.toUpperCase();
 
-      // 5. Filter KIP-K
       const matchKipk =
         filterKipk === "SEMUA" ||
         (filterKipk === "KIPK" && item.isKipk) ||
@@ -153,7 +171,7 @@ export default function AdminAlumniTable({
             </h2>
           </div>
           <p className="text-sm text-slate-500 font-normal">
-            Database kelulusan, persebaran kampus, nomor kontak, &amp; data tracer siswa
+            Database kelulusan, persebaran kampus, nilai kelulusan, &amp; data tracer siswa
           </p>
         </div>
 
@@ -175,9 +193,8 @@ export default function AdminAlumniTable({
               className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-blue-50 text-blue-700 border border-blue-300/80 hover:bg-blue-100 text-xs font-bold transition-colors cursor-pointer shadow-2xs"
             >
               <Download
-                className={`w-4 h-4 shrink-0 ${
-                  isExporting ? "animate-bounce" : ""
-                }`}
+                className={`w-4 h-4 shrink-0 ${isExporting ? "animate-bounce" : ""
+                  }`}
               />
               <span>{isExporting ? "Mengekspor..." : "Export PDF"}</span>
             </button>
@@ -212,9 +229,9 @@ export default function AdminAlumniTable({
           </div>
         </div>
 
-        {/* 5 Filter Controls (Responsif) */}
+        {/* 5 Filter Controls */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          {/* 1. Search Bar */}
+          {/* 1. Search Bar Utama */}
           <div className="relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
@@ -235,7 +252,7 @@ export default function AdminAlumniTable({
             )}
           </div>
 
-          {/* 2. Filter Kategori Perguruan Tinggi (Negeri, Swasta, Kedinasan, Luar Negeri) */}
+          {/* 2. Filter Kategori PT */}
           <div>
             <select
               value={filterKategoriPt}
@@ -250,29 +267,17 @@ export default function AdminAlumniTable({
             </select>
           </div>
 
-          {/* 3. Filter Kampus Spesifik */}
+          {/* 3. Filter Kampus (Searchable Dropdown Dinamis) */}
           <div>
-            <select
+            <SearchableSelect
+              options={kampusOptions}
               value={filterKampus}
-              onChange={(e) => setFilterKampus(e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-700 font-medium focus:outline-hidden focus:ring-2 focus:ring-[#5F089E]/20 focus:border-[#5F089E] transition-all cursor-pointer"
-            >
-              <option value="SEMUA">Pilih Kampus (Semua)</option>
-              <option value="UB">Universitas Brawijaya (UB)</option>
-              <option value="ITB">ITB Bandung</option>
-              <option value="UGM">Universitas Gadjah Mada (UGM)</option>
-              <option value="UM">Universitas Negeri Malang (UM)</option>
-              <option value="ITS">ITS Surabaya</option>
-              <option value="UNAIR">Universitas Airlangga (UNAIR)</option>
-              <option value="UI">Universitas Indonesia (UI)</option>
-              <option value="UNDIP">Universitas Diponegoro (UNDIP)</option>
-              <option value="STAN">PKN STAN</option>
-              <option value="TELKOM">Telkom University</option>
-              <option value="NTU">Nanyang Technological Univ (NTU)</option>
-            </select>
+              onChange={(val) => setFilterKampus(val)}
+              placeholder="Pilih Kampus (Semua)"
+            />
           </div>
 
-          {/* 4. Filter Jalur Masuk (Diperbarui) */}
+          {/* 4. Filter Jalur Masuk */}
           <div>
             <select
               value={filterJalur}
@@ -304,7 +309,7 @@ export default function AdminAlumniTable({
         </div>
       </div>
 
-      {/* Tabel Data Alumni Sesuai Format Gambar */}
+      {/* Tabel Data Alumni */}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
         {/* Mobile Header Selection */}
         {role === "admin" && filteredAlumni.length > 0 && (
@@ -336,11 +341,10 @@ export default function AdminAlumniTable({
               return (
                 <div
                   key={alumni.id}
-                  className={`p-4 transition-colors space-y-3 ${
-                    role === "admin" && isSelected
-                      ? "bg-purple-50/40"
-                      : "hover:bg-slate-50/60"
-                  }`}
+                  className={`p-4 transition-colors space-y-3 ${role === "admin" && isSelected
+                    ? "bg-purple-50/40"
+                    : "hover:bg-slate-50/60"
+                    }`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-start gap-2.5">
@@ -416,22 +420,13 @@ export default function AdminAlumniTable({
                       </span>
                     </div>
 
-                    {alumni.nomorWa && (
-                      <div className="flex items-center gap-1 pt-0.5">
-                        <span className="text-[11px] text-slate-500">WA:</span>
-                        <a
-                          href={`https://wa.me/${alumni.nomorWa
-                            .replace(/\D/g, "")
-                            .replace(/^0/, "62")}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1 text-emerald-700 font-semibold hover:underline text-xs"
-                        >
-                          <MessageCircle className="w-3 h-3 text-emerald-600" />
-                          <span>{alumni.nomorWa}</span>
-                        </a>
-                      </div>
-                    )}
+                    {/* Menampilkan Nilai di Mobile View */}
+                    <div className="flex items-center gap-1 pt-0.5">
+                      <span className="text-[11px] text-slate-500">Nilai:</span>
+                      <span className="text-xs font-bold text-slate-900">
+                        {alumni.nilai ?? "-"}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Badges: KIPK, PIL, PDSS, SERTIF */}
@@ -481,8 +476,7 @@ export default function AdminAlumniTable({
           )}
         </div>
 
-        {/* Desktop Table View (>= md) Sesuai Kolom Gambar:
-            NO | NAMA | KLS | PROGRAM STUDI | PERGURUAN TINGGI | NOMOR WA | KIPK | PIL | PDSS | SERTIF */}
+        {/* Desktop Table View (>= md) */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
@@ -500,37 +494,20 @@ export default function AdminAlumniTable({
                     />
                   </th>
                 )}
-                {/* 1. NO */}
                 <th className="py-3.5 px-3 w-12 text-center">NO</th>
-
-                {/* 2. NAMA */}
                 <th className="py-3.5 px-4 min-w-[150px]">NAMA</th>
-
-                {/* 3. KLS */}
                 <th className="py-3.5 px-3 w-24 text-center">KLS</th>
-
-                {/* 4. PROGRAM STUDI */}
                 <th className="py-3.5 px-4 min-w-[160px]">PROGRAM STUDI</th>
-
-                {/* 5. PERGURUAN TINGGI */}
                 <th className="py-3.5 px-4 min-w-[180px]">PERGURUAN TINGGI</th>
 
-                {/* 6. NOMOR WA */}
-                <th className="py-3.5 px-3 min-w-[130px] text-center">NOMOR WA</th>
+                {/* Kolom NILAI */}
+                <th className="py-3.5 px-3 w-24 text-center">NILAI</th>
 
-                {/* 7. KIPK */}
                 <th className="py-3.5 px-3 w-20 text-center">KIPK</th>
-
-                {/* 8. PIL */}
                 <th className="py-3.5 px-3 w-14 text-center">PIL</th>
-
-                {/* 9. PDSS */}
                 <th className="py-3.5 px-3 w-20 text-center">PDSS</th>
-
-                {/* 10. SERTIF */}
                 <th className="py-3.5 px-3 w-24 text-center">SERTIF</th>
 
-                {/* AKSI (Khusus Admin) */}
                 {role === "admin" && (
                   <th className="py-3.5 px-3 w-20 text-center">AKSI</th>
                 )}
@@ -540,7 +517,7 @@ export default function AdminAlumniTable({
               {filteredAlumni.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={role === "admin" ? 12 : 10}
+                    colSpan={role === "admin" ? 12 : 11}
                     className="py-12 text-center text-slate-400 font-medium"
                   >
                     Tidak ada data alumni yang cocok dengan pencarian / filter.
@@ -552,11 +529,9 @@ export default function AdminAlumniTable({
                   return (
                     <tr
                       key={alumni.id}
-                      className={`hover:bg-purple-50/40 transition-colors ${
-                        role === "admin" && isSelected ? "bg-purple-50/30" : ""
-                      }`}
+                      className={`hover:bg-purple-50/40 transition-colors ${role === "admin" && isSelected ? "bg-purple-50/30" : ""
+                        }`}
                     >
-                      {/* Checkbox Admin */}
                       {role === "admin" && (
                         <td className="py-3 px-3 text-center">
                           <input
@@ -568,12 +543,10 @@ export default function AdminAlumniTable({
                         </td>
                       )}
 
-                      {/* 1. NO */}
                       <td className="py-3 px-3 text-center font-bold text-slate-600 text-xs">
                         {idx + 1}
                       </td>
 
-                      {/* 2. NAMA */}
                       <td className="py-3 px-4">
                         <div className="flex flex-col">
                           <span className="font-bold text-slate-900 text-xs">
@@ -585,14 +558,12 @@ export default function AdminAlumniTable({
                         </div>
                       </td>
 
-                      {/* 3. KLS */}
                       <td className="py-3 px-3 text-center">
                         <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-bold text-[11px] inline-block">
                           {alumni.kelas || "XII MIPA 1"}
                         </span>
                       </td>
 
-                      {/* 4. PROGRAM STUDI */}
                       <td className="py-3 px-4">
                         <div className="flex flex-col">
                           <span className="font-semibold text-slate-800 text-xs">
@@ -604,7 +575,6 @@ export default function AdminAlumniTable({
                         </div>
                       </td>
 
-                      {/* 5. PERGURUAN TINGGI */}
                       <td className="py-3 px-4">
                         <div className="flex flex-col">
                           <div className="flex items-center gap-1.5">
@@ -627,27 +597,13 @@ export default function AdminAlumniTable({
                         </div>
                       </td>
 
-                      {/* 6. NOMOR WA */}
+                      {/* Isi Kolom NILAI */}
                       <td className="py-3 px-3 text-center">
-                        {alumni.nomorWa ? (
-                          <a
-                            href={`https://wa.me/${alumni.nomorWa
-                              .replace(/\D/g, "")
-                              .replace(/^0/, "62")}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 text-xs font-semibold transition-colors"
-                            title="Kirim pesan WhatsApp"
-                          >
-                            <MessageCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                            <span>{alumni.nomorWa}</span>
-                          </a>
-                        ) : (
-                          <span className="text-slate-400 text-xs">-</span>
-                        )}
+                        <span className="font-bold text-slate-800 text-xs">
+                          {alumni.nilai ?? "-"}
+                        </span>
                       </td>
 
-                      {/* 7. KIPK */}
                       <td className="py-3 px-3 text-center">
                         {alumni.isKipk ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
@@ -661,7 +617,6 @@ export default function AdminAlumniTable({
                         )}
                       </td>
 
-                      {/* 8. PIL */}
                       <td className="py-3 px-3 text-center">
                         <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-50 border border-purple-200 text-[#5F089E] font-bold text-xs">
                           {alumni.pilihanKe
@@ -670,10 +625,9 @@ export default function AdminAlumniTable({
                         </span>
                       </td>
 
-                      {/* 9. PDSS */}
                       <td className="py-3 px-3 text-center">
                         {alumni.statusPdss === "Eligible" ||
-                        alumni.statusPdss === "Ya" ? (
+                          alumni.statusPdss === "Ya" ? (
                           <span className="inline-block px-2.5 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200 text-[10px] font-bold">
                             Eligible
                           </span>
@@ -684,19 +638,18 @@ export default function AdminAlumniTable({
                         )}
                       </td>
 
-                    {/* 10. SERTIF */}
-                    <td className="py-3 px-3 text-center">
-                      <button
-                        type="button"
-                        onClick={() => setViewCertAlumni(alumni)}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-purple-50 text-[#5F089E] hover:bg-purple-100 text-[10px] font-bold border border-purple-200 transition-colors cursor-pointer"
-                      >
-                        <span>{alumni.sertifikat?.length || 0} Berkas</span>
-                        <Eye className="w-3.5 h-3.5" />
-                      </button>
-                    </td>
+                      {/* 10. SERTIF */}
+                      <td className="py-3 px-3 text-center">
+                        <button
+                          type="button"
+                          onClick={() => setViewCertAlumni(alumni)}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-purple-50 text-[#5F089E] hover:bg-purple-100 text-[10px] font-bold border border-purple-200 transition-colors cursor-pointer"
+                        >
+                          <span>{alumni.sertifikat?.length || 0} Berkas</span>
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
 
-                      {/* AKSI Admin */}
                       {role === "admin" && (
                         <td className="py-3 px-3 text-center">
                           <div className="inline-flex items-center gap-2">

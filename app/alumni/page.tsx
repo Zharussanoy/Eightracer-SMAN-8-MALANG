@@ -46,12 +46,18 @@ function AlumniPageContent() {
   const [isLoadingAlumni, setIsLoadingAlumni] = useState(true);
 
   useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_API_URL) {
+      setAlumniList(INITIAL_ALUMNI);
+      setIsLoadingAlumni(false);
+      return;
+    }
+
     apiFetch<{ data: ApiAlumni[] }>("/alumni?per_page=250")
       .then((res) => {
         setAlumniList(res.data.map(mapApiAlumniToItem));
       })
       .catch((err) => {
-        console.error("Gagal fetch alumni:", err);
+        console.warn("Gagal fetch alumni dari API, menggunakan mock data:", err);
         setAlumniList(INITIAL_ALUMNI);
       })
       .finally(() => {
@@ -225,13 +231,6 @@ function AlumniPageContent() {
         onImportComplete={handleImportComplete}
       />
 
-      {/* Footer Khusus Fitur Tim B3 */}
-      <footer className="mt-auto py-6 border-t border-slate-200 bg-white text-center text-xs text-slate-400">
-        <p>
-          &copy; {new Date().getFullYear()} Eightracer SMAN 8 Malang &bull; Tim B3.
-          Sistem Informasi Kelulusan &amp; Direktori Alumni Terpadu.
-        </p>
-      </footer>
     </div>
   );
 }
