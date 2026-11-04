@@ -17,10 +17,10 @@ export function getAlumniPage(search: string, university: string, program: strin
 }
 export function getAlumniDetail(id: string, signal?: AbortSignal) { return request<{ data: AlumniDetail }>(`/${encodeURIComponent(id)}`, { signal }); }
 export function getTimelineAlumniPage(search: string, university: string, program: string, admission: string, page: number, signal?: AbortSignal) {
-  return request<AlumniPage>(`?${alumniQuery(search, university, program, admission, page)}&timeline_complete=1`, { signal });
+  return getAlumniPage(search, university, program, admission, page, signal);
 }
 export function getAlumniTimeline(id: number, signal?: AbortSignal) {
-  return request<{ data: AlumniTimelineDetail }>(`/${id}?timeline_complete=1`, { signal });
+  return request<{ data: AlumniTimelineDetail }>(`/${id}`, { signal });
 }
 export function saveAlumniProgress(id: string, progressId: number | null, payload: unknown) {
   return request(`/${id}/college-progress${progressId ? "/"+progressId : ""}`, { method: progressId ? "PUT" : "POST", body: JSON.stringify(payload) });

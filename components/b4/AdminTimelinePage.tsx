@@ -13,7 +13,7 @@ import AlumniAcademicTimeline from "./AlumniAcademicTimeline";
 
 type PageResult = { key: string; data?: AlumniPage; error?: string };
 type DetailResult = { id: number; data?: AlumniTimelineDetail; error?: string };
-const note = "Timeline menampilkan alumni dengan riwayat sekolah, waktu masuk PT, serta progres kuliah terbaru yang lengkap (semester, periode, status, IPK, UKT, dan status KIP-K). Program beasiswa ditampilkan jika keputusan penerimaannya tercatat.";
+const note = "Nama alumni, kampus, prodi, jalur, dan riwayat ditampilkan sesuai data sekolah. Tanda - berarti datanya belum tersedia.";
 
 export default function AdminTimelinePage() {
   const { authStatus, currentUser, refreshSession } = useUser();
@@ -72,9 +72,9 @@ export default function AdminTimelinePage() {
     </div>
     {!allowed ? <div className="bc4-empty" role="status">{authStatus === "loading" ? "Memeriksa sesi akun…" : "Timeline sekolah hanya untuk admin atau Guru BK yang berwenang."}</div>
       : current?.error ? <div className="bc4-empty" role="alert">{current.error}<p><button className="bc4-button" type="button" onClick={refresh}>Coba lagi</button></p></div>
-      : !current?.data ? <div className="bc4-empty" role="status">Memuat alumni dengan data lengkap…</div>
-      : !rows.length ? <div className="bc4-empty" role="status"><strong>{hasFilters ? "Tidak ada alumni lengkap yang cocok dengan pencarian ini." : "Belum ada alumni dengan data timeline lengkap."}</strong>
-        <p>Alumni akan muncul setelah riwayat masuk/lulus SMA, waktu masuk PT, serta progres kuliah (IPK, UKT, dan status KIP-K) dilengkapi. Progres kuliah dikelola dari Alumni di PT.</p>
+      : !current?.data ? <div className="bc4-empty" role="status">Memuat data alumni…</div>
+      : !rows.length ? <div className="bc4-empty" role="status"><strong>{hasFilters ? "Tidak ada alumni yang cocok dengan pencarian ini." : "Belum ada data alumni."}</strong>
+        <p>Ubah pencarian atau lihat daftar Alumni di PT.</p>
         <Link className="bc4-button" href="/admin/alumni-perguruan-tinggi">Buka Alumni di PT</Link>
         {hasFilters && <button className="bc4-button" type="button" onClick={() => { setQuery(""); setUniversity(""); setProgram(""); setAdmission(""); setPage(1); }}>Reset Filter</button>}
       </div> : <>
@@ -83,10 +83,10 @@ export default function AdminTimelinePage() {
         </select></label>
         {current.data.lastPage > 1 && <div className="bc4-actions" style={{ marginBottom: 20 }}><button className="bc4-button" type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>Sebelumnya</button><span>Halaman {current.data.currentPage} dari {current.data.lastPage}</span><button className="bc4-button" type="button" disabled={page >= current.data.lastPage} onClick={() => setPage((value) => value + 1)}>Berikutnya</button></div>}
         {currentDetail?.error ? <div className="bc4-empty" role="alert">{currentDetail.error}<p><button className="bc4-button" type="button" onClick={refresh}>Muat Ulang</button></p></div>
-          : !alumni || !latest ? <div className="bc4-empty" role="status">Memuat riwayat alumni…</div> : <>
-            <div className="bc4-profileRow"><div className="bc4-profile"><Avatar name={alumni.name} example={false} /><div><h2>{alumni.name}</h2><p>{alumni.university} · {alumni.studyProgram}</p><p>NISN {alumni.hasNisn ? "••••••••••" : "-"}</p><p>{educationStatus(latest.status)}</p></div></div>
+          : !alumni ? <div className="bc4-empty" role="status">Memuat riwayat alumni…</div> : <>
+            <div className="bc4-profileRow"><div className="bc4-profile"><Avatar name={alumni.name} example={false} /><div><h2>{alumni.name}</h2><p>{alumni.university} · {alumni.studyProgram}</p><p>NISN {alumni.hasNisn ? "••••••••••" : "-"}</p><p>{educationStatus(latest?.status ?? null)}</p></div></div>
               <div className="bc4-current"><h3>Status Terkini</h3><dl className="bc4-metrics">{[
-                ["Semester", latest.semester ?? "-"], ["IPK", latest.gpa ?? "-"], ["Beasiswa", acceptedAwards(latest)], ["Status KIP-K", latest.kipk === true ? "Ya" : latest.kipk === false ? "Tidak" : "-"], ["UKT/Semester", timelineMoney(latest.ukt)],
+                ["Semester", latest?.semester ?? "-"], ["IPK", latest?.gpa ?? "-"], ["Beasiswa", latest ? acceptedAwards(latest) : "-"], ["Status KIP-K", latest?.kipk === true ? "Ya" : latest?.kipk === false ? "Tidak" : "-"], ["UKT/Semester", timelineMoney(latest?.ukt ?? null)],
               ].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></div></div>
             <AlumniAcademicTimeline key={alumni.id} alumni={alumni} />
           </>}

@@ -1,18 +1,13 @@
-# Timeline Individu — data sekolah
+# Timeline Individu — identitas tetap tampil
 
-Halaman /admin/timeline-individu kini mengambil daftar dengan /api/b4/alumni?timeline_complete=1, lalu detail /api/b4/alumni/{id}?timeline_complete=1. Server FE meneruskan ke BE; cookie/token tidak ditaruh di localStorage.
+Halaman menampilkan alumni yang sama dengan Alumni di PT. Tidak memakai filter kelengkapan data.
 
-Kelengkapan minimal: identitas dan penerimaan PT diketahui, tanggal masuk SMA, waktu lulus SMA, waktu masuk PT, serta progres kuliah terbaru dengan periode/semester/status/tanggal/IPK/UKT/status KIP-K. Tahun saja boleh dipakai jika memang hanya itu yang diketahui. Beasiswa, IPI, NISN dan akun email tidak diwajibkan.
+Nama, kampus, prodi, jalur dan tahun lulus diambil dari API. Panel Status Terkini, Perjalanan Pendidikan SMA, Perjalanan Pendidikan PT dan Detail Semester tetap tampil saat progres kosong. Data yang belum ada ditampilkan -.
 
-- UKT0 dan status bukan penerima adalah nilai sah.
-- Tidak membuat tanggal dari tahun lulus, tidak menghitung tahun masuk SMA dengan asumsi tiga tahun, dan tidak membuat periode semester yang belum ada.
-- Pilihan alumni/kampus/prodi/jalur hanya dari data yang memenuhi syarat.
-- Beberapa penerimaan milik satu alumni tetap punya ID dan progres terpisah.
-- Riwayat semester memakai progres yang tersimpan, bukan delapan semester contoh.
-- Beasiswa ditampilkan sebagai diterima hanya jika status keputusan diterima tercatat.
-- Tombol Kelola Progress menuju detail penerimaan yang sama.
-- Hasil kosong, koneksi gagal dan sesi tidak sah ditampilkan terpisah.
+Tiga posisi tahap pendidikan diisi dari education_events. Tahap yang belum punya tanggal/tahun tetap berupa placeholder; tanggal tidak ditebak. Jika hanya tahun lulus tersedia, tampilkan tahun tersebut. Nama kampus tetap terlihat meskipun tanggal masuk PT belum diketahui.
 
-Saat pemeriksaan database sekolah, belum ada alumni yang memenuhi syarat: waktu masuk SMA/PT dan progres perkuliahan belum tersimpan. Halaman menampilkan penjelasan tersebut; tidak mengisi profil contoh. Setelah data asli dilengkapi, alumni yang memenuhi syarat otomatis masuk daftar.
+Delapan posisi semester kosong adalah struktur tampilan FE, bukan record database. Setelah progres tersimpan, tampilkan semester/periode/nilai sesuai record. Tidak membuat IPK, UKT, status aktif atau keputusan beasiswa contoh.
 
-Tampilan memakai komponen/CSS FE yang sedang digunakan. Komponen timeline siswa tidak diubah dalam tahap ini. Tidak ada migrasi baru. Backend168 tes tanpa kegagalan (1 tes lama dilewati), 13 tes parser/form dan 13 pemeriksaan HTTP berhasil; TypeScript/ESLint lulus. Pemeriksaan visual browser otomatis belum dilakukan.
+Endpoint browser: GET /api/b4/alumni dan GET /api/b4/alumni/{id}. Cookie HttpOnly diteruskan server ke BE. Detail memakai ID penerimaan; dua penerimaan milik satu alumni tidak dicampur. Filter, pemilihan alumni dan paginasi mengikuti data sekolah.
+
+Kelola Progress membuka detail alumni/penerimaan yang sama. Modul timeline siswa tidak diubah. Data utama599 penerimaan/576 alumni/49 kampus; tidak ditambah progres buatan. Lima belas tes parser/form/render, TypeScript dan ESLint lulus; API diuji lewat HTTP. Pemeriksaan visual browser otomatis belum dilakukan.
