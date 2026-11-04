@@ -12,16 +12,25 @@ import {
   AlertCircle,
   ArrowLeft,
   CheckCircle2,
+  Download,
+  FileSpreadsheet,
   Info,
   Loader2,
   Plus,
   Search,
   Trash2,
-  Upload
+  Upload,
+  X,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { akademikService, asesmenService, siswaAdminService } from "@/services/b2";
+import { useEffect, useRef, useState } from "react";
+import {
+  akademikService,
+  asesmenService,
+  importExcelService,
+  ImportExcelResult,
+  siswaAdminService,
+} from "@/services/b2";
 
 interface Props {
   siswaId: string;
@@ -34,6 +43,52 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
   const [liveSiswa, setLiveSiswa] = useState<any | null>(null);
   const [isLoadingSiswa, setIsLoadingSiswa] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Live Import Massal Excel Siswa & Nilai
+  const fileImportRef = useRef<HTMLInputElement>(null);
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [importCategory, setImportCategory] = useState("Nilai Rapor Akademik");
+  const [selectedImportFile, setSelectedImportFile] = useState<File | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importResult, setImportResult] = useState<ImportExcelResult | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+
+  const handleOpenImportModal = (category: string) => {
+    setImportCategory(category);
+    setSelectedImportFile(null);
+    setImportResult(null);
+    setImportError(null);
+    setImportModalOpen(true);
+  };
+
+  const handleSelectImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImportFile(file);
+      setImportResult(null);
+      setImportError(null);
+    }
+    if (e.target) e.target.value = "";
+  };
+
+  const handleExecuteImport = async () => {
+    if (!selectedImportFile) return;
+    try {
+      setIsImporting(true);
+      setImportError(null);
+      const res = await importExcelService.importExcel(selectedImportFile);
+      setImportResult(res.data);
+      if (fetchData) await fetchData();
+    } catch (err: any) {
+      setImportError(err?.message || "Terjadi kesalahan saat memproses impor berkas Excel.");
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const handleDownloadTemplate = () => {
+    importExcelService.downloadTemplateCsv();
+  };
 
   const defaultSiswa: SiswaDataItem = {
     id: siswaId,
@@ -198,151 +253,149 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
   const [isAddingCatatan, setIsAddingCatatan] = useState(false);
   const [catatanSuccessMsg, setCatatanSuccessMsg] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchData = async () => {
     if (!siswaId) return;
-
-    let isMounted = true;
     setIsLoadingSiswa(true);
+    try {
+      const [resSiswa, resAkademik, resAsesmen] = await Promise.all([
+        siswaAdminService.getById(siswaId).catch(() => null),
+        akademikService.getAkademik({ siswa_id: siswaId }).catch(() => null),
+        asesmenService.getAsesmen({ siswa_id: siswaId }).catch(() => null),
+      ]);
 
-    Promise.all([
-      siswaAdminService.getById(siswaId).catch(() => null),
-      akademikService.getAkademik({ siswa_id: siswaId }).catch(() => null),
-      asesmenService.getAsesmen({ siswa_id: siswaId }).catch(() => null),
-    ])
-      .then(([resSiswa, resAkademik, resAsesmen]) => {
-        if (!isMounted) return;
+      if (resSiswa?.data) {
+        setLiveSiswa(resSiswa.data);
+      }
 
-        if (resSiswa?.data) {
-          setLiveSiswa(resSiswa.data);
-        }
+      if (resAkademik?.data?.nilai_rapor && resAkademik.data.nilai_rapor.length > 0) {
+        const grouped: Record<string, any> = {};
+        resAkademik.data.nilai_rapor.forEach((nr: any) => {
+          const mapelName =
+            nr.mata_pelajaran?.nama_mata_pelajaran ||
+            nr.mata_pelajaran?.nama_mapel ||
+            `Mata Pelajaran #${nr.mata_pelajaran_id}`;
+          if (!grouped[mapelName]) {
+            grouped[mapelName] = {
+              mataPelajaran: mapelName,
+              mata_pelajaran_id: nr.mata_pelajaran_id,
+              jurusan: "MIPA",
+              semester: { s1: null, s2: null, s3: null, s4: null, s5: null },
+            };
+          }
+          const semKey = `s${nr.semester}` as "s1" | "s2" | "s3" | "s4" | "s5";
+          grouped[mapelName].semester[semKey] = parseFloat(nr.nilai_akhir);
+        });
+        setNilaiRaporList(Object.values(grouped));
+      }
 
-        if (resAkademik?.data?.nilai_rapor && resAkademik.data.nilai_rapor.length > 0) {
-          const grouped: Record<string, any> = {};
-          resAkademik.data.nilai_rapor.forEach((nr: any) => {
-            const mapelName =
-              nr.mata_pelajaran?.nama_mata_pelajaran ||
-              `Mata Pelajaran #${nr.mata_pelajaran_id}`;
-            if (!grouped[mapelName]) {
-              grouped[mapelName] = {
-                mataPelajaran: mapelName,
-                mata_pelajaran_id: nr.mata_pelajaran_id,
-                jurusan: "MIPA",
-                semester: { s1: null, s2: null, s3: null, s4: null, s5: null },
-              };
-            }
-            const semKey = `s${nr.semester}` as "s1" | "s2" | "s3" | "s4" | "s5";
-            grouped[mapelName].semester[semKey] = parseFloat(nr.nilai_akhir);
-          });
-          setNilaiRaporList(Object.values(grouped));
-        }
+      // Sinkronisasi data Prestasi Siswa dari backend
+      if (resAkademik?.data?.prestasi_murid && resAkademik.data.prestasi_murid.length > 0) {
+        const p = resAkademik.data.prestasi_murid[0];
+        setPrestasiForm({
+          jenisPrestasi: p.jenis_prestasi || "Akademik",
+          namaLomba: p.nama_kompetisi || "",
+          bidang: p.bidang || "Sains",
+          tahun: String(p.tahun || "2024"),
+          periodePrestasi: "1 Kali",
+          tingkat: p.tingkat || "Kabupaten/Kota",
+          penyelenggara: p.penyelenggara || "",
+          peringkat: String(p.peringkat || "1"),
+          dokumen: p.file_bukti_url || "Sertifikat",
+        });
+      }
 
-        // Sinkronisasi data Prestasi Siswa dari backend
-        if (resAkademik?.data?.prestasi_murid && resAkademik.data.prestasi_murid.length > 0) {
-          const p = resAkademik.data.prestasi_murid[0];
-          setPrestasiForm({
-            jenisPrestasi: p.jenis_prestasi || "Akademik",
-            namaLomba: p.nama_kompetisi || "",
-            bidang: p.bidang || "Sains",
-            tahun: String(p.tahun || "2024"),
-            periodePrestasi: "1 Kali",
-            tingkat: p.tingkat || "Kabupaten/Kota",
-            penyelenggara: p.penyelenggara || "",
-            peringkat: String(p.peringkat || "1"),
-            dokumen: p.file_bukti_url || "Sertifikat",
-          });
-        }
+      // Sinkronisasi data Presensi / Kehadiran dari backend
+      const presensiList = resAkademik?.data?.presensi || resAkademik?.data?.rekap_presensi;
+      if (Array.isArray(presensiList) && presensiList.length > 0) {
+        const semMap: Record<number, any> = {};
+        presensiList.forEach((r: any) => {
+          semMap[r.semester] = r;
+        });
+        setKehadiranForm({
+          semester1: semMap[1]?.persentase_kehadiran ? `${semMap[1].persentase_kehadiran}%` : "97%",
+          semester2: semMap[2]?.persentase_kehadiran ? `${semMap[2].persentase_kehadiran}%` : "99%",
+          semester3: semMap[3]?.persentase_kehadiran ? `${semMap[3].persentase_kehadiran}%` : "98%",
+          semester4: semMap[4]?.persentase_kehadiran ? `${semMap[4].persentase_kehadiran}%` : "98%",
+          semester5: semMap[5]?.persentase_kehadiran ? `${semMap[5].persentase_kehadiran}%` : "99%",
+          sakit: semMap[1]?.jumlah_sakit !== undefined ? `${semMap[1].jumlah_sakit}%` : "0%",
+          izin: semMap[1]?.jumlah_izin !== undefined ? `${semMap[1].jumlah_izin}%` : "0%",
+          alfa: semMap[1]?.jumlah_alpa !== undefined ? `${semMap[1].jumlah_alpa}%` : "1%",
+        });
+      }
 
-        // Sinkronisasi data Presensi / Kehadiran dari backend
-        const presensiList = resAkademik?.data?.presensi || resAkademik?.data?.rekap_presensi;
-        if (Array.isArray(presensiList) && presensiList.length > 0) {
-          const semMap: Record<number, any> = {};
-          presensiList.forEach((r: any) => {
-            semMap[r.semester] = r;
-          });
-          setKehadiranForm({
-            semester1: semMap[1]?.persentase_kehadiran ? `${semMap[1].persentase_kehadiran}%` : "97%",
-            semester2: semMap[2]?.persentase_kehadiran ? `${semMap[2].persentase_kehadiran}%` : "99%",
-            semester3: semMap[3]?.persentase_kehadiran ? `${semMap[3].persentase_kehadiran}%` : "98%",
-            semester4: semMap[4]?.persentase_kehadiran ? `${semMap[4].persentase_kehadiran}%` : "98%",
-            semester5: semMap[5]?.persentase_kehadiran ? `${semMap[5].persentase_kehadiran}%` : "99%",
-            sakit: semMap[1]?.jumlah_sakit !== undefined ? `${semMap[1].jumlah_sakit}%` : "0%",
-            izin: semMap[1]?.jumlah_izin !== undefined ? `${semMap[1].jumlah_izin}%` : "0%",
-            alfa: semMap[1]?.jumlah_alpa !== undefined ? `${semMap[1].jumlah_alpa}%` : "1%",
-          });
-        }
+      // Sinkronisasi data Catatan Karakter dari backend
+      if (resAkademik?.data?.catatan_karakter && resAkademik.data.catatan_karakter.length > 0) {
+        const mappedCatatan: CatatanKarakter[] = resAkademik.data.catatan_karakter.map((ck: any) => ({
+          id: String(ck.id),
+          tanggal: ck.tanggal_pencatatan ? ck.tanggal_pencatatan.slice(0, 10) : "2024-03-10",
+          semester: `S${ck.semester}`,
+          kelas: defaultSiswa.kelas,
+          tipeKatatan: ck.jenis_catatan || "Kedisiplinan",
+          catatan: ck.deskripsi || "",
+          nilaiBobotKuantitatif: ck.poin_disiplin || 85,
+        }));
+        setRiwayatCatatan(mappedCatatan);
+      }
 
-        // Sinkronisasi data Catatan Karakter dari backend
-        if (resAkademik?.data?.catatan_karakter && resAkademik.data.catatan_karakter.length > 0) {
-          const mappedCatatan: CatatanKarakter[] = resAkademik.data.catatan_karakter.map((ck: any) => ({
-            id: String(ck.id),
-            tanggal: ck.tanggal_pencatatan ? ck.tanggal_pencatatan.slice(0, 10) : "2024-03-10",
-            semester: `S${ck.semester}`,
-            kelas: defaultSiswa.kelas,
-            tipeKatatan: ck.jenis_catatan || "Kedisiplinan",
-            catatan: ck.deskripsi || "",
-            nilaiBobotKuantitatif: ck.poin_disiplin || 85,
+      // Sinkronisasi data Asesmen RIASEC & Multiple Intelligence dari backend
+      if (resAsesmen?.data) {
+        const { karakteristik, riasec, multiple_intelligence } = resAsesmen.data;
+
+        if (karakteristik) {
+          setRiasecMeta((prev) => ({
+            ...prev,
+            kodeTes: karakteristik.kode_riasec || prev.kodeTes,
+            tanggalAsesmen: karakteristik.tanggal_asesmen
+              ? karakteristik.tanggal_asesmen.slice(0, 10)
+              : prev.tanggalAsesmen,
           }));
-          setRiwayatCatatan(mappedCatatan);
+
+          setKecerdasanForm((prev) => ({
+            ...prev,
+            klasifikasi: karakteristik.tipe_kepribadian || prev.klasifikasi,
+            jenisKecerdasan: karakteristik.kecerdasan_majemuk_dominan || prev.jenisKecerdasan,
+          }));
         }
 
-        // Sinkronisasi data Asesmen RIASEC & Multiple Intelligence dari backend
-        if (resAsesmen?.data) {
-          const { karakteristik, riasec, multiple_intelligence } = resAsesmen.data;
-
-          if (karakteristik) {
-            setRiasecMeta((prev) => ({
-              ...prev,
-              kodeTes: karakteristik.kode_riasec || prev.kodeTes,
-              tanggalAsesmen: karakteristik.tanggal_asesmen
-                ? karakteristik.tanggal_asesmen.slice(0, 10)
-                : prev.tanggalAsesmen,
-            }));
-
-            setKecerdasanForm((prev) => ({
-              ...prev,
-              klasifikasi: karakteristik.tipe_kepribadian || prev.klasifikasi,
-              jenisKecerdasan: karakteristik.kecerdasan_majemuk_dominan || prev.jenisKecerdasan,
-            }));
-          }
-
-          if (riasec) {
-            setRiasecScores({
-              R: riasec.realistic_score !== null && riasec.realistic_score !== undefined ? Number(riasec.realistic_score) : 77,
-              I: riasec.investigative_score !== null && riasec.investigative_score !== undefined ? Number(riasec.investigative_score) : 89,
-              A: riasec.artistic_score !== null && riasec.artistic_score !== undefined ? Number(riasec.artistic_score) : 75,
-              S: riasec.social_score !== null && riasec.social_score !== undefined ? Number(riasec.social_score) : 80,
-              E: riasec.enterprising_score !== null && riasec.enterprising_score !== undefined ? Number(riasec.enterprising_score) : 74,
-              C: riasec.conventional_score !== null && riasec.conventional_score !== undefined ? Number(riasec.conventional_score) : 64,
-            });
-          }
-
-          if (Array.isArray(multiple_intelligence) && multiple_intelligence.length > 0) {
-            const miMap: Record<string, number> = {};
-            multiple_intelligence.forEach((item) => {
-              miMap[item.jenis_kecerdasan] = Number(item.skor);
-            });
-
-            setKecerdasanForm((prev) => ({
-              ...prev,
-              linguistik: miMap["Linguistik"] ?? miMap["Diri Kebahasaan"] ?? prev.linguistik,
-              logisMatematis: miMap["Logis-Matematis"] ?? prev.logisMatematis,
-              spasialVisual: miMap["Spasial-Visual"] ?? prev.spasialVisual,
-              kinestetik: miMap["Kinestetik"] ?? prev.kinestetik,
-              musikal: miMap["Musikal"] ?? prev.musikal,
-              interpersonal: miMap["Interpersonal"] ?? prev.interpersonal,
-              intrapersonal: miMap["Intrapersonal"] ?? prev.intrapersonal,
-              naturalis: miMap["Naturalis"] ?? prev.naturalis,
-            }));
-          }
+        if (riasec) {
+          setRiasecScores({
+            R: riasec.realistic_score !== null && riasec.realistic_score !== undefined ? Number(riasec.realistic_score) : 77,
+            I: riasec.investigative_score !== null && riasec.investigative_score !== undefined ? Number(riasec.investigative_score) : 89,
+            A: riasec.artistic_score !== null && riasec.artistic_score !== undefined ? Number(riasec.artistic_score) : 75,
+            S: riasec.social_score !== null && riasec.social_score !== undefined ? Number(riasec.social_score) : 80,
+            E: riasec.enterprising_score !== null && riasec.enterprising_score !== undefined ? Number(riasec.enterprising_score) : 74,
+            C: riasec.conventional_score !== null && riasec.conventional_score !== undefined ? Number(riasec.conventional_score) : 64,
+          });
         }
-      })
-      .finally(() => {
-        if (isMounted) setIsLoadingSiswa(false);
-      });
 
-    return () => {
-      isMounted = false;
-    };
+        if (Array.isArray(multiple_intelligence) && multiple_intelligence.length > 0) {
+          const miMap: Record<string, number> = {};
+          multiple_intelligence.forEach((item) => {
+            miMap[item.jenis_kecerdasan] = Number(item.skor);
+          });
+
+          setKecerdasanForm((prev) => ({
+            ...prev,
+            linguistik: miMap["Linguistik"] ?? miMap["Diri Kebahasaan"] ?? prev.linguistik,
+            logisMatematis: miMap["Logis-Matematis"] ?? prev.logisMatematis,
+            spasialVisual: miMap["Spasial-Visual"] ?? prev.spasialVisual,
+            kinestetik: miMap["Kinestetik"] ?? prev.kinestetik,
+            musikal: miMap["Musikal"] ?? prev.musikal,
+            interpersonal: miMap["Interpersonal"] ?? prev.interpersonal,
+            intrapersonal: miMap["Intrapersonal"] ?? prev.intrapersonal,
+            naturalis: miMap["Naturalis"] ?? prev.naturalis,
+          }));
+        }
+      }
+    } catch (err: any) {
+      console.warn("Koneksi data siswa (fallback):", err?.message);
+    } finally {
+      setIsLoadingSiswa(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
   }, [siswaId]);
 
   const handleSimpan = async () => {
@@ -713,6 +766,7 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
             </div>
             <button
               type="button"
+              onClick={() => handleOpenImportModal("Nilai Rapor Akademik")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#6305B0] hover:bg-[#530494] text-white text-[12px] font-medium shrink-0 cursor-pointer self-start sm:self-auto"
             >
               <Upload className="w-3.5 h-3.5" />
@@ -808,6 +862,7 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
             </div>
             <button
               type="button"
+              onClick={() => handleOpenImportModal("Prestasi & Kompetisi")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#6305B0] hover:bg-[#530494] text-white text-[12px] font-medium shrink-0 cursor-pointer"
             >
               <Upload className="w-3.5 h-3.5" />
@@ -1040,6 +1095,7 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
             </div>
             <button
               type="button"
+              onClick={() => handleOpenImportModal("Profil Asesmen RIASEC")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#6305B0] hover:bg-[#530494] text-white text-[12px] font-medium shrink-0 cursor-pointer"
             >
               <Upload className="w-3.5 h-3.5" />
@@ -1120,6 +1176,7 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
             </div>
             <button
               type="button"
+              onClick={() => handleOpenImportModal("Catatan Karakter Siswa")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#6305B0] hover:bg-[#530494] text-white text-[12px] font-medium shrink-0 cursor-pointer"
             >
               <Upload className="w-3.5 h-3.5" />
@@ -1299,6 +1356,7 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
             </div>
             <button
               type="button"
+              onClick={() => handleOpenImportModal("Nilai TKA Mata Uji Wajib")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#6305B0] hover:bg-[#530494] text-white text-[12px] font-medium shrink-0 cursor-pointer"
             >
               <Upload className="w-3.5 h-3.5" />
@@ -1356,6 +1414,7 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
             </div>
             <button
               type="button"
+              onClick={() => handleOpenImportModal("Nilai TKA Mata Uji Pilihan")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#6305B0] hover:bg-[#530494] text-white text-[12px] font-medium shrink-0 cursor-pointer"
             >
               <Upload className="w-3.5 h-3.5" />
@@ -1417,6 +1476,7 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
             </div>
             <button
               type="button"
+              onClick={() => handleOpenImportModal("Kecerdasan Majemuk Siswa")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#6305B0] hover:bg-[#530494] text-white text-[12px] font-medium shrink-0 cursor-pointer"
             >
               <Upload className="w-3.5 h-3.5" />
@@ -1556,6 +1616,185 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
           </div>
         </div>
       </div>
+
+      {/* MODAL IMPORT EXCEL / CSV DATA AKADEMIK */}
+      {importModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isImporting) setImportModalOpen(false);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in"
+        >
+          <div className="relative w-full max-w-[540px] rounded-2xl bg-white shadow-xl border border-[#E9D5FF] overflow-hidden text-[#1F2937]">
+            {/* Header */}
+            <div className="flex items-center justify-between p-5 border-b border-[#F3E8FF] bg-[#FAF7FC]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-[#F3E8FF] text-[#6305B0] flex items-center justify-center">
+                  <FileSpreadsheet className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-[15px] text-[#1F1729]">
+                    Import Data: {importCategory}
+                  </h3>
+                  <p className="text-[11px] text-[#6B7280]">
+                    Unggah berkas Excel/CSV untuk memperbarui data akademik siswa
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={isImporting}
+                onClick={() => setImportModalOpen(false)}
+                className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-5 space-y-4 text-[12px]">
+              <input
+                type="file"
+                ref={fileImportRef}
+                onChange={handleSelectImportFile}
+                accept=".xlsx,.xls,.csv"
+                className="hidden"
+              />
+
+              {/* Upload Dropzone */}
+              <div
+                onClick={() => fileImportRef.current?.click()}
+                className="border-2 border-dashed border-[#D6BBFB] hover:border-[#6305B0] rounded-xl p-5 bg-[#FAF7FC] text-center cursor-pointer transition-colors flex flex-col items-center justify-center gap-2"
+              >
+                <div className="w-10 h-10 rounded-full bg-white border border-[#E9D5FF] flex items-center justify-center text-[#6305B0] shadow-xs">
+                  <Upload className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-800">
+                    Klik atau seret berkas Excel/CSV ke sini
+                  </p>
+                  <p className="text-[10.5px] text-slate-400 mt-0.5">
+                    Mendukung format .xlsx, .xls, .csv (Maksimal 5 MB)
+                  </p>
+                </div>
+              </div>
+
+              {/* Selected File Card */}
+              {selectedImportFile && (
+                <div className="p-3.5 rounded-xl border border-[#D6BBFB] bg-[#F4EBFF]/40 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <FileSpreadsheet className="w-4 h-4 text-[#6305B0] shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-semibold text-slate-900 truncate text-[12px]">
+                        {selectedImportFile.name}
+                      </p>
+                      <p className="text-[10px] text-slate-500">
+                        {(selectedImportFile.size / 1024).toFixed(1)} KB
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={isImporting}
+                    onClick={() => fileImportRef.current?.click()}
+                    className="text-[11px] text-[#6305B0] hover:underline font-semibold shrink-0 cursor-pointer"
+                  >
+                    Ganti Berkas
+                  </button>
+                </div>
+              )}
+
+              {/* Petunjuk Kolom */}
+              <div className="p-3.5 rounded-xl bg-[#F3E8FF]/60 border border-[#E9D5FF] text-[#530494] space-y-1.5">
+                <p className="font-semibold text-[11px] flex items-center gap-1.5">
+                  <Info className="w-3.5 h-3.5 text-[#6305B0]" />
+                  Petunjuk Header Kolom Berkas:
+                </p>
+                <p className="text-[10.5px] leading-relaxed text-[#6B21A8]">
+                  • Wajib: <strong>nisn</strong>, <strong>nama_lengkap</strong><br />
+                  • Opsional: <strong>nilai_rapor</strong>, <strong>nilai_tka</strong>, <strong>kehadiran</strong>, <strong>kelas</strong>
+                </p>
+                <button
+                  type="button"
+                  onClick={handleDownloadTemplate}
+                  className="text-[11px] font-bold text-[#6305B0] hover:underline flex items-center gap-1 pt-1 cursor-pointer"
+                >
+                  <Download className="w-3 h-3" />
+                  Unduh Contoh Template CSV
+                </button>
+              </div>
+
+              {/* Error Alert */}
+              {importError && (
+                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-[11px] flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-500" />
+                  <div>
+                    <strong className="block font-semibold">Gagal Mengimpor:</strong>
+                    <span>{importError}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Result Alert */}
+              {importResult && (
+                <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="font-bold text-[12px]">
+                      Impor Berhasil: {importResult.berhasil} baris data berhasil diproses!
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-emerald-700">
+                    Total baris: {importResult.total_baris_diproses} | Gagal: {importResult.gagal} baris
+                  </p>
+                  {importResult.rincian_gagal && importResult.rincian_gagal.length > 0 && (
+                    <div className="mt-2 p-2 rounded-lg bg-white/80 border border-emerald-200 text-[10px] space-y-1 max-h-24 overflow-y-auto">
+                      <p className="font-bold text-rose-600">Catatan baris gagal:</p>
+                      {importResult.rincian_gagal.map((rg, idx) => (
+                        <p key={idx} className="text-rose-600">
+                          Baris {rg.baris} (NISN: {rg.nisn || "-"}): {rg.alasan}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-2.5 p-4 border-t border-[#F3E8FF] bg-[#FAF7FC]">
+              <button
+                type="button"
+                disabled={isImporting}
+                onClick={() => setImportModalOpen(false)}
+                className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-white text-[12px] font-semibold transition-colors cursor-pointer"
+              >
+                {importResult ? "Tutup" : "Batal"}
+              </button>
+              <button
+                type="button"
+                disabled={isImporting || !selectedImportFile}
+                onClick={handleExecuteImport}
+                className="px-4 py-2 rounded-lg bg-[#6305B0] hover:bg-[#530494] text-white text-[12px] font-semibold transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                {isImporting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Memproses...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Mulai Impor</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
