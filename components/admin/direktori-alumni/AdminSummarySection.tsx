@@ -11,11 +11,24 @@ import { AdminTab } from "./types";
 
 interface AdminSummarySectionProps {
   onNavigateTab: (tab: AdminTab) => void;
+  totalCount?: number;
+  ptnCount?: number;
+  snbpCount?: number;
+  mandiriCount?: number;
 }
 
 export default function AdminSummarySection({
   onNavigateTab,
+  totalCount,
+  ptnCount,
+  snbpCount,
+  mandiriCount,
 }: AdminSummarySectionProps) {
+  const displayTotal = totalCount !== undefined ? totalCount.toLocaleString("id-ID") : "1.500";
+  const displayPtn = ptnCount !== undefined ? ptnCount.toLocaleString("id-ID") : "1.350";
+  const displaySnbp = snbpCount !== undefined ? snbpCount.toLocaleString("id-ID") : "900";
+  const displayMandiri = mandiriCount !== undefined ? mandiriCount.toLocaleString("id-ID") : "98";
+
   return (
     <section className="space-y-6 animate-in fade-in duration-300">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -26,7 +39,7 @@ export default function AdminSummarySection({
                 Total Alumni Terdata
               </span>
               <span className="text-3xl font-black text-slate-900 tracking-tight">
-                1.500
+                {displayTotal}
               </span>
               <span className="text-xs text-slate-400 font-medium block mt-1">
                 Siswa
@@ -48,7 +61,7 @@ export default function AdminSummarySection({
                 Diterima di PTN
               </span>
               <span className="text-3xl font-black text-slate-900 tracking-tight">
-                1.350
+                {displayPtn}
               </span>
               <span className="text-xs text-blue-600 font-semibold block mt-1">
                 90% dari Total Kelulusan
@@ -70,10 +83,10 @@ export default function AdminSummarySection({
                 Jalur SNBP & SNBT
               </span>
               <span className="text-3xl font-black text-slate-900 tracking-tight">
-                900
+                {displaySnbp}
               </span>
               <span className="text-xs text-emerald-600 font-semibold block mt-1">
-                60% Seleksi Nasional
+                Seleksi Nasional
               </span>
             </div>
             <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
@@ -92,7 +105,7 @@ export default function AdminSummarySection({
                 Jalur Mandiri & Swasta
               </span>
               <span className="text-3xl font-black text-slate-900 tracking-tight">
-                98
+                {displayMandiri}
               </span>
               <span className="text-xs text-amber-600 font-semibold block mt-1">
                 Kemitraan Mandiri

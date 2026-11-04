@@ -647,3 +647,189 @@ export const siswaProfileService = {
       body: JSON.stringify(payload),
     }),
 };
+
+// ==========================================
+// 10. ALUMNI & STUDY TRACER SERVICE (B2 & B3)
+// Controllers: AlumniAdminController, AlumniController, AlumniStatistikController, AlumniImportController
+// ==========================================
+export interface AlumniTracerItem {
+  id: number | string;
+  siswa_id?: number;
+  perguruan_tinggi_id?: number;
+  buku_alumni_id?: number | null;
+  strata_pendidikan?: string;
+  program_studi?: string;
+  jalur_masuk?: string;
+  sub_jalur_mandiri?: string | null;
+  pilihan_ke?: number | string;
+  status_penerimaan?: string;
+  nilai_rapor_pendaftaran?: number | string | null;
+  skor_utbk?: number | string | null;
+  kontak_wa_terbaru?: string | null;
+  is_pelamar_kipk?: boolean;
+  izinkan_tampil_di_buku?: boolean;
+  tanggal_pengisian?: string;
+  siswa?: {
+    id: number;
+    nisn?: string;
+    nis?: string;
+    nama_lengkap: string;
+    tahun_lulus?: string;
+  };
+  perguruan_tinggi?: {
+    id: number;
+    nama_pt: string;
+    nama_singkat?: string;
+    provinsi?: string;
+  };
+  buku_alumni?: {
+    id: number;
+    tahun_lulusan: string;
+    judul_buku?: string;
+  };
+  // Format kompatibel dari /alumni public
+  nama?: string;
+  nisn?: string;
+  univ?: string;
+  univ_singkat?: string;
+  prodi?: string;
+  strata?: string;
+  sub_jalur?: string;
+  nilai_rapor?: number | string;
+  is_kipk?: boolean;
+  tahun_lulus?: string;
+  sertifikat?: Array<string | { nama_kompetisi?: string; tingkat?: string; peringkat?: string; tahun?: string }>;
+}
+
+export interface AlumniTracerPagination {
+  current_page: number;
+  data: AlumniTracerItem[];
+  last_page: number;
+  per_page: number;
+  total: number;
+}
+
+export interface AlumniPayload {
+  siswa_id?: number;
+  ptn_diterima: string;
+  prodi_diterima: string;
+  strata_pendidikan?: string;
+  jalur_masuk: string;
+  sub_jalur_mandiri?: string;
+  tahun_lulus?: string;
+  pilihan_ke?: number;
+  status_penerimaan?: "menunggu" | "diterima" | "tidak_diterima";
+  nilai_rapor_pendaftaran?: number;
+  skor_utbk?: number | null;
+  kontak_wa_terbaru?: string;
+  is_pelamar_kipk?: boolean;
+  izinkan_tampil_di_buku?: boolean;
+}
+
+export const alumniAdminService = {
+  // GET /v1/admin/alumni
+  getAllAdmin: (params?: {
+    page?: number;
+    nama_lengkap?: string;
+    ptn_diterima?: string;
+    prodi_diterima?: string;
+    tahun_lulus?: string;
+  }) =>
+    apiFetch<{
+      status: string;
+      message: string;
+      data: AlumniTracerPagination;
+    }>("/v1/admin/alumni", { params }),
+
+  // GET /alumni (public / authenticated siswa)
+  getAllPublic: (params?: {
+    page?: number;
+    per_page?: number;
+    univ?: string;
+    prodi?: string;
+    jalur?: string;
+    search?: string;
+  }) =>
+    apiFetch<{
+      data: AlumniTracerItem[];
+      meta: {
+        total: number;
+        per_page: number;
+        current_page: number;
+        last_page: number;
+      };
+      filter_options?: {
+        univ: string[];
+        prodi: Record<string, string[]> | string[];
+        jalur: string[];
+      };
+    }>("/alumni", { params }),
+
+  // GET /v1/admin/alumni/{id}
+  getById: (id: string | number) =>
+    apiFetch<{
+      status: string;
+      message: string;
+      data: AlumniTracerItem;
+    }>(`/v1/admin/alumni/${id}`),
+
+  // POST /v1/admin/alumni
+  create: (payload: AlumniPayload) =>
+    apiFetch<{
+      status: string;
+      message: string;
+      data: AlumniTracerItem;
+    }>("/v1/admin/alumni", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  // PUT /v1/admin/alumni/{id}
+  update: (id: string | number, payload: Partial<AlumniPayload>) =>
+    apiFetch<{
+      status: string;
+      message: string;
+      data: AlumniTracerItem;
+    }>(`/v1/admin/alumni/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+
+  // DELETE /v1/admin/alumni/{id}
+  delete: (id: string | number) =>
+    apiFetch<{
+      status: string;
+      message: string;
+    }>(`/v1/admin/alumni/${id}`, {
+      method: "DELETE",
+    }),
+
+  // GET /alumni/statistik
+  getStatistik: async () => {
+    try {
+      return await apiFetch<{
+        total_alumni_nasional: number;
+        provinsi_null_count: number;
+        per_provinsi: Array<{ provinsi: string; total: number }>;
+      }>("/alumni/statistik");
+    } catch {
+      return null;
+    }
+  },
+
+  // POST /alumni/import (berkas xlsx, xls, csv)
+  importFile: (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return apiFetch<{
+      message: string;
+      berhasil: number;
+      gagal: number;
+      error_detail?: any[];
+    }>("/alumni/import", {
+      method: "POST",
+      body: formData,
+    });
+  },
+};
+

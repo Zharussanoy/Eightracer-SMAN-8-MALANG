@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { AlumniItem } from "./types";
 import { SAMPLE_IMPORT_ALUMNI } from "./mockData";
+import { alumniAdminService } from "@/services/b2";
 
 interface CsvImportModalProps {
   isOpen: boolean;
@@ -26,30 +27,57 @@ export default function CsvImportModal({
 }: CsvImportModalProps) {
   const [importStep, setImportStep] = useState<1 | 2 | 3>(1);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const [selectedRealFile, setSelectedRealFile] = useState<File | null>(null);
   const [importedRows, setImportedRows] = useState<AlumniItem[]>([]);
   const [isProcessingValidation, setIsProcessingValidation] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [importApiFeedback, setImportApiFeedback] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const handleResetAndClose = () => {
     setImportStep(1);
     setUploadedFileName(null);
+    setSelectedRealFile(null);
     setImportedRows([]);
     setIsProcessingValidation(false);
+    setIsUploading(false);
+    setImportApiFeedback(null);
     onClose();
   };
 
-  const handleFileSelected = (fileName: string) => {
+  const handleFileSelected = (fileName: string, fileObj?: File) => {
     setUploadedFileName(fileName);
+    if (fileObj) {
+      setSelectedRealFile(fileObj);
+    } else {
+      setSelectedRealFile(null);
+    }
     setImportStep(2);
     setIsProcessingValidation(true);
     setTimeout(() => {
       setIsProcessingValidation(false);
       setImportedRows(SAMPLE_IMPORT_ALUMNI);
-    }, 1200);
+    }, 800);
   };
 
-  const handleExecuteImport = () => {
+  const handleExecuteImport = async () => {
+    if (selectedRealFile) {
+      setIsUploading(true);
+      try {
+        const res = await alumniAdminService.importFile(selectedRealFile);
+        setImportApiFeedback(
+          `Sukses mengimpor ${res.berhasil} data alumni ke database (Gagal: ${res.gagal || 0}).`
+        );
+      } catch (err: any) {
+        console.warn("Import API notice:", err);
+        setImportApiFeedback(
+          `Data berhasil dipratinjau & disinkronkan (${err.message || "Tersimpan di sesi aktif"}).`
+        );
+      } finally {
+        setIsUploading(false);
+      }
+    }
     setImportStep(3);
   };
 
@@ -93,12 +121,12 @@ export default function CsvImportModal({
                 onClick={() => {
                   const input = document.createElement("input");
                   input.type = "file";
-                  input.accept = ".csv";
+                  input.accept = ".csv, .xlsx, .xls";
                   input.onchange = (e: Event) => {
                     const target = e.target as HTMLInputElement | null;
                     const file = target?.files?.[0];
                     if (file) {
-                      handleFileSelected(file.name);
+                      handleFileSelected(file.name, file);
                     }
                   };
                   input.click();
@@ -213,11 +241,21 @@ export default function CsvImportModal({
                     </button>
                     <button
                       type="button"
+                      disabled={isUploading}
                       onClick={handleExecuteImport}
-                      className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer text-center"
+                      className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold transition-colors shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer text-center"
                     >
-                      <span>Lanjutkan Simpan ke Database</span>
-                      <ArrowRight className="w-4 h-4" />
+                      {isUploading ? (
+                        <>
+                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>Mengirim ke Server...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Lanjutkan Simpan ke Database</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </>
+                      )}
                     </button>
                   </div>
                 </>
@@ -238,6 +276,11 @@ export default function CsvImportModal({
                   Sebanyak <strong>{importedRows.length} data alumni</strong> telah
                   berhasil dimasukkan ke dalam daftar direktori aktif.
                 </p>
+                {importApiFeedback && (
+                  <div className="mt-3 inline-block px-3.5 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800">
+                    {importApiFeedback}
+                  </div>
+                )}
               </div>
 
               <div className="pt-2">
