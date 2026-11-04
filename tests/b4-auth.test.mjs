@@ -132,6 +132,18 @@ before(async () => {
     }
     const session = sessions.get(token);
     if (!session) return send(401, { message: "Sesi tidak berlaku." });
+    if (/^\/api\/jejak-alumni(?:\?|\/|$)/.test(req.url)) {
+      assert.equal(req.method, "GET");
+      if (session.user.role !== "siswa") return send(403, { message: "Tidak diizinkan." });
+      const url = new URL(req.url, "http://fixture.invalid");
+      const row = { id: 31, nama_lengkap: "Alumni Publikasi Sintetis", tahun_lulus: 2024, masuk_pt: { perguruan_tinggi: { nama_pt: "Kampus Sintetis" }, program_studi: "Psikologi", jalur_masuk: "SNBP", tahun_masuk_pt: 2024, prestasi: [] }, nisn: "privat", no_wa: "privat" };
+      if (url.pathname !== "/api/jejak-alumni") {
+        if (!url.pathname.endsWith("/31")) return send(404, { message: "Tidak ditemukan atau tidak berizin." });
+        return send(200, { data: { ...row, timeline: [{ label: "Lulus SMA", type: "lulus_sma", year: 2024, granularity: "year", date: null }, { label: "Semester 1", type: "progress", data: { semester: 1, periode: "Ganjil 2024/2025", ipk_terkini: "3.75", publish_financials: false, nominal_ukt: 7654321 } }] } });
+      }
+      const empty = session.mode === "siswa-kosong";
+      return send(200, { current_page: Number(url.searchParams.get("page") ?? 1), last_page: empty ? 1 : 2, per_page: 20, total: empty ? 0 : 21, data: empty ? [] : [row] });
+    }
     if (req.url === "/api/me") {
       if (session.mode === "invalid-me") return send(200, { role: "administrator" });
       return send(200, { ...session.user, token: "not-for-the-browser", private_note: "tidak diteruskan" });
@@ -283,6 +295,33 @@ after(async () => {
 function post(path, body = {}, headers = {}) {
   return fetch(`${baseUrl}/${path}`, { method: "POST", headers: { Origin: origin, "Content-Type": "application/json", ...headers }, body: JSON.stringify(body) });
 }
+
+test("jejak siswa hanya GET publikasi, menolak staff/tamu dan tidak membocorkan field privat", async () => {
+  const student = await login("siswa"), admin = await login(), empty = await login("siswa-kosong");
+  const get = (path = "", pair = student.pair) => fetch(`${origin}/api/b4/student-alumni${path}`, { headers: { Cookie: pair } });
+  const before = writes;
+  assert.equal((await fetch(`${origin}/api/b4/student-alumni`)).status, 401);
+  assert.equal((await get("", admin.pair)).status, 403);
+  assert.equal((await get("?siswa_id=71")).status, 422);
+  assert.equal((await get("?page=-1")).status, 422);
+  assert.equal((await get("/31?admin=true")).status, 422);
+  const response = await get("?page=2");
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("cache-control"), /no-store/);
+  const page = await response.json();
+  assert.equal(page.currentPage, 2);
+  assert.equal(page.data[0].id, 31);
+  assert.equal(JSON.stringify(page).includes("privat"), false);
+  const detail = await (await get("/31")).json();
+  assert.equal(detail.events[0].year, "2024");
+  assert.equal(detail.events[1].ipk, 3.75);
+  assert.equal(detail.events[1].ukt, null);
+  assert.equal(JSON.stringify(detail).includes("7654321"), false);
+  assert.equal((await get("/999")).status, 404);
+  assert.equal((await (await get("", empty.pair)).json()).total, 0);
+  assert.equal((await fetch(`${origin}/api/b4/student-alumni/31`, { method: "POST", headers: { Cookie: student.pair } })).status, 405);
+  assert.equal(writes, before);
+});
 async function login(name = "admin") {
   const response = await post("login", { email: `${name}@example.test`, password: "Khusus-fixture!2026" });
   const cookie = response.headers.get("set-cookie");
