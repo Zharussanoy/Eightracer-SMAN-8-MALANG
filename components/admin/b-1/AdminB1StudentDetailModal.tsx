@@ -55,7 +55,7 @@ export default function AdminB1StudentDetailModal({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[rgba(31,26,34,0.5)] backdrop-blur-[4px] animate-in fade-in duration-200 font-['Montserrat',sans-serif]"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[rgba(31,26,34,0.5)] backdrop-blur-[4px] animate-in fade-in duration-200 font-sans"
       onClick={onClose}
     >
       {/* Modal Dialog Card (920px width) */}

@@ -215,7 +215,7 @@ export default function AdminB1Subviews({
   // ==========================================
   if (activeTab === "Dashboard Konseling") {
     return (
-      <div className="space-y-8 font-['Montserrat',sans-serif] animate-in fade-in duration-150">
+      <div className="space-y-8 font-sans animate-in fade-in duration-150">
         {/* Top 3 Stat Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Card 1: TOTAL SISWA TERDATA */}
@@ -374,7 +374,7 @@ export default function AdminB1Subviews({
   if (activeTab === "Validasi & Surat Rekomendasi") {
     return (
       <>
-        <div className="bg-white border border-purple-100 rounded-2xl p-6 sm:p-10 shadow-sm font-['Montserrat',sans-serif] space-y-6 animate-in fade-in duration-150">
+        <div className="bg-white border border-purple-100 rounded-2xl p-6 sm:p-10 shadow-sm font-sans space-y-6 animate-in fade-in duration-150">
           {/* Header Action Bar: Edit Surat Button */}
           <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
@@ -575,7 +575,7 @@ export default function AdminB1Subviews({
   // ==========================================
 
   return (
-    <div className="space-y-10 font-['Montserrat',sans-serif] animate-in fade-in duration-150">
+    <div className="space-y-10 font-sans animate-in fade-in duration-150">
 
       {/* ─────── SECTION 1: Tabel Daftar Siswa Strategi Belajar ─────── */}
       <div className="space-y-4">

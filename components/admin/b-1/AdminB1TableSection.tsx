@@ -98,7 +98,7 @@ export default function AdminB1TableSection({
   };
 
   return (
-    <div className="w-full bg-white border border-purple-100 rounded-2xl p-5 sm:p-7 font-['Montserrat',sans-serif] space-y-6 shadow-sm">
+    <div className="w-full bg-white border border-purple-100 rounded-2xl p-5 sm:p-7 font-sans space-y-6 shadow-sm">
       {/* Search & Filter Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
         {/* Search Input */}

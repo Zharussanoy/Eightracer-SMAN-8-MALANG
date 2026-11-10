@@ -209,7 +209,7 @@ export const AdminB1FeedbackTable: React.FC<AdminB1FeedbackTableProps> = ({
   };
 
   return (
-    <div className="w-full bg-white border border-purple-100 rounded-2xl p-5 sm:p-7 font-['Montserrat',sans-serif] space-y-6 shadow-sm">
+    <div className="w-full bg-white border border-purple-100 rounded-2xl p-5 sm:p-7 font-sans space-y-6 shadow-sm">
       {/* Header Info & Monitoring Quick Insight */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-purple-100 pb-5">
         <div>

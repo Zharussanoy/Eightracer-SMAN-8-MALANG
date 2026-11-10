@@ -17,7 +17,11 @@ export default function Navbar() {
   const isHome = pathname === "/";
   const isTeam = pathname === "/tim-pengembang";
   const isProfile = pathname === "/profile";
-  const isB1Page = pathname === "/admin/b-1" || pathname.startsWith("/admin/b-1/");
+  const isB1Page =
+    pathname === "/admin/b-1" ||
+    pathname.startsWith("/admin/b-1/") ||
+    pathname === "/siswa/b-1" ||
+    pathname.startsWith("/siswa/b-1/");
   if (isB1Page) return null;
 
   return (

@@ -19,7 +19,7 @@ export default function AdminB1Header({
   }
 
   return (
-    <div className="pt-2 pb-6 space-y-1.5 font-['Montserrat',sans-serif]">
+    <div className="pt-2 pb-6 space-y-1.5 font-sans">
       <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
         {title}
       </h1>

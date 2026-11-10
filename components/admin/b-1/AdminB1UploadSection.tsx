@@ -75,7 +75,7 @@ export default function AdminB1UploadSection({
   };
 
   return (
-    <div className="w-full bg-white border border-[#E9E9E9] rounded-2xl p-6 mb-8 font-['Montserrat',sans-serif] shadow-[0px_1px_3px_rgba(0,0,0,0.02)]">
+    <div className="w-full bg-white border border-[#E9E9E9] rounded-2xl p-6 mb-8 font-sans shadow-[0px_1px_3px_rgba(0,0,0,0.02)]">
       {/* Hidden file input */}
       <input
         ref={fileInputRef}

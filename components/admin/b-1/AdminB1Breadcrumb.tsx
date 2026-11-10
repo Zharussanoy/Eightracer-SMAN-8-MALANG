@@ -14,7 +14,7 @@ export default function AdminB1Breadcrumb({
   return (
     <nav
       aria-label="Breadcrumb"
-      className="flex items-center gap-2 text-xs font-['Montserrat',sans-serif] text-slate-500 py-1"
+      className="flex items-center gap-2 text-xs font-sans text-slate-500 py-1"
     >
       <Link
         href="/"

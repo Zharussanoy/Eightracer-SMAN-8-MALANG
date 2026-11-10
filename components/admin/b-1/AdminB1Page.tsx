@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Montserrat } from "next/font/google";
 import AdminB1Navbar from "./AdminB1Navbar";
 import AdminB1Breadcrumb from "./AdminB1Breadcrumb";
 import AdminB1Header from "./AdminB1Header";
@@ -13,13 +12,6 @@ import AdminB1Subviews from "./AdminB1Subviews";
 import { B1Tab, StudentB1, UploadedFileState } from "./types";
 import { DEFAULT_UPLOADED_FILE, MOCK_STUDENTS_B1 } from "./mockData";
 import { CheckCircle2, X } from "lucide-react";
-
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  display: "swap",
-  variable: "--font-b1-montserrat",
-});
 
 export default function AdminB1Page() {
   const [activeTab, setActiveTab] = useState<B1Tab>("Pusat Manajemen Data");
@@ -48,16 +40,8 @@ export default function AdminB1Page() {
 
   return (
     <div
-      className={`b1-root ${montserrat.variable} ${montserrat.className} min-h-screen bg-white flex flex-col font-['Montserrat',sans-serif] selection:bg-purple-100 selection:text-purple-900 text-[#1E1E1E]`}
+      className="b1-root min-h-screen bg-white flex flex-col font-sans selection:bg-purple-100 selection:text-purple-900 text-[#1E1E1E]"
     >
-      {/* Strictly scope Montserrat font to all B1 elements */}
-      <style jsx global>{`
-        .b1-root,
-        .b1-root * {
-          font-family: var(--font-b1-montserrat), "Montserrat", sans-serif !important;
-        }
-      `}</style>
-
       {/* Global Toast Notification */}
       {toastMessage && (
         <div className="fixed top-24 right-4 z-50 max-w-md bg-white border border-[#E9E9E9] rounded-2xl shadow-xl p-4 flex items-center justify-between gap-3 animate-in slide-in-from-top-4 duration-300">

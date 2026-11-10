@@ -19,7 +19,7 @@ export default function AdminB1Tabs({
   ];
 
   return (
-    <div className="w-full border-b border-slate-200 mb-8 sm:mb-10 font-['Montserrat',sans-serif] overflow-x-auto no-scrollbar">
+    <div className="w-full border-b border-slate-200 mb-8 sm:mb-10 font-sans overflow-x-auto no-scrollbar">
       <nav className="flex items-center gap-8 sm:gap-12 min-w-max pb-0" aria-label="Tabs Peminatan B1">
         {tabs.map((tab) => {
           const isActive = activeTab === tab;
