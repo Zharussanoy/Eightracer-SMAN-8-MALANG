@@ -129,7 +129,7 @@ export default function AdminB1Page() {
       {/* Simple Footer */}
       <footer className="mt-auto border-t border-[#F5F5F5] py-6 text-center text-xs text-[#737373] bg-white">
         <p>
-          &copy; {new Date().getFullYear()} Eightracer SMAN 8 Malang &bull; Kelompok B1 (Peminatan &amp; Profil Siswa)
+          &copy; 2026 Eightracer SMAN 8 Malang &bull; Kelompok B1 (Peminatan &amp; Profil Siswa)
         </p>
       </footer>
     </div>

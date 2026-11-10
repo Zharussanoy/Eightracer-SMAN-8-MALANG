@@ -17,8 +17,8 @@ export default function Navbar() {
   const isHome = pathname === "/";
   const isTeam = pathname === "/tim-pengembang";
   const isProfile = pathname === "/profile";
-  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
-  if (isAdmin) return null;
+  const isB1Page = pathname === "/admin/b-1" || pathname.startsWith("/admin/b-1/");
+  if (isB1Page) return null;
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-purple-100 transition-all">

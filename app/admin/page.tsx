@@ -2,7 +2,7 @@
 
 import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import AdminB1Page from "@/components/admin/b-1/AdminB1Page";
+import LandingContent from "@/components/shared/LandingContent";
 
 function AdminLandingWrapper() {
   const router = useRouter();
@@ -17,8 +17,8 @@ function AdminLandingWrapper() {
     }
   }, [searchParams, router]);
 
-  // Render B1 Admin Page for group B1 implementation
-  return <AdminB1Page />;
+  // Tampilkan landing page utama
+  return <LandingContent />;
 }
 
 export default function AdminPage() {
