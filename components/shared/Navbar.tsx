@@ -1,22 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Menu, X, ArrowUpRight } from "lucide-react";
+import { ChevronDown, Menu, X, ArrowUpRight, User, LogOut } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   const pathname = usePathname();
-  const { isLoggedIn, currentUser, getDisplayRole } = useUser();
-  const displayRole = getDisplayRole();
+  const { isLoggedIn, currentUser, logout } = useUser();
 
   const isHome = pathname === "/";
   const isTeam = pathname === "/tim-pengembang";
   const isProfile = pathname === "/profile";
+
+  // Menutup dropdown profile saat klik di luar area
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setProfileDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Fungsi pembantu untuk mengambil inisial nama
+  const getInitials = (name: string) => {
+    if (!name) return "U";
+    return name.charAt(0).toUpperCase();
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-purple-100 transition-all">
@@ -45,16 +64,13 @@ export default function Navbar() {
 
           {/* Navigasi Utama: Beranda, Tentang Kami, Layanan, Tim Pengembang */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
-            {/* 1. Beranda */}
             <Link
               href="/"
-              className={`transition-colors ${isHome ? "text-[#5F089E] font-semibold" : "hover:text-[#5F089E]"
-                }`}
+              className={`transition-colors ${isHome ? "text-[#5F089E] font-semibold" : "hover:text-[#5F089E]"}`}
             >
               Beranda
             </Link>
 
-            {/* 2. Tentang Kami */}
             <Link
               href={isHome ? "#tentang" : "/#tentang"}
               className="hover:text-[#5F089E] transition-colors"
@@ -62,7 +78,6 @@ export default function Navbar() {
               Tentang Kami
             </Link>
 
-            {/* 3. Layanan */}
             <div
               className="relative"
               onMouseEnter={() => setServicesDropdownOpen(true)}
@@ -75,8 +90,7 @@ export default function Navbar() {
               >
                 <span>Layanan</span>
                 <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-200 ${servicesDropdownOpen ? "rotate-180 text-[#5F089E]" : ""
-                    }`}
+                  className={`w-4 h-4 transition-transform duration-200 ${servicesDropdownOpen ? "rotate-180 text-[#5F089E]" : ""}`}
                 />
               </Link>
 
@@ -120,50 +134,72 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* 4. Tim Pengembang */}
             <Link
               href="/tim-pengembang"
-              className={`transition-colors ${isTeam ? "text-[#5F089E] font-semibold" : "hover:text-[#5F089E]"
-                }`}
+              className={`transition-colors ${isTeam ? "text-[#5F089E] font-semibold" : "hover:text-[#5F089E]"}`}
             >
               Tim Pengembang
             </Link>
           </nav>
 
-          {/* Sudut Kanan Atas: Login jika belum login, Profile jika sudah login */}
+          {/* Sudut Kanan Atas: Hanya Menampilkan Foto/Inisial Saja */}
           {isLoggedIn ? (
-            <div className="hidden md:flex items-center gap-3">
-              <Link
-                href="/profile"
-                className={`flex items-center gap-2.5 p-1.5 pl-3 pr-2 rounded-full border transition-all cursor-pointer group ${isProfile
-                  ? "bg-purple-100/70 border-purple-300 ring-2 ring-purple-500/20 shadow-xs"
-                  : "bg-slate-50/80 hover:bg-purple-50/70 border-slate-200/90 hover:border-purple-300"
+            <div className="hidden md:flex items-center gap-3 relative" ref={dropdownRef}>
+              <button
+                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                className={`relative w-10 h-10 rounded-full border-2 transition-all cursor-pointer overflow-hidden flex items-center justify-center bg-purple-50 ${isProfile || profileDropdownOpen
+                  ? "border-[#5F089E] shadow-sm ring-2 ring-purple-500/20"
+                  : "border-slate-200 hover:border-purple-300"
                   }`}
-                title="Buka Halaman Profil Pengguna"
+                aria-expanded={profileDropdownOpen}
+                title={currentUser.name}
               >
-                {/* Badge Role */}
-                <span
-                  className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border flex items-center gap-1.5 ${displayRole.badgeColor}`}
-                >
-                  <span className={`w-1.5 h-1.5 rounded-full ${displayRole.dotColor}`} />
-                  {displayRole.label}
-                </span>
-
-                {/* Nama Pengguna */}
-                <span className="text-xs font-bold text-slate-800 max-w-[120px] truncate group-hover:text-[#5F089E] transition-colors">
-                  {currentUser.name.split(" ")[0]}
-                </span>
-
-                {/* Avatar Pengguna */}
-                <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white shadow-2xs relative shrink-0">
+                {/* Tampilkan Foto, jika tidak ada/error tampilkan Inisial */}
+                {currentUser.avatar ? (
                   <Image
                     src={currentUser.avatar}
                     alt={currentUser.name}
                     fill
                     className="object-cover"
                   />
+                ) : (
+                  <span className="text-sm font-bold text-[#5F089E]">
+                    {getInitials(currentUser.name)}
+                  </span>
+                )}
+              </button>
+
+              {/* Dropdown Menu Profile & Logout */}
+              {profileDropdownOpen && (
+                <div className="absolute right-0 top-full mt-2 w-56 pt-1 animate-in fade-in slide-in-from-top-2 duration-150 z-50">
+                  <div className="bg-white rounded-2xl shadow-xl shadow-purple-950/10 border border-purple-100 p-2 space-y-1">
+                    <div className="px-3 py-2 border-b border-slate-100 mb-1">
+                      <p className="text-xs font-bold text-slate-900 truncate">{currentUser.name}</p>
+                      <p className="text-[11px] text-slate-500 truncate">{currentUser.email || "Akun Terverifikasi"}</p>
+                    </div>
+
+                    <Link
+                      href="/profile"
+                      onClick={() => setProfileDropdownOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-purple-50 text-slate-700 hover:text-[#5F089E] text-xs font-semibold transition-colors"
+                    >
+                      <User className="w-4 h-4 text-purple-600" />
+                      <span>Lihat Profil</span>
+                    </Link>
+
+                    <button
+                      onClick={() => {
+                        setProfileDropdownOpen(false);
+                        if (logout) logout();
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-red-50 text-red-600 text-xs font-semibold transition-colors text-left"
+                    >
+                      <LogOut className="w-4 h-4 text-red-500" />
+                      <span>Log Out</span>
+                    </button>
+                  </div>
                 </div>
-              </Link>
+              )}
             </div>
           ) : (
             <div className="hidden md:flex items-center gap-4">
@@ -193,49 +229,64 @@ export default function Navbar() {
         </div>
       </div>
 
+      {/* Menu Mobile */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-purple-100 bg-white px-4 pt-4 pb-6 space-y-4 animate-in slide-in-from-top-2 duration-150">
           {isLoggedIn && (
-            <Link
-              href="/profile"
-              onClick={() => setMobileMenuOpen(false)}
-              className="p-3 bg-purple-50/70 hover:bg-purple-100/70 rounded-2xl border border-purple-100 flex items-center justify-between transition-colors cursor-pointer"
-            >
+            <div className="p-3 bg-purple-50/70 rounded-2xl border border-purple-100 space-y-3">
               <div className="flex items-center gap-3">
-                <div className="relative w-10 h-10 rounded-full overflow-hidden border border-purple-300 shrink-0">
-                  <Image
-                    src={currentUser.avatar}
-                    alt={currentUser.name}
-                    fill
-                    className="object-cover"
-                  />
+                <div className="relative w-10 h-10 rounded-full overflow-hidden border border-purple-300 shrink-0 flex items-center justify-center bg-white">
+                  {currentUser.avatar ? (
+                    <Image
+                      src={currentUser.avatar}
+                      alt={currentUser.name}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <span className="text-sm font-bold text-[#5F089E]">
+                      {getInitials(currentUser.name)}
+                    </span>
+                  )}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-bold text-slate-900 truncate">
+                  <p className="text-sm font-bold text-slate-900 truncate">
                     {currentUser.name}
                   </p>
-                  <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-md border inline-block mt-0.5 ${displayRole.badgeColor}`}
-                  >
-                    {displayRole.label}
-                  </span>
+                  <p className="text-xs text-slate-500 truncate">
+                    {currentUser.email || "Akun Terverifikasi"}
+                  </p>
                 </div>
               </div>
 
-              <span className="text-xs font-bold text-[#5F089E] flex items-center gap-1">
-                Profil
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </span>
-            </Link>
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-purple-200/60">
+                <Link
+                  href="/profile"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-1.5 py-2 px-3 bg-white rounded-xl border border-purple-200 text-xs font-bold text-[#5F089E] shadow-2xs hover:bg-purple-50 transition-colors"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  Profil
+                </Link>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    if (logout) logout();
+                  }}
+                  className="flex items-center justify-center gap-1.5 py-2 px-3 bg-white rounded-xl border border-red-200 text-xs font-bold text-red-600 shadow-2xs hover:bg-red-50 transition-colors"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Log Out
+                </button>
+              </div>
+            </div>
           )}
 
           <div className="flex flex-col space-y-2 font-medium text-slate-700">
             <Link
               href="/"
               onClick={() => setMobileMenuOpen(false)}
-              className={`px-3 py-2 rounded-lg transition-colors ${isHome
-                ? "text-purple-700 font-semibold bg-purple-50"
-                : "hover:bg-purple-50"
+              className={`px-3 py-2 rounded-lg transition-colors ${isHome ? "text-purple-700 font-semibold bg-purple-50" : "hover:bg-purple-50"
                 }`}
             >
               Beranda
@@ -257,9 +308,7 @@ export default function Navbar() {
             <Link
               href="/tim-pengembang"
               onClick={() => setMobileMenuOpen(false)}
-              className={`px-3 py-2 rounded-lg transition-colors ${isTeam
-                ? "text-purple-700 font-semibold bg-purple-50"
-                : "hover:bg-purple-50"
+              className={`px-3 py-2 rounded-lg transition-colors ${isTeam ? "text-purple-700 font-semibold bg-purple-50" : "hover:bg-purple-50"
                 }`}
             >
               Tim Pengembang
