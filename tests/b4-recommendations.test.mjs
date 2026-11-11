@@ -138,3 +138,10 @@ test("published student projection uses the school-edited reason and suggested t
   beasiswa_id:4,informasi:info,skor_kecocokan:100,memenuhi_syarat:true,checklist:evaluation.checklist,alasan:"Alasan revisi sekolah.",waktu_disarankan:"Januari 2027",persiapan:[] }]}]});
  assert.equal(result[0].reason,"Alasan revisi sekolah.");assert.equal(result[0].timing,"Januari 2027");
 });
+
+test("local catalog preview never invents a personal score or publication",()=>{
+ const result=harness()("lib/b4-recommendation-data.ts").parseStudentRecommendations({preview:true,data:[],catalog_preview:[{id:4,...info}]});
+ assert.equal(result.length,1);assert.equal(result[0].preview,true);
+ assert.equal(result[0].batchId,0);assert.equal(result[0].score,null);
+ assert.match(result[0].reason,/Belum dinilai/);assert.equal(result[0].timing,null);
+});

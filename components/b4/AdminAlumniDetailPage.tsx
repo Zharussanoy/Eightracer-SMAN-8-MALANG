@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { Eye, EyeOff, Pencil, Trash2, Upload, X } from "lucide-react";
+import { Pencil, Trash2, Upload, X } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { ApiError } from "@/lib/eightracer-api";
 import { archiveAlumniProgress, commitAlumniProgress, downloadProgressTemplate, getAlumniDetail, previewAlumniProgress, saveAlumniProgress, type ImportPreview } from "@/lib/b4-alumni-api";
@@ -124,14 +124,14 @@ export default function AdminAlumniDetailPage({ id }: { id?: string }) {
           <form ref={editor} onSubmit={save}>
             <div className="bc4-grid2 bc4-progressFields">
               <label className="bc4-field">Periode *<input required disabled={saving || !!form.id} maxLength={50} placeholder="Contoh format: Ganjil 2026/2027" value={form.period} onChange={(event) => field("period", event.target.value)} /></label>
-              <label className="bc4-field">Semester *<select required disabled={saving} value={form.semester} onChange={(event) => field("semester", event.target.value)}><option value="">Pilih semester</option>{Array.from({ length: 40 }, (_, index) => index + 1).map((n) => <option key={n} value={n}>{n}</option>)}</select></label>
+              <label className="bc4-field">Semester *<input required disabled={saving} type="number" min="1" max="40" step="1" placeholder="Isi semester saat ini" value={form.semester} onChange={(event) => field("semester", event.target.value)} /></label>
               <label className="bc4-field">Status Pendidikan *<select required disabled={saving} value={form.status} onChange={(event) => field("status", event.target.value)}><option value="">Pilih status</option>{Object.entries(educationStatusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
               <label className="bc4-field">Tanggal Pembaruan *<input required disabled={saving} type="date" value={form.date} onChange={(event) => field("date", event.target.value)} /></label>
               <fieldset className="bc4-field" disabled={saving}><legend>Status Penerima KIP-K</legend><div className="bc4-radios">{[["", "-"], ["1", "Penerima"], ["0", "Bukan Penerima"]].map(([value, label]) => <label key={value}><input type="radio" name="kipk" checked={form.kipk === value} onChange={() => field("kipk", value)} />{label}</label>)}</div></fieldset>
               <label className="bc4-field">IP-Kumulatif<input disabled={saving} type="number" min="0" max="4" step="0.01" value={form.gpa} placeholder={missing} onChange={(event) => field("gpa", event.target.value)} /></label>
-              <label className="bc4-field">Beasiswa yang diterima (jika ada)<select multiple disabled={saving || !catalogs.size} value={form.awardIds} onChange={(event) => field("awardIds", [...event.target.selectedOptions].map((option) => option.value))}>{!catalogs.size && <option disabled value="">-</option>}{[...catalogs].map(([value, name]) => <option key={value} value={value}>{name}</option>)}</select><small>Gunakan Ctrl untuk memilih lebih dari satu atau melepas pilihan.</small></label>
+              <fieldset className="bc4-field" disabled={saving || !catalogs.size}><legend>Beasiswa yang diterima (jika ada)</legend><div className="bc4-progressAwards">{[...catalogs].map(([value,name])=><label key={value}><input type="checkbox" checked={form.awardIds.includes(String(value))} onChange={e=>field("awardIds",e.target.checked?[...form.awardIds,String(value)]:form.awardIds.filter(id=>id!==String(value)))}/><span>{name}</span></label>)}{!catalogs.size&&<span>-</span>}</div><small>Centang beasiswa yang diterima; boleh lebih dari satu.</small></fieldset>
               {(["ipi", "ukt"] as const).map((key) => <div className="bc4-field" key={key}><label htmlFor={`bc4-${key}`}>{key === "ukt" ? "UKT / Semester" : "IPI (Khusus Mandiri)"}</label>
-                <div className="bc4-moneyField"><span title="Publikasi nominal mengikuti izin terpisah">{selected?.publishFinancials ? <Eye size={19} /> : <EyeOff size={19} />}</span><input disabled={saving || (key === "ipi" && !mandiri)} id={`bc4-${key}`} type="number" min="0" step="0.01" value={form[key]} placeholder={missing} onChange={(event) => field(key, event.target.value)} /></div>
+                <div className="bc4-moneyField"><span aria-hidden="true">Rp</span><input disabled={saving || (key === "ipi" && !mandiri)} id={`bc4-${key}`} type="number" min="0" step="0.01" value={form[key]} placeholder={missing} onChange={(event) => field(key, event.target.value)} /></div>
               </div>)}
             </div>
             {formError && <p className="bc4-status" role="alert">{formError}</p>}

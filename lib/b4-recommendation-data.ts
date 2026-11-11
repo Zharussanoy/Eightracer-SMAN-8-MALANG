@@ -21,10 +21,20 @@ export function parseRecommendationDraft(payload:unknown):RecommendationDraft{
   candidates:preview.candidates.map((c,i)=>({...c,detailId:details[i].id===undefined?null:id(details[i].id),hidden:details[i].is_hidden===true,reason:text(details[i].alasan_rekomendasi),timing:text(details[i].waktu_disarankan),preparations:texts(details[i].persiapan??[])}))};
 }
 export interface StudentRecommendation extends RecommendationCandidate{
+ preview?:boolean;
  key:string;batchId:number;scholarshipId:number;reason:string|null;timing:string|null;preparations:string[];registrationUrl:string|null;registrationStatus:string|null;
 }
 export function parseStudentRecommendations(payload:unknown):StudentRecommendation[]{
- const root=obj(payload);if(!Array.isArray(root.data))throw Error("Daftar rekomendasi tidak valid.");
+ const root=obj(payload);
+ if(root.preview===true&&Array.isArray(root.catalog_preview)){
+  return root.catalog_preview.map(raw=>{
+   const catalog=obj(raw),scholarshipId=id(catalog.id);
+   const candidate=parseRecommendationPreview({data:{target_jenjang:catalog.jenjang==="SMA"?"SMA":"Kuliah",kandidat:[{
+    beasiswa_id:scholarshipId,beasiswa:catalog,evaluasi:{skor:null,lengkap:false,memenuhi:null,checklist:[],pemeringkatan_ml:{}}}]}}).candidates[0];
+   return {...candidate,preview:true,key:"catalog-"+scholarshipId,batchId:0,scholarshipId,reason:"Informasi katalog sekolah. Belum dinilai sebagai rekomendasi personal.",timing:null,preparations:[],registrationUrl:null,registrationStatus:null};
+  });
+ }
+ if(!Array.isArray(root.data))throw Error("Daftar rekomendasi tidak valid.");
  const seenLevels=new Set<string>();const result:StudentRecommendation[]=[];
  for(const raw of root.data){
   const batch=obj(raw),batchId=id(batch.id);if(!Array.isArray(batch.beasiswa))throw Error("Detail rekomendasi tidak valid.");

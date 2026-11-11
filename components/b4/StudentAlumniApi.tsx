@@ -11,8 +11,8 @@ import NumberPagination from "./NumberPagination";
 const display = (value: string | number | null) => value === null ? "Belum tersedia" : String(value);
 const money = (value: number | null) => value === null ? "Tidak ditampilkan atau belum tersedia" : `Rp${value.toLocaleString("id-ID")}`;
 function ProfileIcon({ name }: { name: string }) { return <span className="bc4-avatar" aria-label={`Profil ${name}`}><UserRound size={48} aria-hidden="true" /></span>; }
-function Frame({ children, detail = false }: { children: ReactNode; detail?: boolean }) {
-  return <B4Shell student active="alumni" showDemoProfile={false} dataNote="" title="Jejak Alumni" description="Telusuri perjalanan pendidikan alumni dan temukan inspirasi dari pengalaman mereka." parent={detail ? { label: "Daftar Alumni", href: "/siswa/jejak-alumni" } : undefined}>{children}</B4Shell>;
+function Frame({ children, detail = false, preview=false }: { children: ReactNode; detail?: boolean; preview?:boolean }) {
+  return <B4Shell student active="alumni" showDemoProfile={false} dataNote={preview?"Pratinjau lokal data sekolah; izin publikasi belum diubah.":""} title="Jejak Alumni" description="Telusuri perjalanan pendidikan alumni dan temukan inspirasi dari pengalaman mereka." parent={detail ? { label: "Daftar Alumni", href: "/siswa/jejak-alumni" } : undefined}>{children}</B4Shell>;
 }
 function useAlumni<T>(path: string) {
   const { currentUser, authStatus, refreshSession } = useUser();
@@ -56,7 +56,7 @@ export default function StudentAlumniApi() {
   const data = result.data;
   const rows = data?.data.filter((item) => item.name.toLocaleLowerCase("id-ID").includes(search.toLocaleLowerCase("id-ID")) && (Object.keys(filters) as (keyof typeof filters)[]).every((key) => !filters[key] || filters[key] === item[key])) ?? [];
   const changePage = (value: number) => { setPage(value); setSearch(""); setFilters({ university: "", program: "", admission: "" }); };
-  return <Frame><div className="bc4-studentAlumniLive">
+  return <Frame preview={data?.preview}><div className="bc4-studentAlumniLive">
     <div className="b4-filters"><label className="b4-searchField"><span className="b4-srOnly">Cari nama alumni pada halaman ini</span><input placeholder="Cari nama alumni" maxLength={100} value={search} onChange={(event) => setSearch(event.target.value)} /></label>{([['university', 'Perguruan Tinggi'], ['program', 'Program Studi'], ['admission', 'Jalur Masuk']] as const).map(([key, label]) => <label className="b4-selectField" key={key}><span className="b4-srOnly">{label}</span><select aria-label={label} value={filters[key]} onChange={(event) => setFilters({ ...filters, [key]: event.target.value })}><option value="">{label}</option>{[...new Set(data?.data.map((item) => item[key]).filter((value): value is string => !!value))].map((value) => <option key={value}>{value}</option>)}</select></label>)}</div>
     {data && data.lastPage > 1 && <p className="b4-chartFootnote">Pencarian dan filter berlaku pada halaman yang sedang dibuka.</p>}
     {!data ? <Notice error={result.error} retry={result.retry} /> : <>
@@ -85,7 +85,7 @@ function Detail({ id }: { id: string }) {
   if (!data) return <Frame detail><Notice error={result.error} retry={result.retry} /></Frame>;
   const alumni = data.alumni;
   const semesters = data.events.flatMap((event) => event.semester === null ? [] : [event.semester]);
-  return <Frame detail><div className="bc4-studentAlumniLive">
+  return <Frame detail preview={data?.preview}><div className="bc4-studentAlumniLive">
     <div className="bc4-profileRow"><div className="bc4-profile"><ProfileIcon name={alumni.name} /><div><h2>{alumni.name}</h2><p>{display(alumni.university)} · {display(alumni.program)}</p>{alumni.admission && <span className="bc4-tag">{alumni.admission}</span>}</div></div><div className="bc4-current"><h3>Ringkasan Publikasi</h3><dl className="bc4-metrics">{[["Semester tercatat", semesters.length ? Math.max(...semesters) : null], ["Masuk PT", alumni.entryYear], ["Lulus SMA", alumni.graduationYear]].map(([label, value]) => <div key={String(label)}><dt>{label}</dt><dd>{display(value)}</dd></div>)}</dl></div></div>
     <div className="bc4-toggleRow" role="group" aria-label="Informasi alumni">{[["admission", "Data Masuk PT"], ["progress", "Progress Kuliah"]].map(([value, label]) => <button className={`bc4-button ${tab === value ? "bc4-primary" : ""}`} key={value} aria-pressed={tab === value} onClick={() => setTab(value)}>{label}</button>)}</div>
     {tab === "admission" ? <>

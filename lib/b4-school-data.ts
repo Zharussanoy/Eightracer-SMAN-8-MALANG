@@ -39,6 +39,7 @@ export function parseSchoolAnalytics(payload: unknown): AnalyticsData {
     cohorts: rows(source.kip_by_cohort).map((v) => ({ label: label(v.label), count: n(v.count) })),
     measuredAlumni: n(finance.measured_alumni), ukt: metric(finance.ukt), ipk: metric(finance.ipk),
     ranges: rows(finance.ranges).map((v) => ({ university: label(v.university), program: label(v.program), count: n(v.count), stats: metric(v.stats) })),
+    ipkDistribution: rows(finance.ipk_distribution ?? []).map(v => ({ label: label(v.label), count: n(v.count) })),
     ipkTrend: rows(finance.ipk_trend).map((v) => ({ label: label(v.label), stats: metric(v.stats) })),
     periods: rows(source.periods).map((v) => ({ label: label(v.label), count: n(v.count), kipk: n(v.kipk),
       scholarships: rows(v.scholarships).map((s) => ({ label: label(s.label), count: n(s.count), processing: n(s.processing), accepted: n(s.accepted), rejected: n(s.rejected) })) })),

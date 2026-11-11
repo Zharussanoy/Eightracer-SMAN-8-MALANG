@@ -13,6 +13,7 @@ export interface AnalyticsData {
   ukt: AnalyticStats;
   ipk: AnalyticStats;
   ranges: { university: string; program: string; count: number | null; stats: AnalyticStats }[];
+  ipkDistribution?: { label: string; count: number }[];
   ipkTrend: { label: string; stats: AnalyticStats }[];
 }
 function row(value: unknown): Row {

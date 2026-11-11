@@ -10,6 +10,7 @@ import { acceptedAwards, timelineMoney, type AlumniTimelineDetail } from "@/lib/
 import { educationStatus } from "@/lib/b4-progress";
 import B4Shell, { Avatar } from "./B4Shell";
 import AlumniAcademicTimeline from "./AlumniAcademicTimeline";
+import NumberPagination from "./NumberPagination";
 
 type PageResult = { key: string; data?: AlumniPage; error?: string };
 type DetailResult = { id: number; data?: AlumniTimelineDetail; error?: string };
@@ -19,13 +20,13 @@ export default function AdminTimelinePage() {
   const { authStatus, currentUser, refreshSession } = useUser();
   const allowed = authStatus === "authenticated" && currentUser.schoolStaff === true;
   const [query, setQuery] = useState(""), [university, setUniversity] = useState(""), [program, setProgram] = useState(""), [admission, setAdmission] = useState("");
-  const [page, setPage] = useState(1), [retry, setRetry] = useState(0), [selectedId, setSelectedId] = useState<number | null>(null);
+  const [page, setPage] = useState(1), [retry, setRetry] = useState(0);
   const [result, setResult] = useState<PageResult | null>(null), [detail, setDetail] = useState<DetailResult | null>(null);
   const [filters, setFilters] = useState<AlumniFilters>({ universities: [], studyPrograms: [], admissionPaths: [] });
   const key = JSON.stringify([query, university, program, admission, page, retry]);
   const current = allowed && result?.key === key ? result : null;
   const rows = current?.data?.data ?? [];
-  const activeId = rows.find((row) => row.id === selectedId)?.id ?? rows[0]?.id;
+  const activeId = rows[0]?.id;
   const currentDetail = allowed && activeId === detail?.id ? detail : null;
   const alumni = currentDetail?.data;
   const hasFilters = Boolean(query || university || program || admission);
@@ -78,10 +79,6 @@ export default function AdminTimelinePage() {
         <Link className="bc4-button" href="/admin/alumni-perguruan-tinggi">Buka Alumni di PT</Link>
         {hasFilters && <button className="bc4-button" type="button" onClick={() => { setQuery(""); setUniversity(""); setProgram(""); setAdmission(""); setPage(1); }}>Reset Filter</button>}
       </div> : <>
-        <label className="bc4-field" style={{ marginBottom: 20 }}>Pilih Alumni<select aria-label="Pilih alumni untuk timeline" value={activeId ?? ""} onChange={(event) => setSelectedId(Number(event.target.value))}>
-          {rows.map((row) => <option key={row.id} value={row.id}>{row.name} · {row.university} · {row.studyProgram} · {row.admissionPath ?? "-"}</option>)}
-        </select></label>
-        {current.data.lastPage > 1 && <div className="bc4-actions" style={{ marginBottom: 20 }}><button className="bc4-button" type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>Sebelumnya</button><span>Halaman {current.data.currentPage} dari {current.data.lastPage}</span><button className="bc4-button" type="button" disabled={page >= current.data.lastPage} onClick={() => setPage((value) => value + 1)}>Berikutnya</button></div>}
         {currentDetail?.error ? <div className="bc4-empty" role="alert">{currentDetail.error}<p><button className="bc4-button" type="button" onClick={refresh}>Muat Ulang</button></p></div>
           : !alumni ? <div className="bc4-empty" role="status">Memuat riwayat alumni…</div> : <>
             <div className="bc4-profileRow"><div className="bc4-profile"><Avatar name={alumni.name} example={false} /><div><h2>{alumni.name}</h2><p>{alumni.university} · {alumni.studyProgram}</p><p>NISN {alumni.hasNisn ? "••••••••••" : "-"}</p><p>{educationStatus(latest?.status ?? null)}</p></div></div>
@@ -89,6 +86,7 @@ export default function AdminTimelinePage() {
                 ["Semester", latest?.semester ?? "-"], ["IPK", latest?.gpa ?? "-"], ["Beasiswa", latest ? acceptedAwards(latest) : "-"], ["Status KIP-K", latest?.kipk === true ? "Ya" : latest?.kipk === false ? "Tidak" : "-"], ["UKT/Semester", timelineMoney(latest?.ukt ?? null)],
               ].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></div></div>
             <AlumniAcademicTimeline key={alumni.id} alumni={alumni} />
+            {current.data.lastPage>1&&<div className="bc4-timelinePagination"><NumberPagination current={page} last={current.data.lastPage} onChange={setPage}/></div>}
           </>}
       </>}
   </B4Shell>;

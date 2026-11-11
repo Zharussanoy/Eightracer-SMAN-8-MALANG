@@ -45,3 +45,18 @@
 .bc4-paginationEllipsis { color: #141414; font-size: 16px; font-weight: 600; }
 .bc4-catalogActions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
 .bc4-catalogActions > .bc4-button { min-height: 47px; white-space: nowrap; }
+
+/* Use the existing progress form layout with native, readable controls. */
+.bc4-progressAwards { display:grid; gap:10px; max-height:180px; overflow-y:auto; padding:14px; border:1px solid var(--b4-border); border-radius:12px; background:white; }
+.bc4-progressAwards > label { display:flex; align-items:center; gap:10px; cursor:pointer; font-size:14px; }
+.bc4-progressAwards input[type=checkbox] { width:17px!important; min-width:17px; min-height:17px; height:17px; margin:0; padding:0; accent-color:var(--b4-purple); }
+.bc4-moneyField { display:flex; align-items:center; overflow:hidden; border:1px solid var(--b4-border); border-radius:12px; background:white; }
+.bc4-moneyField > span { position:static; display:flex; align-items:center; padding:0 0 0 16px; color:#655a70; flex:0 0 auto; }
+.bc4-moneyField > input { min-width:0; flex:1; width:100%; border:0; border-radius:0; padding-left:12px; }
+.bc4-moneyField:focus-within { outline:2px solid #b57ce2; outline-offset:2px; }
+.bc4-moneyField:has(input:disabled) { background:#f3f0f6; }
+
+
+.bc4-timelinePagination { display:flex; justify-content:flex-end; margin-top:24px; }
+.bc4-profileRow .bc4-profile h2 { font-size:clamp(22px,2vw,30px); overflow-wrap:anywhere; }
+.bc4-profileRow .bc4-profile p { overflow-wrap:anywhere; }

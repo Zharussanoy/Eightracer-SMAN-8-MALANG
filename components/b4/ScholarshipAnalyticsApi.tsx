@@ -1,20 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { BookOpen, Landmark, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { getSchoolScholarships } from "@/lib/b4-school-data";
-import type { AnalyticsData, AnalyticStats } from "@/lib/b4-analytics";
+import type { AnalyticsData } from "@/lib/b4-analytics";
 import B4Shell from "./B4Shell";
 import { AnalyticsBars, AnalyticsDistribution } from "./AnalyticsCharts";
 
 const known = (value: number | null) => value === null ? "Belum tercatat" : value.toLocaleString("id-ID", { maximumFractionDigits: 2 });
 const money = (value: number | null) => value === null ? "Belum tercatat" : `Rp${value.toLocaleString("id-ID", { maximumFractionDigits: 0 })}`;
-function Stats({ value, currency = false, metric }: { value: AnalyticStats; currency?: boolean; metric?: string }) {
-  const format = currency ? money : known;
-  return <dl className="bc4-infoList"><dt>Data diketahui</dt><dd data-analytics-stat={metric && `${metric}.known`}>{known(value.known)}</dd><dt>Belum tercatat</dt><dd data-analytics-stat={metric && `${metric}.unknown`}>{known(value.unknown)}</dd><dt>Minimum</dt><dd data-analytics-stat={metric && `${metric}.minimum`}>{format(value.minimum)}</dd><dt>Maksimum</dt><dd data-analytics-stat={metric && `${metric}.maximum`}>{format(value.maximum)}</dd><dt>Rata-rata</dt><dd data-analytics-stat={metric && `${metric}.mean`}>{format(value.mean)}</dd></dl>;
-}
 function ScholarshipFilter({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   const dropdown = useRef<HTMLDetailsElement>(null);
   const searchInput = useRef<HTMLInputElement>(null);
@@ -63,6 +59,7 @@ export default function ScholarshipAnalyticsApi() {
   const [retry, setRetry] = useState(0);
   const [more, setMore] = useState(false);
   const [mode, setMode] = useState("university");
+  const [showAllTuition,setShowAllTuition]=useState(false);
   const pdfLock = useRef(false);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [pdfError, setPdfError] = useState("");
@@ -108,6 +105,9 @@ export default function ScholarshipAnalyticsApi() {
   }, [search, key, invalidYear, currentUser.schoolStaff, refreshSession, router]);
   const current = result?.key === key ? result : null;
   const data = current?.data;
+  const measuredRanges=(data?.ranges??[]).filter(item=>item.stats.minimum!==null&&item.stats.maximum!==null);
+  const rangeMax=Math.max(1,...measuredRanges.map(item=>item.stats.maximum??0));
+  const visibleRanges=showAllTuition?measuredRanges:measuredRanges.slice(0,5);
   return <B4Shell title="Analitik Beasiswa & Ringkasan Pola Per-Angkatan" active="analytics" description="Lihat perjalanan pendidikan dan perkembangan kuliah alumni dari masa sekolah hingga kondisi terkini." dataNote="">
     {!currentUser.schoolStaff ? <p role="alert">Akun ini belum memiliki izin membaca analitik sekolah.</p> : <div className="b4-analyticsPage bc4-analyticsLive">
       <div className="b4-analyticsFilters" aria-label="Filter analitik beasiswa">
@@ -127,12 +127,13 @@ export default function ScholarshipAnalyticsApi() {
           <article className="b4-analyticsCard"><h3>Penerima KIP-K / Angkatan</h3><AnalyticsBars label="Penerima KIP-K menurut angkatan" data={data.cohorts} /></article>
           <article className="b4-analyticsCard b4-scholarshipDistribution"><h3>Distribusi Beasiswa</h3><AnalyticsDistribution data={more ? data.distribution : data.distribution.slice(0, 5)} /><p className="b4-chartFootnote">Jumlah per program tidak dijumlahkan menjadi penerima unik.</p>{data.distribution.length > 5 && <button className="bc4-button" onClick={() => setMore(!more)}>{more ? "Lihat lebih sedikit" : "Lihat lainnya"}</button>}</article>
         </div></section>
-        <section className="b4-analyticsSection"><h2>Range Uang Kuliah Tunggal<button type="button" className="bc4-button" disabled={pdfBusy} onClick={() => void downloadPdf()}>{pdfBusy ? "Mengunduh…" : "Ekspor PDF"}</button></h2>{pdfError && <p role="alert" className="bc4-status" style={{ padding: "12px 29px" }}>{pdfError}</p>}<div className="b4-analyticsGrid">
-          <article className="b4-analyticsCard"><h3>Ringkasan UKT</h3><Stats value={data.ukt} currency metric="ukt" /></article>
-          <article className="b4-analyticsCard"><h3>IPK Alumni</h3><Stats value={data.ipk} metric="ipk" /></article>
-        </div><div className="b4-analyticsToggle" role="group" aria-label="Urutan rentang UKT" style={{ padding: 20 }}><button disabled={!data.ranges.length} aria-pressed={mode === "university"} onClick={() => setMode("university")}>Perguruan Tinggi</button><button disabled={!data.ranges.length} aria-pressed={mode === "program"} onClick={() => setMode("program")}>Program Studi</button></div><div className="b4-tuitionRows">{data.ranges.length ? data.ranges.map((item, index) => <article className="b4-tuitionRow" key={index}><div className="b4-tuitionIdentity"><strong>{mode === "university" ? item.university : item.program}</strong><span>{mode === "university" ? item.program : item.university} · {known(item.count)} alumni</span></div><div><p>Minimum: {money(item.stats.minimum)}</p><p>Maksimum: {money(item.stats.maximum)}</p><p>Rata-rata: {money(item.stats.mean)}</p></div></article>) : <p className="bc4-empty">Belum ada rentang UKT kampus/program studi yang tercatat.</p>}</div></section>
-        <section className="b4-analyticsSection"><h2>IPK &amp; Keberlanjutan Beasiswa</h2><div className="b4-analyticsGrid"><article className="b4-analyticsCard"><h3>Tren IPK per Periode</h3>{data.ipkTrend.length ? data.ipkTrend.map((item, index) => <div key={index}><h4>{item.label}</h4><Stats value={item.stats} /></div>) : <p className="bc4-empty">Belum ada tren IPK yang tercatat.</p>}</article><article className="b4-analyticsCard"><h3>Keberlanjutan Beasiswa</h3><p className="bc4-empty">Data keberlanjutan berdasarkan rentang IPK belum tersedia dari BE.</p></article></div></section>
-        <section className="b4-analyticsSection"><h2>Tren Beasiswa per Periode</h2><div className="b4-historyStats">{data.periods.length ? data.periods.map((item, index) => <article key={index}><span>{item.label}</span><strong>{known(item.count)} Alumni</strong><small>KIP-K: {known(item.kipk)} alumni</small>{item.scholarships.map((program, index) => <p key={index}>{program.label}: {known(program.count)} alumni · Proses {known(program.processing)} · Diterima {known(program.accepted)} · Ditolak {known(program.rejected)}</p>)}</article>) : <p className="bc4-empty">Belum ada tren beasiswa per periode yang tercatat.</p>}</div></section>
+        <section className="b4-analyticsSection"><header className="b4-analyticsSectionHeading"><h2>Range Uang Kuliah Tunggal</h2><div className="b4-analyticsToggle" role="group" aria-label="Kelompok data UKT"><button type="button" aria-pressed={mode==="university"} className={mode==="university"?"b4-toggleActive":""} onClick={()=>{setMode("university");setShowAllTuition(false);}}><Landmark size={15}/>Perguruan Tinggi</button><button type="button" aria-pressed={mode==="program"} className={mode==="program"?"b4-toggleActive":""} onClick={()=>{setMode("program");setShowAllTuition(false);}}><BookOpen size={15}/>Program Studi</button></div></header>
+          <div className="b4-tuitionRows">{visibleRanges.map((item,index)=><article className="b4-tuitionRow" key={index}><div className="b4-tuitionIdentity"><strong>{mode==="university"?item.university:item.program}</strong><span>{mode==="university"?item.program:item.university} · {known(item.count)} catatan</span></div><div className="b4-tuitionRange"><div className="b4-tuitionMinMax"><span>Min: <strong>{money(item.stats.minimum)}</strong></span><span>Maks: <strong>{money(item.stats.maximum)}</strong></span></div><div className="b4-rangeTrack" role="img" aria-label={"Rentang UKT "+money(item.stats.minimum)+" hingga "+money(item.stats.maximum)}><span className="b4-rangeSelected" style={{left:((item.stats.minimum??0)/rangeMax*100)+"%",width:(((item.stats.maximum??0)-(item.stats.minimum??0))/rangeMax*100)+"%"}}/><i className="b4-rangeDot b4-rangeDotStart" style={{left:((item.stats.minimum??0)/rangeMax*100)+"%"}}/><i className="b4-rangeDot b4-rangeDotEnd" style={{left:((item.stats.maximum??0)/rangeMax*100)+"%"}}/></div><div className="b4-tuitionRangeLabels"><span>UKT terendah</span><small>Rentang {money((item.stats.maximum??0)-(item.stats.minimum??0))}</small><span>UKT tertinggi</span></div></div></article>)}{!visibleRanges.length&&<p className="bc4-empty">Belum ada nominal UKT yang tercatat. Rentang akan tampil setelah progres kuliah dilengkapi.</p>}</div>
+          {measuredRanges.length>5&&<div className="b4-tuitionMore"><button type="button" onClick={()=>setShowAllTuition(v=>!v)}>{showAllTuition?"Lihat lebih sedikit":"Lihat lainnya"}</button></div>}
+          <div className="b4-tuitionMore"><button type="button" className="bc4-button" disabled={pdfBusy} onClick={()=>void downloadPdf()}>{pdfBusy?"Mengunduh…":"Ekspor PDF"}</button>{pdfError&&<p role="alert">{pdfError}</p>}</div>
+        </section>
+        <section className="b4-analyticsSection"><h2>IPK &amp; Keberlanjutan Beasiswa</h2><div className="b4-analyticsGrid"><article className="b4-analyticsCard"><h3>Distribusi IPK Alumni</h3>{data.ipkDistribution?.some(item=>item.count>0)?<AnalyticsBars label="Distribusi IPK alumni dari progres terbaru" data={data.ipkDistribution}/>:<p className="bc4-empty">Belum ada IPK yang tercatat.</p>}</article><article className="b4-analyticsCard"><h3>Keberlanjutan Beasiswa</h3><p className="bc4-empty">Belum ada data keberlanjutan beasiswa yang tercatat.</p></article></div></section>
+        <section className="b4-analyticsSection"><h2>Pola Historis Mendapat Beasiswa</h2><div className="b4-historyStats">{data.periods.length ? data.periods.map((item, index) => <article key={index}><span>{item.label}</span><strong>{known(item.count)} Alumni</strong><small>KIP-K: {known(item.kipk)} alumni</small>{item.scholarships.map((program, index) => <p key={index}>{program.label}: {known(program.count)} alumni · Proses {known(program.processing)} · Diterima {known(program.accepted)} · Ditolak {known(program.rejected)}</p>)}</article>) : <p className="bc4-empty">Belum ada tren beasiswa per periode yang tercatat.</p>}</div></section>
         <p className="b4-chartFootnote">Snapshot UKT/IPK: {known(data.measuredAlumni)} alumni. Data belum tercatat tidak dianggap nol. {data.notes?.join(" ")}{data.asOf && ` Data per ${data.asOf}.`}</p>
       </>}
     </div>}
