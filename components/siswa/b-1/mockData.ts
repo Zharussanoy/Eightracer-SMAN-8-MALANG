@@ -8,22 +8,24 @@ export const SISWA_B1_PROFILE = {
   nama: "Amalia Mayasari",
   nisn: "012345678",
   kelas: "X-3",
-  sapaan: "Selamat datang di portal loe",
+  sapaan: "Selamat datang di portal rekomendasi mapel pilihan",
   targetProdiUtama: "Teknik Informatika / Sains Data",
   targetKampusUtama: "Institut Teknologi Bandung & Universitas Brawijaya",
   riasecDominan: "Investigative - Enterprising",
   kecerdasanMajemuk: "Logis-Matematis & Verbal-Linguistik",
   rataRataRapor: 90.8,
   suratRekomendasi: {
-    nomorSurat: "421.3/108/SMAN8.BK/X/2026",
-    tanggalTerbit: "26 Oktober 2026",
-    pengirim: "Dra. Endang Sulastri (Koord. BK)",
+    nomorSurat: "421.3/102/SMAN8/2026",
+    tanggalTerbit: "12 Mei 2026",
+    pengirim: "Dra. Endang Sulastri",
+    jabatanPengirim: "KOORDINATOR BIMBINGAN KONSELING",
     nipPengirim: "196908151994122003",
     pembuka:
-      "Berdasarkan hasil asesmen peminatan komprehensif yang meliputi rekam jejak capaian akademik rapor Semester 1–2, profil psikometrik RIASEC, serta kecerdasan majemuk (Multiple Intelligences), Tim Bimbingan dan Konseling SMAN 8 Malang memberikan rekomendasi mata pelajaran pilihan Fase F kepada peserta didik berikut:",
+      "Berdasarkan hasil analisis komprehensif profil bakat, minat, evaluasi capaian rapor semester, dan tes kecerdasan majemuk peserta didik, SMA Negeri 8 Malang menerbitkan Surat Rekomendasi Peminatan Akademik bagi:",
     keterangan: [
-      "Kombinasi keempat mata pelajaran pilihan di atas telah diselaraskan secara optimal untuk mendukung rencana kelanjutan studi peserta didik pada rumpun Sains, Teknologi, Rekayasa, dan Komputasi di Perguruan Tinggi Negeri melalui jalur SNBP maupun SNBT.",
-      "Surat rekomendasi ini diterbitkan sebagai acuan resmi pemilihan mata pelajaran Fase F dan telah divalidasi oleh Koordinator Bimbingan dan Konseling SMAN 8 Malang.",
+      "Surat rekomendasi ini disusun oleh Guru Bimbingan dan Konseling berdasarkan hasil identifikasi potensi, minat, bakat, hasil belajar, serta informasi pendukung lainnya yang relevan. Rekomendasi ini bertujuan sebagai bahan pertimbangan dan referensi bagi murid dalam menentukan pilihan mata pelajaran sesuai dengan rencana studi lanjut dan pengembangan kariernya.",
+      "Keputusan akhir mengenai pemilihan mata pelajaran tetap berada pada murid, dengan mempertimbangkan hasil refleksi diri, informasi yang tersedia, serta diskusi dan persetujuan orang tua/wali. Orang tua/wali diharapkan mendampingi murid dalam proses pengambilan keputusan tersebut.",
+      "Surat rekomendasi ini tidak bersifat mengikat atau menentukan secara mutlak pilihan murid. Layanan Bimbingan dan Konseling berperan memfasilitasi murid agar mampu mengambil keputusan pendidikan secara mandiri, bertanggung jawab, dan sesuai dengan potensi serta rencana masa depannya.",
     ],
   },
 };
@@ -76,7 +78,7 @@ export const RECOMMENDED_SUBJECTS: MapelPilihanDetail[] = [
   {
     id: "mapel-2",
     urutan: "MAPEL PILIHAN 2",
-    nama: "Fisika",
+    nama: "Fisika Lanjut",
     kategori: "Rumpun Sains & Rekayasa",
     tingkatKesesuaian: 89,
     labelPenguasaan: "89% - Tinggi",
@@ -120,7 +122,7 @@ export const RECOMMENDED_SUBJECTS: MapelPilihanDetail[] = [
   {
     id: "mapel-3",
     urutan: "MAPEL PILIHAN 3",
-    nama: "Informatika",
+    nama: "Informatika & Data Science",
     kategori: "Rumpun Teknologi Digital",
     tingkatKesesuaian: 95,
     labelPenguasaan: "95% - Tinggi",
@@ -164,7 +166,7 @@ export const RECOMMENDED_SUBJECTS: MapelPilihanDetail[] = [
   {
     id: "mapel-4",
     urutan: "MAPEL PILIHAN 4",
-    nama: "Kimia",
+    nama: "Kimia Terapan",
     kategori: "Rumpun Sains Eksakta",
     tingkatKesesuaian: 86,
     labelPenguasaan: "86% - Tinggi",

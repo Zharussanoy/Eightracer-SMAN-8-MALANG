@@ -6,10 +6,8 @@ import {
   Download,
   Printer,
   ShieldCheck,
-  CheckCircle2,
-  BookOpen,
 } from "lucide-react";
-import { SISWA_B1_PROFILE, RECOMMENDED_SUBJECTS } from "./mockData";
+import { SISWA_B1_PROFILE } from "./mockData";
 
 interface SiswaB1PdfPreviewModalProps {
   isOpen: boolean;
@@ -25,6 +23,14 @@ export const SiswaB1PdfPreviewModal: React.FC<SiswaB1PdfPreviewModalProps> = ({
   if (!isOpen) return null;
 
   const { suratRekomendasi } = SISWA_B1_PROFILE;
+
+  // Paket mapel persis seperti di gambar user & Admin B1
+  const paketMataPelajaran = [
+    "Matematika Tingkat Lanjut",
+    "Fisika Lanjut",
+    "Informatika & Data Science",
+    "Kimia Terapan",
+  ];
 
   return (
     <div
@@ -79,11 +85,11 @@ export const SiswaB1PdfPreviewModal: React.FC<SiswaB1PdfPreviewModalProps> = ({
           </div>
         </div>
 
-        {/* Document Body */}
+        {/* Document Body - 100% Match Gambar Surat Admin B1 */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-slate-100/70">
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-10 shadow-sm max-w-3xl mx-auto space-y-6">
+          <div className="bg-white border border-purple-100 rounded-2xl p-6 sm:p-10 shadow-sm max-w-3xl mx-auto space-y-6">
             {/* Kop Surat Resmi */}
-            <div className="text-center space-y-0.5 pb-4 border-b-2 border-slate-900">
+            <div className="text-center space-y-0.5 pb-2">
               <p className="text-xs sm:text-[13px] font-bold text-slate-900 uppercase tracking-wider">
                 PEMERINTAH PROVINSI JAWA TIMUR
               </p>
@@ -94,22 +100,28 @@ export const SiswaB1PdfPreviewModal: React.FC<SiswaB1PdfPreviewModalProps> = ({
                 SEKOLAH MENENGAH ATAS NEGERI 8 MALANG
               </p>
               <p className="text-[11px] text-slate-500">
-                Jl. Veteran No. 37 Telp. (0341) 551096 FAX (0341) 575795 MALANG
+                Jl. Veteran 37 Telp. (0341) 551096 FAX (0341) 575795 MALANG
               </p>
               <p className="text-[11px] text-slate-500">
-                Website: www.sman8malang.sch.id &bull; E-mail: sman8malang@gmail.com
+                website: www.sman8malang.sch.id &bull; E-mail: sman8malang@gmail.com
               </p>
-              <p className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-0.5">
-                KOTA MALANG &bull; KODE POS 65145
+              <p className="text-[11px] text-slate-500">
+                NPSN : 20533640 Kode Pos : 65145
+              </p>
+              <p className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                KOTA MALANG
               </p>
             </div>
+
+            {/* Divider Line */}
+            <hr className="border-slate-200" />
 
             {/* Judul & Nomor Surat */}
             <div className="text-center space-y-1">
               <h3 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide underline underline-offset-4">
-                SURAT REKOMENDASI MATA PELAJARAN PEMINATAN
+                SURAT REKOMENDASI PEMINATAN
               </h3>
-              <p className="text-xs text-slate-600 font-medium">
+              <p className="text-xs text-slate-600 font-mono">
                 Nomor: {suratRekomendasi.nomorSurat}
               </p>
             </div>
@@ -119,111 +131,83 @@ export const SiswaB1PdfPreviewModal: React.FC<SiswaB1PdfPreviewModalProps> = ({
               {suratRekomendasi.pembuka}
             </p>
 
-            {/* Identitas Siswa */}
-            <div className="space-y-2 text-xs sm:text-sm text-slate-900 bg-[#FAF5FF] p-4 rounded-xl border border-[#E9D5FF]">
+            {/* Student Metadata Box */}
+            <div className="space-y-1.5 text-xs sm:text-sm text-slate-900 bg-slate-50/70 p-4 rounded-xl border border-slate-100 font-sans">
               <div className="grid grid-cols-12 gap-2">
-                <span className="col-span-4 sm:col-span-3 text-slate-500">
+                <span className="col-span-3 sm:col-span-2 text-slate-500">
                   Nama Lengkap
                 </span>
-                <span className="col-span-8 sm:col-span-9 font-bold text-[#1E1E1E]">
+                <span className="col-span-9 sm:col-span-10 font-semibold">
                   : {SISWA_B1_PROFILE.nama}
                 </span>
               </div>
               <div className="grid grid-cols-12 gap-2">
-                <span className="col-span-4 sm:col-span-3 text-slate-500">
+                <span className="col-span-3 sm:col-span-2 text-slate-500">
                   NISN
                 </span>
-                <span className="col-span-8 sm:col-span-9 font-semibold">
-                  : {SISWA_B1_PROFILE.nisn}
+                <span className="col-span-9 sm:col-span-10 font-medium font-mono">
+                  : 0012345678
                 </span>
               </div>
               <div className="grid grid-cols-12 gap-2">
-                <span className="col-span-4 sm:col-span-3 text-slate-500">
-                  Kelas Saat Ini
+                <span className="col-span-3 sm:col-span-2 text-slate-500">
+                  Kelas
                 </span>
-                <span className="col-span-8 sm:col-span-9 font-semibold">
+                <span className="col-span-9 sm:col-span-10 font-semibold">
                   : {SISWA_B1_PROFILE.kelas}
                 </span>
               </div>
-              <div className="grid grid-cols-12 gap-2">
-                <span className="col-span-4 sm:col-span-3 text-slate-500">
-                  Rencana Studi PTN
-                </span>
-                <span className="col-span-8 sm:col-span-9 font-semibold text-[#5F089E]">
-                  : {SISWA_B1_PROFILE.targetProdiUtama}
-                </span>
-              </div>
             </div>
 
-            {/* Daftar 4 Mata Pelajaran Pilihan */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-[#5F089E]" />
-                <span className="text-xs sm:text-sm font-bold text-slate-900">
-                  Paket Mata Pelajaran Pilihan Fase F yang Direkomendasikan:
-                </span>
-              </div>
+            {/* Paket Mata Pelajaran Pilihan */}
+            <div className="space-y-2 pt-1">
+              <span className="text-xs sm:text-sm font-bold text-slate-900 block">
+                Paket Mata Pelajaran Pilihan:
+              </span>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {RECOMMENDED_SUBJECTS.map((subj) => (
-                  <div
-                    key={subj.id}
-                    className="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-slate-50/70"
+              {/* Chips Mata Pelajaran Ungu Muda persis di gambar */}
+              <div className="flex flex-wrap gap-2 pt-1">
+                {paketMataPelajaran.map((mapel, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center px-3 py-1.5 rounded-lg bg-[#FAF5FF] text-[#5F089E] text-xs font-semibold border border-[#F3E8FF]"
                   >
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#5F089E] block">
-                        {subj.urutan}
-                      </span>
-                      <span className="text-xs sm:text-sm font-bold text-slate-900">
-                        {subj.nama}
-                      </span>
-                    </div>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold">
-                      <CheckCircle2 className="w-3 h-3" />
-                      {subj.tingkatKesesuaian}% Sesuai
-                    </span>
-                  </div>
+                    {mapel}
+                  </span>
                 ))}
               </div>
             </div>
 
-            {/* Keterangan & Penegasan */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 sm:p-6 space-y-3">
+            {/* Keterangan dan Penegasan Box */}
+            <div className="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-6 sm:p-8 space-y-4">
               <h4 className="text-center font-bold text-xs uppercase tracking-wider text-slate-900">
                 KETERANGAN DAN PENEGASAN
               </h4>
-              <div className="space-y-2.5 text-xs sm:text-sm text-slate-600 leading-relaxed text-justify">
-                {suratRekomendasi.keterangan.map((p, idx) => (
-                  <p key={idx}>{p}</p>
+
+              <div className="space-y-3 text-xs sm:text-sm text-slate-600 leading-relaxed text-justify">
+                {suratRekomendasi.keterangan.map((paragraf, idx) => (
+                  <p key={idx}>{paragraf}</p>
                 ))}
               </div>
             </div>
 
-            {/* Tanda Tangan */}
-            <div className="pt-4 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6 text-xs sm:text-sm text-slate-900">
-              <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 text-emerald-800 text-[11px] max-w-xs">
-                <p className="font-bold flex items-center gap-1.5 mb-0.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  Dokumen Sah &amp; Terkunci
-                </p>
-                <p className="text-emerald-700/90 leading-relaxed">
-                  Telah diverifikasi oleh Sistem Pemetaan Akademik Eightracer SMAN 8 Malang.
-                </p>
-              </div>
-
+            {/* Area Tanda Tangan (Sebelah Kanan Bawah persis di gambar 3 & 4) */}
+            <div className="pt-4 flex justify-end text-xs sm:text-sm text-slate-900">
               <div className="text-left w-64 space-y-1">
-                <p className="text-xs text-slate-600">
-                  Diterbitkan tanggal: {suratRekomendasi.tanggalTerbit}
+                <p className="text-slate-800">Malang, 12 Mei 2026</p>
+                <p className="font-bold text-slate-900 uppercase">
+                  KOORDINATOR BIMBINGAN KONSELING
                 </p>
-                <p className="font-semibold">Koordinator Bimbingan Konseling</p>
                 <div className="h-14 flex items-center">
-                  <span className="text-[11px] italic text-[#5F089E] font-medium bg-purple-50 px-2.5 py-1 rounded-md border border-purple-100">
-                    Ditandatangani Secara Elektronik
+                  <span className="text-xs italic text-slate-400 font-serif">
+                    (Telah Ditandatangani Secara Elektronik)
                   </span>
                 </div>
-                <p className="font-bold underline">Dra. Endang Sulastri</p>
-                <p className="text-xs text-slate-500">
-                  NIP: {suratRekomendasi.nipPengirim}
+                <p className="font-bold text-slate-900 underline underline-offset-2">
+                  Dra. Endang Sulastri
+                </p>
+                <p className="text-xs text-slate-500 font-mono">
+                  NIP: 196908151994122003
                 </p>
               </div>
             </div>
@@ -244,4 +228,3 @@ export const SiswaB1PdfPreviewModal: React.FC<SiswaB1PdfPreviewModalProps> = ({
     </div>
   );
 };
-
