@@ -1,8 +1,9 @@
+import { parseScholarshipEvidence, type ScholarshipEvidence } from "./b4-scholarship-evidence";
 // Proyeksi endpoint publikasi siswa. Jangan memakai DTO direktori staff di sini.
 type Obj = Record<string, unknown>;
 function obj(value: unknown): Obj { return value && typeof value === "object" && !Array.isArray(value) ? value as Obj : {}; }
 function required(value: unknown): Obj {
-  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Struktur Jejak Alumni belum sesuai kontrak.");
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
   return value as Obj;
 }
 const text = (value: unknown): string | null => typeof value === "string" && value.trim() ? value : null;
@@ -35,9 +36,9 @@ function identity(row: Obj): StudentAlumni {
 export interface StudentAlumniPage { preview?:boolean; data: StudentAlumni[]; currentPage: number; lastPage: number; perPage: number; total: number }
 export function parseStudentAlumniPage(payload: unknown): StudentAlumniPage {
   const outer = required(payload), root = Array.isArray(outer.data) ? outer : required(outer.data), meta = root.meta === undefined ? root : required(root.meta);
-  if (!Array.isArray(root.data)) throw new Error("Daftar Jejak Alumni belum sesuai kontrak.");
+  if (!Array.isArray(root.data)) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
   const total = number(meta.total);
-  if (total === null || !Number.isSafeInteger(total) || total < root.data.length) throw new Error("Jumlah Jejak Alumni belum sesuai kontrak.");
+  if (total === null || !Number.isSafeInteger(total) || total < root.data.length) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
   const result = { preview:outer.preview===true, data: root.data.map((value) => identity(required(value))), currentPage: positive(meta.current_page), lastPage: positive(meta.last_page), perPage: positive(meta.per_page), total };
   if (result.currentPage > result.lastPage && result.data.length) throw new Error("Pagination Jejak Alumni tidak valid.");
   return result;
@@ -52,7 +53,7 @@ function event(value: unknown, index: number): StudentAlumniEvent {
   const semester = number(row.semester);
   const ipk = number(row.ipk_terkini);
   const programs = row.beasiswa;
-  if (programs !== undefined && !Array.isArray(programs)) throw new Error("Daftar beasiswa progres belum sesuai kontrak.");
+  if (programs !== undefined && !Array.isArray(programs)) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
   return { key: `${index}`, label: text(source.label) ?? text(source.title) ?? text(row.periode) ?? "Perkembangan pendidikan", kind: text(source.type),
     date: source.granularity === "year" ? null : date(source.date ?? row.tanggal_update), year: year(source.year ?? row.tahun),
     semester: semester !== null && Number.isSafeInteger(semester) && semester > 0 ? semester : null,
@@ -60,16 +61,17 @@ function event(value: unknown, index: number): StudentAlumniEvent {
     kipk: typeof row.penerima_kipk === "boolean" ? row.penerima_kipk : null, status: text(row.status_pendidikan),
     scholarships: (programs as unknown[] | undefined ?? []).map((value) => { const program = required(value); return { name: text(program.nama_beasiswa) ?? text(obj(program.beasiswa).nama_beasiswa), status: text(program.status_beasiswa ?? program.status) }; }).filter((item): item is { name: string; status: string | null } => item.name !== null) };
 }
-export interface StudentAlumniDetail { preview?:boolean;
+export interface StudentAlumniDetail { preview?:boolean; scholarshipEvidence: ScholarshipEvidence;
   alumni: StudentAlumni; faculty: string | null; universityType: string | null; degree: string | null; admissionGrade: number | null; utbk: number | null;
   admissionChoice: string | null; events: StudentAlumniEvent[];
 }
 export function parseStudentAlumniDetail(payload: unknown, requestedId: number): StudentAlumniDetail {
   const root = required(required(payload).data), entry = required(root.masuk_pt);
+  if (entry.id !== undefined && positive(entry.id) !== requestedId) throw new Error("Detail Jejak Alumni tidak sesuai pilihan.");
   if (root.id !== undefined && positive(root.id) !== requestedId) throw new Error("Detail Jejak Alumni tidak sesuai pilihan.");
   const alumni = identity({ ...root, id: requestedId });
   const timeline = root.timeline;
-  if (timeline !== undefined && !Array.isArray(timeline)) throw new Error("Timeline publikasi belum sesuai kontrak.");
-  return { preview:required(payload).preview===true, alumni, faculty: text(entry.fakultas), universityType: text(entry.jenis_pt) ?? text(obj(entry.perguruan_tinggi).jenis_pt), degree: text(entry.strata_pendidikan),
-    admissionGrade: number(entry.nilai_rapor_pendaftaran), utbk: number(entry.skor_utbk), admissionChoice: text(entry.pilihan_jurusan), events: (timeline as unknown[] | undefined ?? []).map(event) };
+  if (timeline !== undefined && !Array.isArray(timeline)) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
+  return { preview:required(payload).preview===true, scholarshipEvidence: parseScholarshipEvidence(root.scholarship_summary), alumni, faculty: text(entry.fakultas), universityType: text(entry.jenis_pt) ?? text(obj(entry.perguruan_tinggi).jenis_pt), degree: text(entry.strata_pendidikan),
+    admissionGrade: number(entry.nilai_rapor_pendaftaran), utbk: number(entry.skor_utbk), admissionChoice: text(entry.pilihan_jurusan) ?? (number(entry.pilihan_ke) === null ? null : `Pilihan ${number(entry.pilihan_ke)}`), events: (timeline as unknown[] | undefined ?? []).map(event) };
 }

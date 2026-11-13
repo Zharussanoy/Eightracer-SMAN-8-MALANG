@@ -17,12 +17,12 @@ export async function GET(request: NextRequest) {
     }
     const upstream = new URLSearchParams(query);
     upstream.set("include_filters", "1"); upstream.set("per_page", "8");
-    const result = await alumniBackend(request, `?${upstream}`);
+    const result = await alumniBackend(request, `?${upstream}`, { resource: "b4/alumni" });
     if (result.response) return result.response;
     try {
       if (query.has("timeline_complete") && (result.payload as { timeline_complete_only?: unknown })?.timeline_complete_only !== true) throw new Error("Penyaring timeline belum diterapkan.");
       return authResponse(parseAlumniPage(result.payload));
     }
-    catch { throw new AuthError(502, "Respons daftar alumni belum sesuai kontrak."); }
+    catch { throw new AuthError(502, "Data rekomendasi belum dapat dibaca. Silakan coba lagi."); }
   } catch (error) { return authFailure(error); }
 }

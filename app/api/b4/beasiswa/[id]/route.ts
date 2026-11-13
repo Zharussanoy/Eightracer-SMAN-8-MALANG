@@ -15,7 +15,7 @@ export async function GET(request: NextRequest, context: Context) {
     try {
       row = parseScholarshipRow((payload as { data?: unknown })?.data);
       if (row.id !== Number(id) || !row.input) throw new Error();
-    } catch { throw new AuthError(502, "Detail beasiswa belum memuat kriteria lengkap sesuai kontrak. Hubungi tim BE sebelum mengubah data."); }
+    } catch { throw new AuthError(502, "Detail persyaratan belum lengkap. Coba muat ulang sebelum mengubah data."); }
     return authResponse(row);
   } catch (error) { return scholarshipFailure(error, request); }
 }
@@ -38,7 +38,7 @@ async function mutate(request: NextRequest, context: Context, method: "PUT" | "D
     const result = await backendScholarships(`/${id}`, token, method, input);
     if (method === "PUT") {
       try { if (parseScholarshipRow((result as { data?: unknown })?.data).id !== Number(id)) throw new Error(); }
-      catch { throw new AuthError(502, "Respons pembaruan belum sesuai kontrak. Periksa katalog sebelum mencoba lagi."); }
+      catch { throw new AuthError(502, "Hasil pembaruan belum dapat dipastikan. Periksa katalog sebelum mencoba lagi."); }
     }
     return authResponse({ message: method === "DELETE" ? "Beasiswa berhasil diarsipkan." : "Beasiswa berhasil diperbarui." });
   } catch (error) { return scholarshipFailure(error, request); }

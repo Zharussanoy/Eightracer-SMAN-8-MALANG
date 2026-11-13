@@ -7,7 +7,8 @@ import React from "react";
 import ts from "typescript";
 const compile = async (path) => ts.transpileModule(await readFile(new URL(path, import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText;
 const url = (code) => "data:text/javascript;base64," + Buffer.from(code).toString("base64");
-const alumni = url(await compile("../lib/b4-alumni.ts"));
+const evidence = url(await compile("../lib/b4-scholarship-evidence.ts"));
+const alumni = url((await compile("../lib/b4-alumni.ts")).replace('"./b4-scholarship-evidence"', JSON.stringify(evidence)));
 const timeline = url((await compile("../lib/b4-timeline.ts")).replace('"./b4-alumni"', JSON.stringify(alumni)));
 const api = await import(timeline);
 const progress = { id: 9, revision: 1, tanggal_update: "2024-12-20", is_published: false, publish_financials: false,
@@ -54,16 +55,18 @@ const jsxUrl=new URL("../node_modules/react/jsx-runtime.js",import.meta.url).hre
 const link=url('import React from '+JSON.stringify(reactUrl)+';export default function Link(p){return React.createElement("a",p,p.children)}');
 const icons=url('import React from '+JSON.stringify(reactUrl)+';const Icon=(p)=>React.createElement("svg",p);export const School=Icon,GraduationCap=Icon,Building2=Icon;');
 const status=url(await compile("../lib/b4-progress.ts"));
+const copy=url(await compile("../lib/display-copy.ts"));
+const samples=url((await compile("../components/b4/SampleData.tsx")).replace('"react/jsx-runtime"',JSON.stringify(jsxUrl)).replace('"react"',JSON.stringify(reactUrl)));
 const component = await import(url((await compile("../components/b4/AlumniAcademicTimeline.tsx"))
  .replace('"react/jsx-runtime"',JSON.stringify(jsxUrl)).replace('"react"',JSON.stringify(reactUrl))
- .replace('"next/link"',JSON.stringify(link)).replace('"lucide-react"',JSON.stringify(icons))
- .replace('"@/lib/b4-timeline"',JSON.stringify(timeline)).replace('"@/lib/b4-progress"',JSON.stringify(status))));
+ .replace('"./SampleData"',JSON.stringify(samples)).replace('"next/link"',JSON.stringify(link)).replace('"lucide-react"',JSON.stringify(icons))
+ .replace('"@/lib/display-copy"',JSON.stringify(copy)).replace('"@/lib/b4-scholarship-evidence"',JSON.stringify(evidence)).replace('"@/lib/b4-timeline"',JSON.stringify(timeline)).replace('"@/lib/b4-progress"',JSON.stringify(status))));
 test("panel SMA, PT dan detail semester tetap dirender walaupun semua progres kosong", () => {
  const parsed=api.parseAlumniTimeline({data:{...data,progress:[],education_events:[data.education_events[1]]}});
  const html=renderToStaticMarkup(React.createElement(component.default,{alumni:parsed}));
- for(const text of ["Perjalanan Pendidikan SMA","Perjalanan Pendidikan Perguruan Tinggi","Detail Semester","Kampus Fixture","IP-Kumulatif","Biaya UKT","Status KIP-K"])assert.ok(html.includes(text),text);
+ for(const text of ["Perjalanan Pendidikan SMA","Perjalanan Pendidikan Perguruan Tinggi","Detail Semester","Kampus Fixture","IPK Kumulatif","Biaya UKT","Status KIP-K"])assert.ok(html.includes(text),text);
  assert.equal((html.match(/disabled=""/g)||[]).length,8);
- assert.ok(html.includes("2024"));assert.ok(!html.includes("Juli 2021"));assert.ok(!html.includes("92.4"));
+ assert.ok(html.includes("2024"));assert.ok(!html.includes("Juli 2021"));assert.ok(!html.includes("92.4"));assert.ok(!html.includes("Beasiswa TELADAN"));assert.ok(!html.includes("3,65"));
 });
 test("permintaan timeline memakai daftar alumni biasa, tanpa menyembunyikan yang belum lengkap", async () => {
  const error=url('export class ApiError extends Error{}');
@@ -74,4 +77,13 @@ test("permintaan timeline memakai daftar alumni biasa, tanpa menyembunyikan yang
  finally{globalThis.fetch=old;}
  assert.equal(new URL(paths[0],"http://localhost").searchParams.has("timeline_complete"),false);
  assert.equal(paths[1],"/api/b4/alumni/1");
+});
+
+
+test("status KIP pada detail semester memakai istilah yang sama dengan formulir", () => {
+ for (const [value,label] of [[true,"Penerima"],[false,"Bukan penerima"],[null,"Belum diketahui"]]) {
+  const parsed=api.parseAlumniTimeline({data:{...data,progress:[{...progress,penerima_kipk:value}]}});
+  const html=renderToStaticMarkup(React.createElement(component.default,{alumni:parsed}));
+  assert.ok(html.includes(`<span>Status KIP-K</span><strong>${label}</strong>`));
+ }
 });

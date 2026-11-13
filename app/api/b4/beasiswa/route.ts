@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const payload = await backendScholarships(`?${query.toString()}`, token);
     let page;
     try { page = parseScholarshipPage(payload); }
-    catch { throw new AuthError(502, "Respons katalog belum sesuai kontrak. Perlu dicocokkan dengan tim BE."); }
+    catch { throw new AuthError(502, "Katalog belum dapat dimuat. Silakan coba lagi."); }
     return authResponse(page);
   } catch (error) { return scholarshipFailure(error, request); }
 }
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     const result = await backendScholarships("", token, "POST", scholarshipInput(payload));
     let created;
     try { created = parseScholarshipRow((result as { data?: unknown })?.data); }
-    catch { throw new AuthError(502, "Respons simpan belum sesuai kontrak. Periksa katalog sebelum mencoba lagi agar tidak membuat data ganda."); }
+    catch { throw new AuthError(502, "Hasil penyimpanan belum dapat dipastikan. Periksa katalog sebelum mencoba lagi agar tidak membuat data ganda."); }
     return authResponse({ message: "Beasiswa berhasil disimpan.", id: created.id }, 201);
   } catch (error) { return scholarshipFailure(error, request); }
 }

@@ -3,9 +3,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import ts from "typescript";
+const evidenceCode = ts.transpileModule(await readFile(new URL("../lib/b4-scholarship-evidence.ts", import.meta.url), "utf8"), {compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
+const evidenceUrl = `data:text/javascript;base64,${Buffer.from(evidenceCode).toString("base64")}`;
 const code = ts.transpileModule(await readFile(new URL("../lib/b4-alumni.ts", import.meta.url), "utf8"), {
   compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
-}).outputText;
+}).outputText.replace('"./b4-scholarship-evidence"',JSON.stringify(evidenceUrl));
 const api = await import(`data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
 const record = { id: 17, siswa_id: 9, nama_lengkap: "Alumni Fixture", tahun_lulus: 2024,
   perguruan_tinggi: { id: 4, nama_pt: "Kampus Fixture", jenis_pt: "Swasta" },
@@ -62,4 +64,13 @@ test("pencarian unicode dan filter dipertahankan; respons rusak ditolak tanpa fa
   assert.throws(() => api.parseAlumniPage({ ...page, total: "1" }));
   assert.throws(() => api.parseAlumniPage({ ...page, filters: undefined }));
   assert.throws(() => api.parseAlumniPage({ ...page, data: [{ ...record, perguruan_tinggi: null }] }));
+});
+
+
+test("catatan beasiswa sekolah berada pada alumni yang dipilih dan tidak menjadi progres semester", () => {
+ const result=api.parseAlumniDetail({data:{...record,has_nisn:false,progress:[],scholarship_summary:{penerima_kipk:true,needs_review:false,beasiswa:[{nama_beasiswa:"KIP-K",status:"catatan_sekolah",source:"school_spreadsheet"}]}}});
+ assert.equal(result.scholarshipEvidence.kipk,true);
+ assert.equal(result.scholarshipEvidence.programs[0].name,"KIP-K");
+ assert.equal(result.scholarshipEvidence.programs[0].status,"catatan_sekolah");
+ assert.deepEqual(result.progress,[]);
 });

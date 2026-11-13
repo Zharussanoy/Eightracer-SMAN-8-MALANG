@@ -2,6 +2,9 @@ import "server-only";
 import { NextRequest } from "next/server";
 import { AuthError, authResponse, checkMutation, clearSession, SESSION_COOKIE } from "./backend-auth";
 
+class RecommendationThrottleError extends AuthError {
+  constructor(public retryAfter:number){super(429, "Pesan dikirim terlalu cepat. Coba lagi dalam "+retryAfter+" detik; pertanyaanmu tetap tersimpan.");}
+}
 const allowedMessages = new Set([
   "Akun belum terhubung dengan data siswa.",
   "Jenjang siswa belum diketahui. Lengkapi riwayat kelas aktif SMA.",
@@ -24,8 +27,8 @@ export async function backendRecommendations(request: NextRequest, path: string,
   if(!valid)throw new AuthError(422,"Tujuan rekomendasi tidak valid.");
   const token=request.cookies.get(SESSION_COOKIE)?.value;
   if(!token)throw new AuthError(401,"Silakan masuk dengan akun sekolah.");
-  let base:URL;try{base=new URL(process.env.API_BASE_URL||process.env.NEXT_PUBLIC_API_BASE_URL||"");}catch{throw new AuthError(503,"Alamat BE belum dikonfigurasi.");}
-  if(!["http:","https:"].includes(base.protocol)||base.username||base.password||base.search||base.hash)throw new AuthError(503,"Alamat BE tidak valid.");
+  let base:URL;try{base=new URL(process.env.API_BASE_URL||process.env.NEXT_PUBLIC_API_BASE_URL||"");}catch{throw new AuthError(503,"Layanan belum tersedia. Silakan coba beberapa saat lagi.");}
+  if(!["http:","https:"].includes(base.protocol)||base.username||base.password||base.search||base.hash)throw new AuthError(503,"Layanan belum tersedia. Silakan coba beberapa saat lagi.");
   let response:Response;
   try{response=await fetch(base.href.replace(/\/+$/,"")+path+(options.query?.size?"?"+options.query:""),{
     method,headers:{Accept:"application/json",Authorization:"Bearer "+token,...(options.body===undefined?{}:{"Content-Type":"application/json"})},
@@ -35,6 +38,11 @@ export async function backendRecommendations(request: NextRequest, path: string,
   const payload:unknown=await response.json().catch(()=>null);
   if(!response.ok){
     const p=payload&&typeof payload==="object"?payload as Record<string,unknown>:{};
+    if(response.status===429){
+      const raw=response.headers.get("retry-after")??p.retry_after;
+      const seconds=Number(raw);
+      throw new RecommendationThrottleError(Number.isFinite(seconds)&&seconds>0?Math.min(300,Math.ceil(seconds)):60);
+    }
     const known=typeof p.message==="string"&&allowedMessages.has(p.message)?p.message:null;
     throw new AuthError(response.status>=500?503:response.status,known??(
       response.status===401?"Sesi berakhir. Silakan masuk lagi.":response.status===403?"Akun ini belum memiliki izin mengakses rekomendasi ini.":
@@ -49,7 +57,8 @@ export async function backendRecommendations(request: NextRequest, path: string,
 export function readBackendRecommendations(request:NextRequest,path:string,query=new URLSearchParams()){return backendRecommendations(request,path,{query});}
 export function recommendationFailure(error:unknown,request:NextRequest){
   const status=error instanceof AuthError?error.status:502;
-  const response=authResponse({message:error instanceof AuthError?error.message:"Respons rekomendasi belum sesuai kontrak.",...(status===401?{session_expired:true}:{})},status);
+  const response=authResponse({message:error instanceof AuthError?error.message:"Data rekomendasi belum dapat dibaca. Silakan coba lagi.",...(status===401?{session_expired:true}:{}),...(error instanceof RecommendationThrottleError?{retry_after:error.retryAfter}:{})},status);
+  if(error instanceof RecommendationThrottleError)response.headers.set("Retry-After",String(error.retryAfter));
   return status===401?clearSession(response,request):response;
 }
 export async function recommendationInput(request:NextRequest,fields:string[]){

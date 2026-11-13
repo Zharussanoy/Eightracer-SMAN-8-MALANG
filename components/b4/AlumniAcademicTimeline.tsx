@@ -1,10 +1,12 @@
 "use client";
+import { kipStatusLabel } from "@/lib/b4-scholarship-evidence";
 
 import { useState } from "react";
 import Link from "next/link";
 import { Building2, GraduationCap, School } from "lucide-react";
 import { acceptedAwards, eventDate, timelineMoney, type AlumniTimelineDetail } from "@/lib/b4-timeline";
 import { educationStatus } from "@/lib/b4-progress";
+import { displayTitle } from "@/lib/display-copy";
 
 export default function AlumniAcademicTimeline({ alumni }: { alumni: AlumniTimelineDetail }) {
   const records = alumni.progress;
@@ -17,28 +19,28 @@ export default function AlumniAcademicTimeline({ alumni }: { alumni: AlumniTimel
     <section className="bc4-section"><h2 className="bc4-sectionHeading">Perjalanan Pendidikan SMA</h2>
       <ol className="bc4-schoolTimeline">{alumni.educationEvents.map((event) => {
         const Icon = icons[event.type];
-        return <li key={event.type}><span className="bc4-stageIcon"><Icon size={39} strokeWidth={1.8} /></span><h3>{event.label}</h3><strong>{eventDate(event)}</strong>
-          <p>{event.type === "masuk_sekolah" ? "SMA Negeri 8 Malang" : event.type === "masuk_pt" ? alumni.university + " · " + (alumni.admissionPath ?? "-") : alumni.graduationYear === null ? "-" : "Tahun lulus " + alumni.graduationYear}</p>
+        return <li key={event.type}><span className="bc4-stageIcon"><Icon size={39} strokeWidth={1.8} /></span><h3>{displayTitle(event.label)}</h3><strong>{eventDate(event)}</strong>
+          <p>{event.type === "masuk_sekolah" ? "SMA Negeri 8 Malang" : event.type === "masuk_pt" ? displayTitle(alumni.university) + " · " + displayTitle(alumni.admissionPath ?? "-") : alumni.graduationYear === null ? "-" : "Tahun lulus " + alumni.graduationYear}</p>
         </li>;
       })}</ol>
     </section>
     <section className="bc4-section"><h2 className="bc4-sectionHeading">Perjalanan Pendidikan Perguruan Tinggi</h2>
-      <div className="bc4-semesterScroll"><ol className="bc4-semesterTimeline" style={{ gridTemplateColumns: "repeat(" + slotCount + ", minmax(120px, 1fr))", minWidth: slotCount * 120 }}>
+      {<div className="bc4-semesterScroll"><ol className="bc4-semesterTimeline" style={{ gridTemplateColumns: "repeat(" + slotCount + ", minmax(120px, 1fr))", minWidth: slotCount * 120 }}>
         {chronological.length ? chronological.map((row) => <li key={row.id}>
           <button type="button" aria-label={"Lihat semester " + row.semester + ", " + row.period} aria-pressed={selected?.id === row.id} onClick={() => setSelectedId(row.id)} className={selected?.id === row.id ? "bc4-semesterSelected" : ""}>S{row.semester ?? "-"}</button>
           <h3>Semester {row.semester ?? "-"}</h3><p>{row.period ?? "-"}</p><span>{educationStatus(row.status)}</span><small>IPK: {row.gpa ?? "-"}</small>
         </li>) : Array.from({ length: 8 }, (_, index) => <li className="bc4-unavailable" key={index}>
           <button type="button" disabled aria-label={"Semester " + (index + 1) + ", data belum tersedia"}>S{index + 1}</button><h3>Semester {index + 1}</h3><p>-</p><span>-</span><small>IPK: -</small>
         </li>)}
-      </ol></div>
+      </ol></div>}
     </section>
     <section className="bc4-section"><h2 className="bc4-sectionHeading">Detail Semester{selected ? " " + (selected.semester ?? "-") + " - " + (selected.period ?? "-") : ""}</h2>
       <div className="bc4-sectionBody"><div className="bc4-detailMetrics">{[
-        ["IP-Kumulatif", selected?.gpa ?? "-"], ["Beasiswa Diterima", selected ? acceptedAwards(selected) : "-"],
-        ["Biaya UKT", timelineMoney(selected?.ukt ?? null)], ["Status KIP-K", selected?.kipk === true ? "Ya" : selected?.kipk === false ? "Tidak" : "-"],
-      ].map(([label, value]) => <div className="bc4-yellowCard" key={label}><span>{label}</span><strong>{value}</strong></div>)}</div>
+        ["IP-Kumulatif", selected?.gpa ?? "-"], ["Beasiswa Diterima", selected ? displayTitle(acceptedAwards(selected)) : "-"],
+        ["Biaya UKT", timelineMoney(selected?.ukt ?? null)], ["Status KIP-K", kipStatusLabel(selected?.kipk)],
+      ].map(([label, value]) => <div className="bc4-yellowCard" key={label}><span>{displayTitle(label)}</span><strong>{value ?? "-"}</strong></div>)}</div>
         <div className="bc4-note" style={{ marginTop: 28 }}><div><strong>Pembaruan {selected?.updatedAt ?? "-"}</strong><p>Status pendidikan: {educationStatus(selected?.status ?? null)}. Periode: {selected?.period ?? "-"}.</p></div></div>
-        <div className="bc4-actions" style={{ marginTop: 22 }}><Link className="bc4-button bc4-primary" href={"/admin/alumni-perguruan-tinggi/informasi-detail?id=" + alumni.id}>Lihat &amp; Kelola Progress</Link></div>
+        <div className="bc4-actions" style={{ marginTop: 22 }}><Link className="bc4-button bc4-primary" href={"/admin/alumni-perguruan-tinggi/informasi-detail?id=" + alumni.id}>Lihat &amp; Kelola progres</Link></div>
       </div>
     </section>
   </>;

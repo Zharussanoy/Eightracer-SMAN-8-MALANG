@@ -2,7 +2,7 @@ import "server-only";
 import { NextRequest } from "next/server";
 import { AuthError, authResponse, clearSession, SESSION_COOKIE } from "./backend-auth";
 
-export async function alumniBackend(request: NextRequest, path: string, options: { method?: string; body?: BodyInit; raw?: boolean; resource?: "alumni" | "analitik-beasiswa/sekolah" | "jejak-alumni" | "study-tracer" } = {}) {
+export async function alumniBackend(request: NextRequest, path: string, options: { method?: string; body?: BodyInit; raw?: boolean; resource?: "b4/alumni" | "alumni" | "analitik-beasiswa/sekolah" | "jejak-alumni" | "study-tracer" } = {}) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   if (!token) throw new AuthError(401, "Silakan masuk untuk mengakses data alumni sekolah.");
   const configured = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL;

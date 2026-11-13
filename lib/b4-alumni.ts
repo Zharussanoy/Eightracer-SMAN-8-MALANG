@@ -1,3 +1,4 @@
+import { parseScholarshipEvidence, type ScholarshipEvidence } from "./b4-scholarship-evidence";
 export interface AlumniRow {
   id: number; studentId: number; name: string; graduationYear: number | null;
   university: string; universityId: number; universityKind: string | null;
@@ -17,27 +18,27 @@ export interface AlumniProgressRow {
   scholarships: { id: number; name: string | null; status: string; amount: number | null }[];
 }
 export interface AlumniDetail extends AlumniRow {
-  hasNisn: boolean; classroom: string | null; degree: string | null; admissionSubpath: string | null;
+  scholarshipEvidence: ScholarshipEvidence; hasNisn: boolean; classroom: string | null; degree: string | null; admissionSubpath: string | null;
   choice: number | null; admissionYear: number | null; reportScore: number | null;
   utbkScore: number | null; progress: AlumniProgressRow[]; catalogOptions: { id: number; name: string }[];
 }
 function obj(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Respons alumni tidak sesuai kontrak.");
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
   return value as Record<string, unknown>;
 }
 function text(value: unknown): string {
-  if (typeof value !== "string" || !value.trim() || value.length > 2000) throw new Error("Field alumni tidak sesuai kontrak.");
+  if (typeof value !== "string" || !value.trim() || value.length > 2000) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
   return value;
 }
 function maybeText(value: unknown): string | null { return value == null ? null : text(value); }
 function integer(value: unknown, min = 1): number {
-  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < min) throw new Error("ID/paginasi alumni tidak sesuai kontrak.");
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < min) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
   return value;
 }
 function maybeInteger(value: unknown): number | null { return value == null ? null : integer(value); }
 function decimal(value: unknown): number | null {
   if (value == null) return null;
-  if ((typeof value !== "number" && typeof value !== "string") || (typeof value === "string" && value.trim() === "") || !Number.isFinite(Number(value)) || Number(value) < 0) throw new Error("Nilai alumni tidak sesuai kontrak.");
+  if ((typeof value !== "number" && typeof value !== "string") || (typeof value === "string" && value.trim() === "") || !Number.isFinite(Number(value)) || Number(value) < 0) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
   return Number(value);
 }
 function row(payload: unknown): AlumniRow {
@@ -52,7 +53,7 @@ function row(payload: unknown): AlumniRow {
 }
 export function parseAlumniPage(payload: unknown): AlumniPage {
   const data = obj(payload), filters = obj(data.filters);
-  if (!Array.isArray(data.data) || !Array.isArray(filters.universities) || !Array.isArray(filters.study_programs) || !Array.isArray(filters.admission_paths)) throw new Error("Daftar alumni tidak sesuai kontrak.");
+  if (!Array.isArray(data.data) || !Array.isArray(filters.universities) || !Array.isArray(filters.study_programs) || !Array.isArray(filters.admission_paths)) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
   const page: AlumniPage = {
     data: data.data.map(row), currentPage: integer(data.current_page), lastPage: integer(data.last_page),
     perPage: integer(data.per_page), total: integer(data.total, 0),
@@ -61,22 +62,22 @@ export function parseAlumniPage(payload: unknown): AlumniPage {
       studyPrograms: filters.study_programs.map(text), admissionPaths: filters.admission_paths.map(text),
     },
   };
-  if (page.data.length > page.perPage || page.data.length > page.total) throw new Error("Jumlah alumni tidak sesuai kontrak.");
+  if (page.data.length > page.perPage || page.data.length > page.total) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
   return page;
 }
 export function parseAlumniDetail(payload: unknown): AlumniDetail {
   const data = obj(obj(payload).data);
-  if (typeof data.has_nisn !== "boolean" || !Array.isArray(data.progress)) throw new Error("Detail alumni tidak sesuai kontrak.");
-  return { ...row(data), hasNisn: data.has_nisn, classroom: maybeText(data.kelas_terakhir), degree: maybeText(data.strata_pendidikan),
+  if (typeof data.has_nisn !== "boolean" || !Array.isArray(data.progress)) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
+  return { ...row(data), scholarshipEvidence: parseScholarshipEvidence(data.scholarship_summary), hasNisn: data.has_nisn, classroom: maybeText(data.kelas_terakhir), degree: maybeText(data.strata_pendidikan),
     admissionSubpath: maybeText(data.sub_jalur_mandiri), choice: maybeInteger(data.pilihan_ke),
     admissionYear: maybeInteger(data.tahun_masuk_pt), reportScore: decimal(data.nilai_rapor_pendaftaran),
     utbkScore: decimal(data.skor_utbk),
     catalogOptions: (Array.isArray(data.catalog_options) ? data.catalog_options : []).map((value) => { const item = obj(value); return { id: integer(item.id), name: text(item.nama_beasiswa) }; }),
     progress: data.progress.map((value) => {
       const item = obj(value);
-      if ((item.penerima_kipk !== null && typeof item.penerima_kipk !== "boolean") || !Array.isArray(item.beasiswa)) throw new Error("Progres alumni tidak sesuai kontrak.");
+      if ((item.penerima_kipk !== null && typeof item.penerima_kipk !== "boolean") || !Array.isArray(item.beasiswa)) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
       const gpa = decimal(item.ipk_terkini);
-      if (gpa !== null && gpa > 4) throw new Error("IPK alumni tidak sesuai kontrak.");
+      if (gpa !== null && gpa > 4) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
       return { id: integer(item.id), revision: maybeInteger(item.revision), updatedAt: maybeText(item.tanggal_update),
         published: item.is_published === true, publishFinancials: item.publish_financials === true, semester: maybeInteger(item.semester), period: maybeText(item.periode),
         status: maybeText(item.status_pendidikan), gpa, kipk: item.penerima_kipk,

@@ -38,3 +38,28 @@ test("nilai di luar batas tidak lolos dan IPI hanya dikirim untuk Mandiri", () =
  assert.equal(api.progressPayload({...form,ipi:"1000000"}, row, false).nominal_ipi, null);
  assert.equal(api.progressPayload({...form,ipi:"1000000"}, row, true).nominal_ipi, 1000000);
 });
+
+
+test("TELADAN yang sudah diterima tetap menjadi opsi dan tercentang meskipun tidak ada dalam katalog aktif", () => {
+ const alumni={catalogOptions:[{id:4,name:"KIP-K"},{id:6,name:"Bebas IPI"}],progress:[{...row,scholarships:[{id:5,name:"Beasiswa TELADAN",status:"diterima",amount:null}]}],scholarshipEvidence:{kipk:null,needsReview:false,programs:[]}};
+ const form=api.newProgressForAlumni(alumni);
+ assert.deepEqual(form.awardIds,["5"]);
+ assert.equal(api.progressScholarshipOptions(alumni).get(5),"Beasiswa TELADAN");
+ for(const field of ["period","semester","status","gpa","ukt","ipi","kipk"])assert.equal(form[field],"");
+});
+
+test("pergantian alumni tidak membawa beasiswa orang sebelumnya dan status KIP tetap mengikuti data", () => {
+ const alumni={catalogOptions:[],progress:[],scholarshipEvidence:{kipk:true,needsReview:false,programs:[]}};
+ assert.equal(api.newProgressForAlumni(alumni).kipk,"1");
+ assert.deepEqual(api.newProgressForAlumni(alumni).awardIds,[]);
+ assert.equal(api.newProgressForAlumni({...alumni,scholarshipEvidence:{kipk:null,needsReview:false,programs:[]}}).kipk,"");
+ assert.equal(api.newProgressForAlumni({...alumni,scholarshipEvidence:{kipk:false,needsReview:true,programs:[]}}).kipk,"");
+});
+
+test("keputusan terbaru menolak/proses tidak dicentang dari riwayat lama; mode edit tetap memakai periode yang dipilih", () => {
+ const recent={...row,id:2,scholarships:[{id:5,name:"TELADAN",status:"ditolak",amount:null}]};
+ const older={...row,id:1,scholarships:[{id:5,name:"TELADAN",status:"diterima",amount:null}]};
+ const alumni={catalogOptions:[],progress:[recent,older],scholarshipEvidence:{kipk:null,needsReview:false,programs:[]}};
+ assert.deepEqual(api.newProgressForAlumni(alumni).awardIds,[]);
+ assert.deepEqual(api.formFromProgress(older).awardIds,["5"]);
+});

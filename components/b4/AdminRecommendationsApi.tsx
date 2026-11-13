@@ -9,7 +9,7 @@ import {recommendationRequest,type RecommendationDraft,type EditableRecommendati
 import type {RecommendationPreview} from "@/lib/b4-recommendations";
 import type {RecommendationStudentPage} from "@/lib/b4-students";
 
-const emptyFilters={query:"",classroom:"",cohort:"",publication:""};
+const emptyFilters={query:"",classroom:"",cohort:""};
 export default function AdminRecommendationsApi(){
  const {currentUser,refreshSession}=useUser(),router=useRouter();
  const [filters,setFilters]=useState<RecommendationFilters>(emptyFilters);
@@ -17,7 +17,6 @@ export default function AdminRecommendationsApi(){
  if(filters.query.trim())query.set("search",filters.query.trim());
  if(filters.classroom)query.set("kelas_id",filters.classroom);
  if(filters.cohort)query.set("angkatan",filters.cohort);
- if(filters.publication)query.set("publication",filters.publication);
  const queryKey=query.toString(),allowed=currentUser.schoolStaff===true;
  const [students,setStudents]=useState<{key:string;data?:RecommendationStudentPage;error?:string}>();
  const currentStudents=students?.key===queryKey?students:undefined;
@@ -31,8 +30,6 @@ export default function AdminRecommendationsApi(){
  const current=result?.key===requestKey?result:undefined;
  const draft=mutation?.key===requestKey?mutation.draft:current?.draft;
  const candidates=draft?.candidates??current?.data?.candidates.map(c=>({...c,detailId:null,hidden:false,reason:null,timing:null,preparations:[] as string[]}))??[];
- const visible=candidates.filter(c=>!c.hidden);
- const canPublish=draft?.status==="pending"&&visible.length>0&&visible.every(c=>c.complete===true)&&visible.some(c=>c.meets===true);
  const expired=(error:unknown)=>{
   if(error&&typeof error==="object"&&"status" in error&&error.status===401){void refreshSession();router.replace("/login");return true;}
   return false;
@@ -56,12 +53,12 @@ export default function AdminRecommendationsApi(){
    .catch(error=>{if(abort.signal.aborted)return;if(error?.status===401){void refreshSession();router.replace("/login");return;}setResult({key:requestKey,error:error instanceof Error?error.message:"Rekomendasi belum dapat dimuat."});});
   return()=>abort.abort();
  },[student,allowed,targetLevel,requestKey,refreshSession,router]);
- async function save(action:"generate"|"review"){
-  if(!student||lock.current||action==="review"&&!canPublish)return;
+ async function save(){
+  if(!student||lock.current)return;
   lock.current=true;setBusy(true);setMessage("");
   try{
-   const response=await recommendationRequest<{draft:RecommendationDraft}>("/api/b4/recommendations/"+student.id+"/"+action,{method:"POST",body:action==="generate"?{target_jenjang:targetLevel}:{recommendation_id:draft!.id,status_review:"disetujui",revision:draft!.revision}});
-   setMutation({key:requestKey,draft:response.draft});setDirectoryVersion(v=>v+1);setMessage(action==="generate"?"Draft tersimpan. Periksa seluruh kriteria sebelum publikasi.":"Rekomendasi berhasil dipublikasikan.");
+   const response=await recommendationRequest<{draft:RecommendationDraft}>("/api/b4/recommendations/"+student.id+"/generate",{method:"POST",body:{target_jenjang:targetLevel}});
+   setMutation({key:requestKey,draft:response.draft});setDirectoryVersion(v=>v+1);setMessage("Hasil rekomendasi berhasil diperbarui. Siswa mengakses hasil perhitungan secara otomatis.");
   }catch(error){
    if(!expired(error))setMessage(error instanceof Error?error.message:"Perubahan belum dapat disimpan.");
    if(error&&typeof error==="object"&&"status" in error&&error.status===409){setMutation(undefined);setVersion(v=>v+1);}
@@ -75,7 +72,7 @@ export default function AdminRecommendationsApi(){
    const response=await recommendationRequest<{draft:RecommendationDraft}>("/api/b4/recommendations/"+student.id+"/items/"+candidate.detailId,{
     method,body:{recommendation_id:draft.id,revision:draft.revision,...body}});
    setMutation({key:requestKey,draft:response.draft});setDirectoryVersion(v=>v+1);
-   setMessage(method==="DELETE"?"Rekomendasi dihapus dari daftar. Tinjau dan publikasikan kembali hasil yang tersisa.":"Perubahan tersimpan sebagai draft. Publikasikan kembali agar tampil pada siswa.");
+   setMessage(method==="DELETE"?"Catatan rekomendasi admin dihapus. Perhitungan otomatis siswa tetap menggunakan profil dan katalog terkini.":"Catatan admin tersimpan. Hasil siswa tetap dihitung otomatis dari data profil dan katalog.");
    return true;
   }catch(error){
    if(!expired(error))setMessage(error instanceof Error?error.message:"Perubahan belum dapat disimpan.");
@@ -83,12 +80,12 @@ export default function AdminRecommendationsApi(){
    return false;
   }finally{lock.current=false;setBusy(false);}
  }
- if(!allowed)return <B4Shell title="Rekomendasi Beasiswa" description="Tinjau rekomendasi beasiswa dan publikasikan hasil yang sesuai kepada siswa." dataNote=""><p role="alert">Akun ini belum memiliki izin membaca rekomendasi siswa.</p></B4Shell>;
+ if(!allowed)return <B4Shell title="Rekomendasi Beasiswa" description="Lihat hasil rekomendasi beasiswa berdasarkan profil dan kriteria yang tersedia." dataNote=""><p role="alert">Akun ini belum memiliki izin membaca rekomendasi siswa.</p></B4Shell>;
  return <RecommendationAdminView filters={filters} onFilter={(field,value)=>{if(!busy){setFilters(v=>({...v,[field]:value}));setMessage("");}}} page={page} student={student}
   loading={!currentStudents||!!student&&!current} error={currentStudents?.error??current?.error} candidates={candidates} draft={draft} targetLevel={targetLevel}
   onTarget={level=>{if(student&&!busy){setTarget({studentId:student.id,level});setMessage("");}}}
   onEdit={(candidate,reason,timing)=>change(candidate,"PATCH",{reason,timing})}
   onVisibility={candidate=>change(candidate,"PATCH",{hidden:!candidate.hidden})} onRemove={candidate=>change(candidate,"DELETE")}
-  busy={busy} canGenerate={!!student&&!!current?.data} canPublish={canPublish} message={message} onGenerate={()=>void save("generate")} onPublish={()=>void save("review")}
+  busy={busy} canGenerate={!!student&&!!current?.data} message={message} onGenerate={()=>void save()}
   onReset={()=>{setFilters(emptyFilters);setVersion(v=>v+1);setMessage("");}}/>;
 }

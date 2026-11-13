@@ -13,11 +13,12 @@ export interface AnalyticsData {
   ukt: AnalyticStats;
   ipk: AnalyticStats;
   ranges: { university: string; program: string; count: number | null; stats: AnalyticStats }[];
+  tuitionRanges?: { university: AnalyticsData["ranges"]; program: AnalyticsData["ranges"] };
   ipkDistribution?: { label: string; count: number }[];
   ipkTrend: { label: string; stats: AnalyticStats }[];
 }
 function row(value: unknown): Row {
-  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Struktur analitik BE belum sesuai kontrak.");
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Data analitik belum dapat dibaca. Silakan coba lagi.");
   return value as Row;
 }
 function text(value: unknown): string | null { return typeof value === "string" && value.trim() ? value : null; }
@@ -31,13 +32,13 @@ function count(value: unknown): number | null {
   return result !== null && Number.isSafeInteger(result) ? result : null;
 }
 function rows(value: unknown): Row[] {
-  if (!Array.isArray(value)) throw new Error("Daftar agregat analitik belum sesuai kontrak.");
+  if (!Array.isArray(value)) throw new Error("Data analitik belum dapat dibaca. Silakan coba lagi.");
   return value.map(row);
 }
 function label(value: unknown): string {
   if (typeof value === "number" && Number.isFinite(value)) return String(value);
   const result = text(value);
-  if (!result) throw new Error("Label agregat analitik belum sesuai kontrak.");
+  if (!result) throw new Error("Data analitik belum dapat dibaca. Silakan coba lagi.");
   return result;
 }
 function stats(value: unknown): AnalyticStats {

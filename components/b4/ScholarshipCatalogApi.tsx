@@ -10,6 +10,7 @@ import { archiveScholarship, getScholarship, getScholarships, saveScholarship } 
 import { scholarshipDuration, scholarshipPeriod, scholarshipQuery, scholarshipRegistrationLabel, type ScholarshipPage, type ScholarshipLevel, type ScholarshipRow } from "@/lib/b4-scholarships";
 import B4Shell from "./B4Shell";
 import CatalogCsvImport from "./CatalogCsvImport";
+import { displayTitle } from "@/lib/display-copy";
 
 type Result = { key: string; page?: ScholarshipPage; error?: string };
 
@@ -64,7 +65,7 @@ export default function ScholarshipCatalogApi() {
         await saveScholarship({ ...detail.input, is_active: true }, action.id);
       }
       confirmation.current?.close();
-      setStatus(`${action.name} berhasil ${action.active ? "diarsipkan" : "diaktifkan"}.`);
+      setStatus(`${displayTitle(action.name)} berhasil ${action.active ? "diarsipkan" : "diaktifkan"}.`);
       setRetry((value) => value + 1);
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) { void refreshSession(); router.replace("/login"); }
@@ -79,13 +80,13 @@ export default function ScholarshipCatalogApi() {
         <label className="b4-selectField"><span className="b4-srOnly">Jenjang pendidikan</span><select aria-label="Jenjang pendidikan" value={level} onChange={(event) => { setLevel(event.target.value as ScholarshipLevel | ""); setPage(1); }}><option value="">Semua Jenjang</option><option>Kuliah</option><option>SMA</option><option value="Keduanya">Kuliah &amp; SMA</option></select><ChevronDown size={18} /></label>
         <div className="bc4-catalogActions"><CatalogCsvImport onSaved={() => setRetry((value) => value + 1)} /><Link className="b4-addScholarship" href="/admin/basis-data-beasiswa/tambah"><Plus size={23} />Tambah Beasiswa</Link></div>
       </div>
-      {(search || level) && <button type="button" className="b4-resetFilters" onClick={reset}>Reset pencarian dan filter</button>}
+      {(search || level) && <button type="button" className="b4-resetFilters" onClick={reset}>Reset Pencarian dan Filter</button>}
       <div className="b4-scholarshipsFrame" aria-busy={!current}>
         <div className="b4-tableScroll" role="region" aria-label="Tabel beasiswa" tabIndex={0}><table className="b4-scholarshipsTable">
-          <thead><tr><th>Nama Beasiswa</th><th>Jenjang</th><th>Durasi</th><th>Periode Apply</th><th>Status Program</th><th>Status Pendaftaran</th><th><span className="b4-srOnly">Aksi</span></th></tr></thead>
+          <thead><tr><th>Nama Beasiswa</th><th>Jenjang</th><th>Durasi</th><th>Periode Pendaftaran</th><th>Status Program</th><th>Status Pendaftaran</th><th><span className="b4-srOnly">Aksi</span></th></tr></thead>
           <tbody>{!current ? <tr><td colSpan={7} className="b4-scholarshipsEmpty" role="status">Memuat katalog beasiswa…</td></tr>
-            : current.error ? <tr><td colSpan={7} className="b4-scholarshipsEmpty"><p role="alert">{current.error}</p><button type="button" onClick={() => setRetry((value) => value + 1)}>Coba lagi</button></td></tr>
-            : data?.data.length ? data.data.map((item) => <tr key={item.id} className={item.active ? undefined : "b4-scholarshipArchived"}><td>{item.name}</td><td>{item.level === "Keduanya" ? "Kuliah & SMA" : item.level}</td><td>{scholarshipDuration(item)}</td><td>{item.applyPeriod || scholarshipPeriod(item)}{item.applyPeriod && <small style={{ display: "block" }}>{item.opens || item.closes ? scholarshipPeriod(item) : "Tanggal pasti belum tercatat"}</small>}</td><td>{(item.programStatus ?? (item.active ? "aktif" : "diarsipkan")) === "aktif" ? "Aktif" : "Diarsipkan"}</td><td>{scholarshipRegistrationLabel(item)}</td><td><div className="b4-scholarshipActions"><Link className="b4-editScholarship" aria-label={`Edit ${item.name}`} href={`/admin/basis-data-beasiswa/edit?id=${item.id}&${scholarshipQuery(search, level, data.currentPage)}`}>Edit</Link><button type="button" aria-label={`${item.active ? "Arsipkan" : "Aktifkan kembali"} ${item.name}`} onClick={() => { setAction(item); setStatus(""); confirmation.current?.showModal(); }}>{item.active ? "Arsipkan" : "Aktifkan"}</button></div></td></tr>)
+            : current.error ? <tr><td colSpan={7} className="b4-scholarshipsEmpty"><p role="alert">{current.error}</p><button type="button" onClick={() => setRetry((value) => value + 1)}>Coba Lagi</button></td></tr>
+            : data?.data.length ? data.data.map((item) => <tr key={item.id} className={item.active ? undefined : "b4-scholarshipArchived"}><td>{displayTitle(item.name)}</td><td>{item.level === "Keduanya" ? "Kuliah & SMA" : item.level}</td><td>{scholarshipDuration(item)}</td><td>{item.applyPeriod || scholarshipPeriod(item)}{item.applyPeriod && <small style={{ display: "block" }}>{item.opens || item.closes ? scholarshipPeriod(item) : "Tanggal pasti belum tercatat"}</small>}</td><td>{(item.programStatus ?? (item.active ? "aktif" : "diarsipkan")) === "aktif" ? "Aktif" : "Diarsipkan"}</td><td>{scholarshipRegistrationLabel(item)}</td><td><div className="b4-scholarshipActions"><Link className="b4-editScholarship" aria-label={`Edit ${displayTitle(item.name)}`} href={`/admin/basis-data-beasiswa/edit?id=${item.id}&${scholarshipQuery(search, level, data.currentPage)}`}>Edit</Link><button type="button" aria-label={`${item.active ? "Arsipkan" : "Aktifkan kembali"} ${displayTitle(item.name)}`} onClick={() => { setAction(item); setStatus(""); confirmation.current?.showModal(); }}>{item.active ? "Arsipkan" : "Aktifkan"}</button></div></td></tr>)
             : <tr><td colSpan={7} className="b4-scholarshipsEmpty">{search || level ? "Tidak ada beasiswa yang sesuai dengan pencarian dan filter." : "Belum ada beasiswa di katalog."}</td></tr>}</tbody>
         </table></div>
         {data && <div className="b4-tableFooter b4-scholarshipsFooter"><p role="status">Menampilkan {first} - {first ? first + data.data.length - 1 : 0} dari {data.total} Beasiswa</p>
@@ -93,7 +94,7 @@ export default function ScholarshipCatalogApi() {
         </div>}
       </div>
       <p role="status" className="bc4-status">{status}</p>
-      <dialog ref={confirmation} className="bc4-dialog" onCancel={(event) => { if (busy) event.preventDefault(); }}><div className="bc4-dialogTitle"><h2>{action?.active ? "Arsipkan" : "Aktifkan"} Beasiswa</h2></div><div className="bc4-dialogBody"><p>{action?.active ? "Arsipkan" : "Aktifkan kembali"} <strong>{action?.name}</strong>?</p><p>Perubahan akan disimpan ke katalog sekolah.</p><p role="alert">{status}</p><div className="bc4-actions"><button className="bc4-button" type="button" disabled={busy} onClick={() => confirmation.current?.close()}>Batal</button><button className="bc4-button bc4-primary" type="button" disabled={busy} onClick={() => void confirmAction()}>{busy ? "Menyimpan…" : action?.active ? "Arsipkan" : "Aktifkan"}</button></div></div></dialog>
+      <dialog ref={confirmation} className="bc4-dialog" onCancel={(event) => { if (busy) event.preventDefault(); }}><div className="bc4-dialogTitle"><h2>{action?.active ? "Arsipkan" : "Aktifkan"} Beasiswa</h2></div><div className="bc4-dialogBody"><p>{action?.active ? "Arsipkan" : "Aktifkan kembali"} <strong>{displayTitle(action?.name)}</strong>?</p><p>Perubahan akan disimpan ke katalog sekolah.</p><p role="alert">{status}</p><div className="bc4-actions"><button className="bc4-button" type="button" disabled={busy} onClick={() => confirmation.current?.close()}>Batal</button><button className="bc4-button bc4-primary" type="button" disabled={busy} onClick={() => void confirmAction()}>{busy ? "Menyimpan…" : action?.active ? "Arsipkan" : "Aktifkan"}</button></div></div></dialog>
     </>}
   </B4Shell>;
 }

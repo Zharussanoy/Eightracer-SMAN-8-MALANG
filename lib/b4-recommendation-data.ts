@@ -21,11 +21,23 @@ export function parseRecommendationDraft(payload:unknown):RecommendationDraft{
   candidates:preview.candidates.map((c,i)=>({...c,detailId:details[i].id===undefined?null:id(details[i].id),hidden:details[i].is_hidden===true,reason:text(details[i].alasan_rekomendasi),timing:text(details[i].waktu_disarankan),preparations:texts(details[i].persiapan??[])}))};
 }
 export interface StudentRecommendation extends RecommendationCandidate{
+ automatic?:boolean;llmUsed?:boolean;
  preview?:boolean;
  key:string;batchId:number;scholarshipId:number;reason:string|null;timing:string|null;preparations:string[];registrationUrl:string|null;registrationStatus:string|null;
 }
 export function parseStudentRecommendations(payload:unknown):StudentRecommendation[]{
  const root=obj(payload);
+ if(root.automatic===true){
+  const data=obj(root.data),parsed=parseRecommendationPreview({data});
+  if(typeof data.llm_used!=="boolean")throw Error("Status penjelasan rekomendasi tidak valid.");
+  const raw=(data.kandidat as unknown[]).map(obj);
+  return parsed.candidates.map((candidate,index)=>{
+   const item=raw[index],info=obj(item.beasiswa);
+   return {...candidate,automatic:true,llmUsed:data.llm_used as boolean,key:"auto-"+parsed.targetLevel+"-"+candidate.id,
+    batchId:0,scholarshipId:candidate.id,reason:text(item.alasan),timing:null,preparations:texts(item.persiapan??[]),
+    registrationUrl:url(info.link_pendaftaran),registrationStatus:null};
+  });
+ }
  if(root.preview===true&&Array.isArray(root.catalog_preview)){
   return root.catalog_preview.map(raw=>{
    const catalog=obj(raw),scholarshipId=id(catalog.id);
@@ -59,5 +71,5 @@ export function parseScholarshipChat(payload:unknown):ScholarshipChatReply{
 export async function recommendationRequest<T>(path:string,options:{method?:"POST"|"PATCH"|"DELETE";body?:unknown;signal?:AbortSignal}={}):Promise<T>{
  const response=await fetch(path,{method:options.method??"GET",body:options.body===undefined?undefined:JSON.stringify(options.body),
  headers:{Accept:"application/json",...(options.body===undefined?{}:{"Content-Type":"application/json"})},credentials:"same-origin",cache:"no-store",signal:options.signal});
- const payload=await response.json().catch(()=>null);if(!response.ok){const error=new Error(payload?.message??"Rekomendasi belum dapat diproses.");Object.assign(error,{status:response.status});throw error;}return payload as T;
+ const payload=await response.json().catch(()=>null);if(!response.ok){const error=new Error(payload?.message??"Rekomendasi belum dapat diproses.");Object.assign(error,{status:response.status,...(response.status===429?{retryAfter:Math.max(1,Math.min(300,Math.ceil(Number(payload?.retry_after??response.headers.get("retry-after"))||60)))}:{})});throw error;}return payload as T;
 }

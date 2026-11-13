@@ -50,7 +50,7 @@ async function handle(request: NextRequest, context: Context) {
       try { value = JSON.parse(new TextDecoder().decode(await bytes(request, 64 * 1024))); } catch (error) { if (error instanceof AuthError) throw error; throw new AuthError(400, "JSON tidak valid."); }
       if (!value || typeof value !== "object" || Array.isArray(value)) throw new AuthError(422, "Isian progres tidak valid.");
       const keys = commit ? ["commit_digest"] : method === "DELETE" ? [] : ["periode", "semester", "status_pendidikan", "tanggal_update", "ipk_terkini", "penerima_kipk", "nominal_ukt", "nominal_ipi", "beasiswa"];
-      if (Object.keys(value).some((key) => !keys.includes(key))) throw new AuthError(422, "Isian progres tidak sesuai kontrak.");
+      if (Object.keys(value).some((key) => !keys.includes(key))) throw new AuthError(422, "Data rekomendasi belum dapat dibaca. Silakan coba lagi.");
       body = JSON.stringify(value);
     }
     const result = await alumniBackend(request, `/${id}/${action.join("/")}`, { method, body, raw: template });

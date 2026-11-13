@@ -1,5 +1,6 @@
 "use client";
 
+import { scholarshipEvidenceLabel, kipEvidenceLabel, kipStatusLabel } from "@/lib/b4-scholarship-evidence";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { Pencil, Trash2, Upload, X } from "lucide-react";
@@ -7,8 +8,9 @@ import { useUser } from "@/context/UserContext";
 import { ApiError } from "@/lib/eightracer-api";
 import { archiveAlumniProgress, commitAlumniProgress, downloadProgressTemplate, getAlumniDetail, previewAlumniProgress, saveAlumniProgress, type ImportPreview } from "@/lib/b4-alumni-api";
 import type { AlumniDetail, AlumniProgressRow } from "@/lib/b4-alumni";
-import { blankProgress, educationStatusLabels, formFromProgress, progressPayload, type ProgressForm } from "@/lib/b4-progress";
+import { blankProgress, newProgressForAlumni, progressScholarshipOptions, educationStatusLabels, formFromProgress, progressPayload, type ProgressForm } from "@/lib/b4-progress";
 import B4Shell, { Avatar } from "./B4Shell";
+import { displayTitle } from "@/lib/display-copy";
 
 const back = "/admin/alumni-perguruan-tinggi", missing = "-";
 const money = (value: number | null) => value === null ? missing : new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(value);
@@ -34,7 +36,7 @@ export default function AdminAlumniDetailPage({ id }: { id?: string }) {
     if (!allowed || !validId || !id) return;
     const controller = new AbortController();
     void getAlumniDetail(id, controller.signal).then(({ data }) => {
-      if (!controller.signal.aborted) { setResult({ id, data }); setForm(blankProgress()); }
+      if (!controller.signal.aborted) { setResult({ id, data }); setForm(newProgressForAlumni(data)); }
     }).catch((error) => {
       if (controller.signal.aborted) return;
       if (error instanceof ApiError && error.status === 401) void refreshSession();
@@ -92,78 +94,76 @@ export default function AdminAlumniDetailPage({ id }: { id?: string }) {
     catch (error) { setMessage(failure(error)); } finally { setSaving(false); }
   }
 
-  const note = "Data dibaca dan disimpan pada database sekolah. Nilai yang belum tersedia ditampilkan dengan tanda -.";
-  if (!alumni) return <B4Shell title="Informasi Detail Alumni" active="alumni" description="Kelola progress perkuliahan alumni." dataNote={note} parent={{ label: "Alumni di PT", href: back }}>
+  if (!alumni) return <B4Shell title="Informasi Detail Alumni" active="alumni" description="Kelola progres perkuliahan alumni." parent={{ label: "Alumni di PT", href: back }}>
     <div className="bc4-empty" role={current?.error ? "alert" : "status"}>
       {!allowed ? authStatus === "loading" ? "Memeriksa sesi akun…" : "Data alumni hanya untuk admin atau Guru BK yang berwenang."
         : !validId ? "ID alumni tidak valid." : current?.error ?? "Memuat detail alumni sekolah…"}
       <p><Link href={back}>Kembali ke daftar alumni</Link></p>
-      {allowed && validId && current?.error && <button type="button" className="bc4-button" onClick={refresh}>Coba lagi</button>}
+      {allowed && validId && current?.error && <button type="button" className="bc4-button" onClick={refresh}>Coba Lagi</button>}
     </div>
   </B4Shell>;
 
   const records = alumni.progress, latest = records[0], selected = records.find((row) => row.id === form.id);
-  const kipk = latest?.kipk === true ? "Ya" : latest?.kipk === false ? "Tidak" : missing;
+  const kipk = kipEvidenceLabel(alumni.scholarshipEvidence);
   const nisn = alumni.hasNisn ? "••••••••••" : missing;
-  const catalogs = new Map(alumni.catalogOptions.map((item) => [item.id, item.name]));
-  for (const award of selected?.scholarships ?? []) if (award.name) catalogs.set(award.id, award.name);
+  const catalogs = progressScholarshipOptions(alumni);
   const mandiri = alumni.admissionPath === "Mandiri";
-  return <B4Shell title="Informasi Detail Alumni" active="alumni" description="Kelola progress alumni selama menempuh pendidikan di Perguruan Tinggi berdasarkan periode." dataNote={note} parent={{ label: "Alumni di PT", href: back }}>
+  return <B4Shell title="Informasi Detail Alumni" active="alumni" description="Kelola progres alumni selama menempuh pendidikan di Perguruan Tinggi berdasarkan periode." parent={{ label: "Alumni di PT", href: back }}>
     <div className="bc4-detailOuter">
-      <div className="bc4-profile" style={{ border: 0, padding: "0 0 24px", background: "transparent" }}><Avatar name={alumni.name} example={false} /><div><h2>{alumni.name}</h2><p>NISN {nisn}</p></div></div>
+      <div className="bc4-profile" style={{ border: 0, padding: "0 0 24px", background: "transparent" }}><Avatar name={alumni.name} example={false} /><div><h2>{displayTitle(alumni.name)}</h2><p>NISN {nisn}</p></div></div>
       <div className="bc4-grid2" style={{ marginTop: 24 }}>
         <section className="bc4-panel"><h2 className="bc4-underlined">Data Induk Alumni</h2>
           <dl className="bc4-infoList">{[
             ["Nama Lengkap", alumni.name], ["NISN", nisn],
             ["Kelas / Angkatan", `${alumni.classroom ?? missing} / ${alumni.graduationYear ?? missing}`],
-            ["Status Penerima KIP-K", kipk], ["Nama Perguruan Tinggi", alumni.university],
+            ["Status Penerima KIP-K", kipk], ["Beasiswa / Bantuan Tercatat", scholarshipEvidenceLabel(alumni.scholarshipEvidence)], ["Nama Perguruan Tinggi", alumni.university],
             ["Jenis Perguruan Tinggi", alumni.universityKind ?? missing], ["Program Studi", alumni.studyProgram], ["Jalur Masuk", alumni.admissionPath ?? missing],
-          ].map(([label, value]) => <div key={label} style={{ display: "contents" }}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
+          ].map(([label, value]) => <div key={label} style={{ display: "contents" }}><dt>{displayTitle(label)}</dt><dd>{displayTitle(value ?? "-")}</dd></div>)}</dl>
         </section>
         <section className="bc4-panel"><h2 className="bc4-underlined">{form.id ? "Edit Progress Kuliah" : "Update Progress Kuliah"}</h2>
           <form ref={editor} onSubmit={save}>
             <div className="bc4-grid2 bc4-progressFields">
               <label className="bc4-field">Periode *<input required disabled={saving || !!form.id} maxLength={50} placeholder="Contoh format: Ganjil 2026/2027" value={form.period} onChange={(event) => field("period", event.target.value)} /></label>
               <label className="bc4-field">Semester *<input required disabled={saving} type="number" min="1" max="40" step="1" placeholder="Isi semester saat ini" value={form.semester} onChange={(event) => field("semester", event.target.value)} /></label>
-              <label className="bc4-field">Status Pendidikan *<select required disabled={saving} value={form.status} onChange={(event) => field("status", event.target.value)}><option value="">Pilih status</option>{Object.entries(educationStatusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+              <label className="bc4-field">Status Pendidikan *<select required disabled={saving} value={form.status} onChange={(event) => field("status", event.target.value)}><option value="">Pilih Status</option>{Object.entries(educationStatusLabels).map(([value, label]) => <option key={value} value={value}>{displayTitle(label)}</option>)}</select></label>
               <label className="bc4-field">Tanggal Pembaruan *<input required disabled={saving} type="date" value={form.date} onChange={(event) => field("date", event.target.value)} /></label>
-              <fieldset className="bc4-field" disabled={saving}><legend>Status Penerima KIP-K</legend><div className="bc4-radios">{[["", "-"], ["1", "Penerima"], ["0", "Bukan Penerima"]].map(([value, label]) => <label key={value}><input type="radio" name="kipk" checked={form.kipk === value} onChange={() => field("kipk", value)} />{label}</label>)}</div></fieldset>
+              <fieldset className="bc4-field" disabled={saving}><legend>Status Penerima KIP-K</legend><div className="bc4-radios">{[["", kipStatusLabel(null)], ["1", kipStatusLabel(true)], ["0", kipStatusLabel(false)]].map(([value, label]) => <label key={value}><input type="radio" name="kipk" checked={form.kipk === value} onChange={() => field("kipk", value)} />{displayTitle(label)}</label>)}</div></fieldset>
               <label className="bc4-field">IP-Kumulatif<input disabled={saving} type="number" min="0" max="4" step="0.01" value={form.gpa} placeholder={missing} onChange={(event) => field("gpa", event.target.value)} /></label>
-              <fieldset className="bc4-field" disabled={saving || !catalogs.size}><legend>Beasiswa yang diterima (jika ada)</legend><div className="bc4-progressAwards">{[...catalogs].map(([value,name])=><label key={value}><input type="checkbox" checked={form.awardIds.includes(String(value))} onChange={e=>field("awardIds",e.target.checked?[...form.awardIds,String(value)]:form.awardIds.filter(id=>id!==String(value)))}/><span>{name}</span></label>)}{!catalogs.size&&<span>-</span>}</div><small>Centang beasiswa yang diterima; boleh lebih dari satu.</small></fieldset>
+              <fieldset className="bc4-field" disabled={saving || !catalogs.size}><legend>Beasiswa yang Diterima (Jika Ada)</legend><div className="bc4-progressAwards">{[...catalogs].map(([value,name])=><label key={value}><input type="checkbox" checked={form.awardIds.includes(String(value))} onChange={e=>field("awardIds",e.target.checked?[...form.awardIds,String(value)]:form.awardIds.filter(id=>id!==String(value)))}/><span>{displayTitle(name)}</span></label>)}{!catalogs.size&&<span>-</span>}</div><small>Pilihan mengikuti catatan terakhir; sesuaikan untuk periode yang diisi. Boleh lebih dari satu.</small></fieldset>
               {(["ipi", "ukt"] as const).map((key) => <div className="bc4-field" key={key}><label htmlFor={`bc4-${key}`}>{key === "ukt" ? "UKT / Semester" : "IPI (Khusus Mandiri)"}</label>
                 <div className="bc4-moneyField"><span aria-hidden="true">Rp</span><input disabled={saving || (key === "ipi" && !mandiri)} id={`bc4-${key}`} type="number" min="0" step="0.01" value={form[key]} placeholder={missing} onChange={(event) => field(key, event.target.value)} /></div>
               </div>)}
             </div>
             {formError && <p className="bc4-status" role="alert">{formError}</p>}
-            <div className="bc4-actions" style={{ marginTop: 20 }}><button disabled={saving} className="bc4-button" type="button" onClick={openUpload}><Upload size={17} />Sinkronkan Data</button><button disabled={saving} className="bc4-button bc4-primary" type="submit">{saving ? "Menyimpan…" : "Simpan"}</button>{form.id && <button type="button" className="bc4-button" onClick={() => { setForm(blankProgress()); setFormError(""); }}>Batal Edit</button>}</div>
+            <div className="bc4-actions" style={{ marginTop: 20 }}><button disabled={saving} className="bc4-button" type="button" onClick={openUpload}><Upload size={17} />Sinkronkan Data</button><button disabled={saving} className="bc4-button bc4-primary" type="submit">{saving ? "Menyimpan…" : "Simpan"}</button>{form.id && <button type="button" className="bc4-button" onClick={() => { setForm(newProgressForAlumni(alumni)); setFormError(""); }}>Batal Edit</button>}</div>
           </form>
         </section>
       </div>
       {message && <p className="bc4-status" role="status">{message}</p>}
-      <section className="bc4-panel" style={{ marginTop: 12 }}><h2 className="bc4-underlined">Riwayat Progress Perkuliahan</h2>
-        <div className="b4-tableScroll"><table className="bc4-progressTable"><thead><tr>{["PERIODE SEMESTER", "IPK", "PENERIMA KIP-K", "BEASISWA TERDAFTAR", "UKT", "AKSI"].map((title) => <th key={title}>{title}</th>)}</tr></thead><tbody>{records.map((row) => <tr key={row.id}>
-          <td>{row.period ?? missing} (Semester {row.semester ?? missing})</td><td>{row.gpa ?? missing}</td><td>{row.kipk === true ? "Ya" : row.kipk === false ? "Tidak" : missing}</td>
+      <section className="bc4-panel" style={{ marginTop: 12 }}><h2 className="bc4-underlined">Riwayat Progres Perkuliahan</h2>
+        <div className="b4-tableScroll"><table className="bc4-progressTable"><thead><tr>{["PERIODE SEMESTER", "IPK", "PENERIMA KIP-K", "BEASISWA TERDAFTAR", "UKT", "AKSI"].map((title) => <th key={title}>{displayTitle(title)}</th>)}</tr></thead><tbody>{records.map((row) => <tr key={row.id}>
+          <td>{row.period ?? missing} (Semester {row.semester ?? missing})</td><td>{row.gpa ?? missing}</td><td>{kipStatusLabel(row.kipk)}</td>
           <td>{row.scholarships.map((award) => `${award.name ?? missing} (${award.status})`).join(", ") || missing}</td><td>{money(row.ukt)}</td>
           <td><div className="bc4-actions"><button disabled={saving} type="button" aria-label={`Edit semester ${row.semester}`} onClick={() => edit(row)}><Pencil size={18} /></button><button disabled={saving} type="button" aria-label={`Arsipkan semester ${row.semester}`} onClick={() => { setDeleting(row); confirm.current?.showModal(); }}><Trash2 size={18} /></button></div></td>
-        </tr>)}</tbody></table>{!records.length && <p className="bc4-empty">Belum ada riwayat progress.</p>}</div>
+        </tr>)}</tbody></table>{!records.length && <p className="bc4-empty">-</p>}</div>
       </section>
     </div>
     <dialog className="bc4-dialog" ref={upload} onCancel={(event) => { event.preventDefault(); closeUpload(); }}>
-      <div className="bc4-dialogTitle"><h2>Sinkronkan Data Progress Kuliah</h2><button disabled={importPhase === "commit"} type="button" aria-label="Tutup unggah" onClick={closeUpload}><X /></button></div>
-      <div className="bc4-dialogBody"><p>Unggah data untuk <strong>{alumni.name}</strong> pada penerimaan <strong>{alumni.university} · {alumni.studyProgram}</strong>. Periode yang sama dikoreksi dengan jejak versi; data belum disimpan sebelum kamu menekan Simpan.</p>
+      <div className="bc4-dialogTitle"><h2>Sinkronkan Data Progres Kuliah</h2><button disabled={importPhase === "commit"} type="button" aria-label="Tutup unggah" onClick={closeUpload}><X /></button></div>
+      <div className="bc4-dialogBody"><p>Unggah data untuk <strong>{displayTitle(alumni.name)}</strong> pada penerimaan <strong>{displayTitle(alumni.university)} · {displayTitle(alumni.studyProgram)}</strong>. Periode yang sama dikoreksi dengan jejak versi; data belum disimpan sebelum kamu menekan Simpan.</p>
         <p>Kolom wajib: periode, semester, status_pendidikan, tanggal_update. IPK, KIP-K, UKT, IPI, dan beasiswa boleh kosong. IPI hanya untuk jalur Mandiri.</p>
         <label className="bc4-dropzone"><Upload size={50} /><strong>Pilih File Spreadsheet</strong><span>XLSX / CSV · maksimal 5 MB, 40 baris</span><input ref={fileInput} disabled={!!importPhase} aria-label="File spreadsheet progres" type="file" accept=".xlsx,.csv" onChange={(event) => { setFile(event.target.files?.[0] ?? null); setBatch(null); setImportError(""); }} /></label>
-        <label className="bc4-field">Format angka<select disabled={!!importPhase} value={format} onChange={(event) => { setFormat(event.target.value); setBatch(null); }}><option value="canonical">Standar: 3500000 dan 3.75</option><option value="id">Indonesia: 3.500.000 dan 3,75</option></select></label>
-        <button disabled={!!importPhase} type="button" className="bc4-button" onClick={() => void downloadProgressTemplate(String(alumni.id)).catch((error) => setImportError(failure(error)))}>Unduh template Excel (CSV)</button>
+        <label className="bc4-field">Format Angka<select disabled={!!importPhase} value={format} onChange={(event) => { setFormat(event.target.value); setBatch(null); }}><option value="canonical">Standar: 3500000 dan 3.75</option><option value="id">Indonesia: 3.500.000 dan 3,75</option></select></label>
+        <button disabled={!!importPhase} type="button" className="bc4-button" onClick={() => void downloadProgressTemplate(String(alumni.id)).catch((error) => setImportError(failure(error)))}>Unduh Template Excel (CSV)</button>
         {file && <p>{file.name}</p>}{importPhase && <p role="status">{importPhase === "preview" ? "Memeriksa dan memindai file…" : "Menyimpan progres…"}</p>}
         {importError && <p className="bc4-status" role="alert">{importError}</p>}
-        {batch && <div className="bc4-importPreview"><h3>{batch.summary.valid} baris valid · {batch.summary.invalid} baris bermasalah</h3>
+        {batch && <div className="bc4-importPreview"><h3>{batch.summary.valid} Baris Valid · {batch.summary.invalid} Baris Bermasalah</h3>
           {batch.summary.errors.map((row, index) => <p key={index} role="alert">{row.sheet} baris {row.row}: {Object.values(row.errors).flat().join(" ")}</p>)}
           {batch.sample.map((row) => <p key={`${row.sheet}-${row.row}`}>{row.sheet} baris {row.row} · {row.operation === "koreksi" ? "Koreksi" : "Tambah"} · {String(row.data.periode ?? missing)} · Semester {String(row.data.semester ?? missing)} · {educationStatusLabels[String(row.data.status_pendidikan)] ?? missing} · IPK {String(row.data.ipk_terkini ?? missing)} · UKT {row.data.nominal_ukt == null ? missing : money(Number(row.data.nominal_ukt))}</p>)}
         </div>}
         <div className="bc4-actions" style={{ marginTop: 20 }}><button disabled={importPhase === "commit"} type="button" className="bc4-button" onClick={closeUpload}>Batal</button><button disabled={!file || !!importPhase} type="button" className="bc4-button" onClick={() => void preview()}>Pratinjau</button><button disabled={batch?.status !== "validated" || !!importPhase} type="button" className="bc4-button bc4-primary" onClick={() => void commit()}>Simpan</button></div>
       </div>
     </dialog>
-    <dialog ref={confirm} className="bc4-dialog"><div className="bc4-dialogTitle"><h2>Arsipkan riwayat {deleting?.period}?</h2></div><div className="bc4-dialogBody"><p>Riwayat tidak ditampilkan sebagai progres aktif; jejak datanya tetap disimpan.</p><div className="bc4-actions"><button disabled={saving} type="button" className="bc4-button" onClick={() => confirm.current?.close()}>Batal</button><button disabled={saving} type="button" className="bc4-button bc4-primary" onClick={() => void archive()}>Arsipkan</button></div></div></dialog>
+    <dialog ref={confirm} className="bc4-dialog"><div className="bc4-dialogTitle"><h2>Arsipkan Riwayat {deleting?.period}?</h2></div><div className="bc4-dialogBody"><p>Riwayat tidak ditampilkan sebagai progres aktif; jejak datanya tetap disimpan.</p><div className="bc4-actions"><button disabled={saving} type="button" className="bc4-button" onClick={() => confirm.current?.close()}>Batal</button><button disabled={saving} type="button" className="bc4-button bc4-primary" onClick={() => void archive()}>Arsipkan</button></div></div></dialog>
   </B4Shell>;
 }

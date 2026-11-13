@@ -11,6 +11,7 @@ import Link from "next/link";
 import { ChevronDown, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 import B4Tabs from "./B4Tabs";
 import "./college.css";
+import { displayTitle } from "@/lib/display-copy";
 
 const PAGE_SIZE = 8;
 type Result = { key: string; page?: AlumniPage; error?: string };
@@ -20,10 +21,10 @@ function FilterSelect({ label, value, options, onChange }: {
 }) {
   return (
     <label className={"b4-selectField"}>
-      <span className={"b4-srOnly"}>{label}</span>
+      <span className={"b4-srOnly"}>{displayTitle(label)}</span>
       <select value={value} onChange={(event) => onChange(event.target.value)}>
-        <option value="">{label}</option>
-        {options.map((option) => typeof option === "string" ? <option key={option} value={option}>{option}</option> : <option key={option.value} value={option.value}>{option.label}</option>)}
+        <option value="">{displayTitle(label)}</option>
+        {options.map((option) => typeof option === "string" ? <option key={option} value={option}>{displayTitle(option)}</option> : <option key={option.value} value={option.value}>{displayTitle(option.label)}</option>)}
       </select>
       <ChevronDown size={18} aria-hidden="true" />
     </label>
@@ -89,7 +90,7 @@ export default function AlumniCollegePage() {
               <span aria-current="page">Alumni di PT</span>
             </nav>
             <h1 id="b4-page-title">Alumni di Perguruan Tinggi</h1>
-            <p>Kelola progress alumni selama menempuh pendidikan di Perguruan Tinggi berdasarkan periode</p>
+            <p>Kelola progres alumni selama menempuh pendidikan di Perguruan Tinggi berdasarkan periode</p>
           </div>
         </section>
 
@@ -107,7 +108,7 @@ export default function AlumniCollegePage() {
               <FilterSelect label="Program Studi" value={program} options={studyPrograms} onChange={changeFilter(setProgram)} />
               <FilterSelect label="Jalur Masuk" value={admission} options={admissionPaths} onChange={changeFilter(setAdmission)} />
             </div>
-            {hasFilters && <button type="button" className={"b4-resetFilters"} onClick={resetFilters}>Reset pencarian dan filter <X size={14} /></button>}
+            {hasFilters && <button type="button" className={"b4-resetFilters"} onClick={resetFilters}>Reset Pencarian dan Filter <X size={14} /></button>}
 
             <div className={"b4-tableFrame"}>
               <div className={"b4-tableScroll"} tabIndex={0} role="region" aria-label="Tabel alumni, geser ke samping pada layar kecil">
@@ -121,16 +122,16 @@ export default function AlumniCollegePage() {
                   <tbody>
                     {visibleRows.map((alumni) => (
                       <tr key={alumni.id}>
-                        <td>{alumni.name}</td><td>{alumni.university}</td><td>{alumni.studyProgram}</td>
-                        <td>{alumni.admissionPath ?? "-"}</td><td>{educationStatus(alumni.latestStatus)}</td>
+                        <td>{displayTitle(alumni.name)}</td><td>{displayTitle(alumni.university)}</td><td>{displayTitle(alumni.studyProgram)}</td>
+                        <td>{displayTitle(alumni.admissionPath ?? "-")}</td><td>{educationStatus(alumni.latestStatus)}</td>
                         <td><Link href={`/admin/alumni-perguruan-tinggi/informasi-detail?id=${encodeURIComponent(String(alumni.id))}`} className={"b4-detailButton"}
-                          aria-label={`Lihat detail ${alumni.name}`}>Lihat Detail</Link></td>
+                          aria-label={`Lihat detail ${displayTitle(alumni.name)}`}>Lihat Detail</Link></td>
                       </tr>
                     ))}
                     {!allowed ? <tr><td colSpan={6} className="b4-emptyState">{authStatus === "loading" ? "Memeriksa sesi akun…" : <>Data alumni sekolah hanya tersedia untuk admin atau Guru BK yang berwenang. <Link href="/login">Masuk</Link></>}</td></tr>
                       : !current ? <tr><td colSpan={6} className="b4-emptyState" role="status">Memuat data alumni sekolah…</td></tr>
-                      : current.error ? <tr><td colSpan={6} className="b4-emptyState"><p role="alert">{current.error}</p><button type="button" onClick={() => setRetry((value) => value + 1)}>Coba lagi</button></td></tr>
-                      : visibleRows.length === 0 && <tr><td colSpan={6} className="b4-emptyState">Tidak ada data penerimaan yang cocok dengan pencarian dan filter.<button type="button" onClick={resetFilters}>Reset filter</button></td></tr>}
+                      : current.error ? <tr><td colSpan={6} className="b4-emptyState"><p role="alert">{current.error}</p><button type="button" onClick={() => setRetry((value) => value + 1)}>Coba Lagi</button></td></tr>
+                      : visibleRows.length === 0 && <tr><td colSpan={6} className="b4-emptyState">Tidak ada data penerimaan yang cocok dengan pencarian dan filter.<button type="button" onClick={resetFilters}>Reset Filter</button></td></tr>}
                   </tbody>
                 </table>
               </div>
@@ -146,7 +147,6 @@ export default function AlumniCollegePage() {
                 </nav>
               </div>
             </div>
-            <p className={"b4-demoNote"}>Data sekolah dari backend. Satu alumni dapat memiliki beberapa catatan penerimaan PT; status progres kuliah ditampilkan hanya jika datanya tersedia.</p>
           </section>
         </div>
       </main>

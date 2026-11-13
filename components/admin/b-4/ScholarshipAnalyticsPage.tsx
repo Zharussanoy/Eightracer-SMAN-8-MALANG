@@ -8,6 +8,7 @@ import "./college.css";
 import { useUser } from "@/context/UserContext";
 import ScholarshipAnalyticsApi from "@/components/b4/ScholarshipAnalyticsApi";
 import B4Shell from "@/components/b4/B4Shell";
+import { displayTitle } from "@/lib/display-copy";
 
 const scholarshipData = [
   { label: "Beasiswa Unggulan Kemendikbud", count: 48 },
@@ -60,10 +61,10 @@ function FilterSelect({ label, value, options, onChange }: {
   onChange: (value: string) => void;
 }) {
   return <label className="b4-selectField b4-analyticsFilter">
-    <span className="b4-srOnly">{label}</span>
+    <span className="b4-srOnly">{displayTitle(label)}</span>
     <select aria-label={label} value={value} onChange={(event) => onChange(event.target.value)}>
-      <option value="">{label}</option>
-      {options.map((option) => <option key={option} value={option}>{option}</option>)}
+      <option value="">{displayTitle(label)}</option>
+      {options.map((option) => <option key={option} value={option}>{displayTitle(option)}</option>)}
     </select>
     <ChevronDown size={17} aria-hidden="true" />
   </label>;
@@ -75,7 +76,7 @@ function ChartBars({ data, label }: { data: { label: string; count: number }[]; 
     {data.map((item) => <div className="b4-chartBarColumn" key={item.label}>
       <strong>{item.count}</strong>
       <span className="b4-chartBar" style={{ height: `${Math.max(8, item.count / max * 80)}%` }} />
-      <span className="b4-chartBarLabel">{item.label}</span>
+      <span className="b4-chartBarLabel">{displayTitle(item.label)}</span>
     </div>)}
   </div>;
 }
@@ -87,7 +88,7 @@ function formatRupiah(value: number) {
 export default function ScholarshipAnalyticsPage() {
   const { authStatus, authMessage, refreshSession } = useUser();
   if (authStatus === "authenticated") return <ScholarshipAnalyticsApi />;
-  if (authStatus !== "anonymous") return <B4Shell title="Analitik Beasiswa & Ringkasan Pola Per-Angkatan" active="analytics" description="Lihat analitik alumni sekolah." dataNote=""><p role="status">{authStatus === "loading" ? "Memeriksa sesi akun…" : authMessage}</p>{authStatus === "unavailable" && <button onClick={() => void refreshSession()}>Coba lagi</button>}</B4Shell>;
+  if (authStatus !== "anonymous") return <B4Shell title="Analitik Beasiswa & Ringkasan Pola Per-Angkatan" active="analytics" description="Lihat analitik alumni sekolah." dataNote=""><p role="status">{authStatus === "loading" ? "Memeriksa sesi akun…" : authMessage}</p>{authStatus === "unavailable" && <button onClick={() => void refreshSession()}>Coba Lagi</button>}</B4Shell>;
   return <ScholarshipAnalyticsDemo />;
 }
 function ScholarshipAnalyticsDemo() {
@@ -143,7 +144,7 @@ function ScholarshipAnalyticsDemo() {
           {filterSummary && <p className="b4-analyticsFilterStatus" role="status">Filter pratinjau: {filterSummary}</p>}
 
           <section className="b4-analyticsStats" aria-label="Ringkasan alumni">
-            <article><span>Total Alumni Terpantau</span><strong>{totalAlumni} Alumni</strong><small>Alumni dengan rekam progress aktif</small></article>
+            <article><span>Total Alumni Terpantau</span><strong>{totalAlumni} Alumni</strong><small>Alumni dengan rekam progres aktif</small></article>
             <article><span>Penerima Beasiswa</span><strong>{scholarshipCount} Alumni</strong><small>{scholarshipPercent}% dari total alumni</small></article>
             <article><span>Penerima KIP-K</span><strong>{kipkCount} Alumni</strong><small>KIP-Kuliah Merdeka Terverifikasi</small></article>
           </section>
@@ -160,7 +161,7 @@ function ScholarshipAnalyticsDemo() {
                 <h3>Distribusi Beasiswa</h3>
                 <div className="b4-scholarshipBars">
                   {scholarshipRows.map((item) => <div className="b4-scholarshipBarRow" key={item.label}>
-                    <div><span>{item.label}</span><strong>{item.count}<small> Alumni</small></strong></div>
+                    <div><span>{displayTitle(item.label)}</span><strong>{item.count}<small> Alumni</small></strong></div>
                     <span className="b4-scholarshipTrack"><span style={{ width: `${item.count / 48 * 100}%` }} /></span>
                   </div>)}
                 </div>
@@ -179,7 +180,7 @@ function ScholarshipAnalyticsDemo() {
             </header>
             <div className="b4-tuitionRows">
               {visibleTuition.map((item) => <article className="b4-tuitionRow" key={item.name}>
-                <div className="b4-tuitionIdentity"><strong>{item.name}</strong><span>{item.students} alumni tercatat · {item.location}</span></div>
+                <div className="b4-tuitionIdentity"><strong>{displayTitle(item.name)}</strong><span>{item.students} alumni tercatat · {item.location}</span></div>
                 <div className="b4-tuitionRange">
                   <div className="b4-tuitionMinMax"><span>Min: <strong>{formatRupiah(item.min)}</strong></span><span>Maks: <strong>{formatRupiah(item.max)}</strong></span></div>
                   <div className="b4-rangeTrack" role="img" aria-label={`Rentang UKT dari ${formatRupiah(item.min)} hingga ${formatRupiah(item.max)}`}>
@@ -205,7 +206,7 @@ function ScholarshipAnalyticsDemo() {
               <article className="b4-analyticsCard b4-continuityCard">
                 <h3>Status Beasiswa Berdasarkan Rentang IPK</h3>
                 <div className="b4-continuityRows">{continuityBands.map((band) => <div className="b4-continuityRow" key={band.label}>
-                  <div><span>{band.label}</span><small>{band.active}% Aktif</small></div>
+                  <div><span>{displayTitle(band.label)}</span><small>{band.active}% Aktif</small></div>
                   <span className="b4-continuityTrack"><i style={{ width: `${band.active}%` }} /><i style={{ width: `${band.inactive}%` }} /><i style={{ width: `${band.unknown}%` }} /></span>
                 </div>)}</div>
                 <footer className="b4-chartLegend"><span><i />Aktif</span><span><i />Tidak berlanjut</span><span><i />Belum ada data</span></footer>

@@ -1,7 +1,7 @@
 import type { AnalyticsData, AnalyticStats } from "./b4-analytics";
 type Row = Record<string, unknown>;
 function row(value: unknown): Row {
-  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Struktur analitik BE belum sesuai kontrak.");
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Data analitik belum dapat dibaca. Silakan coba lagi.");
   return value as Row;
 }
 function text(value: unknown): string | null { return typeof value === "string" && value.trim() ? value : null; }
@@ -15,13 +15,13 @@ function count(value: unknown): number | null {
   return result !== null && Number.isSafeInteger(result) ? result : null;
 }
 function rows(value: unknown): Row[] {
-  if (!Array.isArray(value)) throw new Error("Daftar agregat analitik belum sesuai kontrak.");
+  if (!Array.isArray(value)) throw new Error("Data analitik belum dapat dibaca. Silakan coba lagi.");
   return value.map(row);
 }
 function label(value: unknown): string {
   if (typeof value === "number" && Number.isFinite(value)) return String(value);
   const result = text(value);
-  if (!result) throw new Error("Label agregat analitik belum sesuai kontrak.");
+  if (!result) throw new Error("Data analitik belum dapat dibaca. Silakan coba lagi.");
   return result;
 }
 // Adapter for school-source aggregates; the FE component and its controls stay unchanged.
@@ -32,7 +32,13 @@ export function parseSchoolAnalytics(payload: unknown): AnalyticsData {
     const s = row(value);
     return { known: n(s.known), unknown: n(s.unknown), minimum: analyticNumber(s.minimum), maximum: analyticNumber(s.maximum), mean: analyticNumber(s.mean) };
   };
+  const grouped = finance.tuition_ranges === undefined ? null : row(finance.tuition_ranges);
+  const groupedRanges = (value: unknown) => rows(value).map((v) => ({
+    university: text(v.university) ?? "Seluruh perguruan tinggi",
+    program: text(v.program) ?? "Seluruh program studi", count: n(v.count), stats: metric(v.stats),
+  }));
   return {
+    tuitionRanges: grouped ? { university: groupedRanges(grouped.by_university), program: groupedRanges(grouped.by_program) } : undefined,
     asOf: text(source.as_of), total: n(summary.alumni), recipients: n(summary.all_aid), kipk: n(summary.kip),
     notes: Array.isArray(source.notes) ? source.notes.filter((v): v is string => typeof v === "string") : [],
     distribution: rows(source.scholarships).map((v) => ({ id: null, label: label(v.label), count: n(v.count) })),

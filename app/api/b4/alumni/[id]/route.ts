@@ -10,9 +10,9 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
     if (!/^[1-9]\d*$/.test(id) || !Number.isSafeInteger(Number(id))
       || [...query.keys()].some((key) => key !== "timeline_complete" || query.getAll(key).length !== 1)
       || (query.has("timeline_complete") && query.get("timeline_complete") !== "1")) throw new AuthError(422, "ID/filter alumni tidak valid.");
-    const result = await alumniBackend(request, `/${id}${query.has("timeline_complete") ? "?timeline_complete=1" : ""}`);
+    const result = await alumniBackend(request, `/${id}${query.has("timeline_complete") ? "?timeline_complete=1" : ""}`, { resource: "b4/alumni" });
     if (result.response) return result.response;
-    try { return authResponse({ data: parseAlumniTimeline(result.payload) }); }
-    catch { throw new AuthError(502, "Respons detail alumni belum sesuai kontrak."); }
+    try { const data = parseAlumniTimeline(result.payload); if (data.id !== Number(id)) throw new Error("Identitas detail alumni tidak sesuai pilihan."); return authResponse({ data }); }
+    catch { throw new AuthError(502, "Data rekomendasi belum dapat dibaca. Silakan coba lagi."); }
   } catch (error) { return authFailure(error); }
 }

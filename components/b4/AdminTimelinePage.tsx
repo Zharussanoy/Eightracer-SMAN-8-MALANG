@@ -1,5 +1,6 @@
 "use client";
 
+import { scholarshipEvidenceLabel, kipEvidenceLabel } from "@/lib/b4-scholarship-evidence";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useUser } from "@/context/UserContext";
@@ -11,10 +12,10 @@ import { educationStatus } from "@/lib/b4-progress";
 import B4Shell, { Avatar } from "./B4Shell";
 import AlumniAcademicTimeline from "./AlumniAcademicTimeline";
 import NumberPagination from "./NumberPagination";
+import { displayTitle } from "@/lib/display-copy";
 
 type PageResult = { key: string; data?: AlumniPage; error?: string };
 type DetailResult = { id: number; data?: AlumniTimelineDetail; error?: string };
-const note = "Nama alumni, kampus, prodi, jalur, dan riwayat ditampilkan sesuai data sekolah. Tanda - berarti datanya belum tersedia.";
 
 export default function AdminTimelinePage() {
   const { authStatus, currentUser, refreshSession } = useUser();
@@ -62,17 +63,17 @@ export default function AdminTimelinePage() {
 
   function change(set: (value: string) => void, value: string) { set(value); setPage(1); }
   const latest = alumni?.progress[0];
-  return <B4Shell title="Timeline Individu" active="timeline" description="Lihat perjalanan pendidikan dan perkembangan kuliah alumni dari masa sekolah hingga kondisi terkini." dataNote={note}>
+  return <B4Shell title="Timeline Individu" active="timeline" description="Lihat perjalanan pendidikan dan perkembangan kuliah alumni dari masa sekolah hingga kondisi terkini.">
     <div className="bc4-filterRow">
       <label className="bc4-field"><span className="b4-srOnly">Cari alumni</span><input aria-label="Cari alumni" placeholder="Cari nama alumni" maxLength={100} list="bc4-timeline-alumni" value={query} onChange={(event) => change(setQuery, event.target.value)} /><datalist id="bc4-timeline-alumni">{[...new Set(rows.map((row) => row.name))].map((name) => <option key={name} value={name} />)}</datalist></label>
       {[
         { label: "Perguruan Tinggi", key: "university", value: university, set: setUniversity, options: filters.universities },
         { label: "Program Studi", key: "program", value: program, set: setProgram, options: filters.studyPrograms.map((item) => ({ value: item, label: item })) },
         { label: "Jalur Masuk", key: "admission", value: admission, set: setAdmission, options: filters.admissionPaths.map((item) => ({ value: item, label: item })) },
-      ].map(({ label, key, value, set, options }) => <label className="bc4-field" key={key}><span className="b4-srOnly">{label}</span><select aria-label={label} value={value} onChange={(event) => change(set, event.target.value)}><option value="">{label}</option>{options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>)}
+      ].map(({ label, key, value, set, options }) => <label className="bc4-field" key={key}><span className="b4-srOnly">{displayTitle(label)}</span><select aria-label={label} value={value} onChange={(event) => change(set, event.target.value)}><option value="">{displayTitle(label)}</option>{options.map((option) => <option key={option.value} value={option.value}>{displayTitle(option.label)}</option>)}</select></label>)}
     </div>
     {!allowed ? <div className="bc4-empty" role="status">{authStatus === "loading" ? "Memeriksa sesi akun…" : "Timeline sekolah hanya untuk admin atau Guru BK yang berwenang."}</div>
-      : current?.error ? <div className="bc4-empty" role="alert">{current.error}<p><button className="bc4-button" type="button" onClick={refresh}>Coba lagi</button></p></div>
+      : current?.error ? <div className="bc4-empty" role="alert">{current.error}<p><button className="bc4-button" type="button" onClick={refresh}>Coba Lagi</button></p></div>
       : !current?.data ? <div className="bc4-empty" role="status">Memuat data alumni…</div>
       : !rows.length ? <div className="bc4-empty" role="status"><strong>{hasFilters ? "Tidak ada alumni yang cocok dengan pencarian ini." : "Belum ada data alumni."}</strong>
         <p>Ubah pencarian atau lihat daftar Alumni di PT.</p>
@@ -81,10 +82,10 @@ export default function AdminTimelinePage() {
       </div> : <>
         {currentDetail?.error ? <div className="bc4-empty" role="alert">{currentDetail.error}<p><button className="bc4-button" type="button" onClick={refresh}>Muat Ulang</button></p></div>
           : !alumni ? <div className="bc4-empty" role="status">Memuat riwayat alumni…</div> : <>
-            <div className="bc4-profileRow"><div className="bc4-profile"><Avatar name={alumni.name} example={false} /><div><h2>{alumni.name}</h2><p>{alumni.university} · {alumni.studyProgram}</p><p>NISN {alumni.hasNisn ? "••••••••••" : "-"}</p><p>{educationStatus(latest?.status ?? null)}</p></div></div>
+            <div className="bc4-profileRow"><div className="bc4-profile"><Avatar name={alumni.name} example={false} /><div><h2>{displayTitle(alumni.name)}</h2><p>{displayTitle(alumni.university)} · {displayTitle(alumni.studyProgram)}</p><p>NISN {alumni.hasNisn ? "••••••••••" : "-"}</p><p>{educationStatus(latest?.status ?? null)}</p></div></div>
               <div className="bc4-current"><h3>Status Terkini</h3><dl className="bc4-metrics">{[
-                ["Semester", latest?.semester ?? "-"], ["IPK", latest?.gpa ?? "-"], ["Beasiswa", latest ? acceptedAwards(latest) : "-"], ["Status KIP-K", latest?.kipk === true ? "Ya" : latest?.kipk === false ? "Tidak" : "-"], ["UKT/Semester", timelineMoney(latest?.ukt ?? null)],
-              ].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></div></div>
+                ["Semester", latest?.semester ?? "-"], ["IPK", latest?.gpa ?? "-"], ["Beasiswa", scholarshipEvidenceLabel(alumni.scholarshipEvidence)], ["Status KIP-K", kipEvidenceLabel(alumni.scholarshipEvidence)], ["UKT/Semester", timelineMoney(latest?.ukt ?? null)],
+              ].map(([label, value]) => <div key={label}><dt>{displayTitle(label)}</dt><dd>{displayTitle(value ?? "-")}</dd></div>)}</dl></div></div>
             <AlumniAcademicTimeline key={alumni.id} alumni={alumni} />
             {current.data.lastPage>1&&<div className="bc4-timelinePagination"><NumberPagination current={page} last={current.data.lastPage} onChange={setPage}/></div>}
           </>}

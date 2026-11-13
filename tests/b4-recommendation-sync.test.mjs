@@ -29,12 +29,16 @@ test("student views refresh on focus and while visible, withdraw old data, and c
 test("alumni list reloads the school-published data on focus and drops data withdrawn by school",async()=>{
  const {createRequire}=await import("node:module"),require=createRequire(import.meta.url);
  const React=require("react"),events=new Map(),states=[],intervals=new Map();let effect,stateIndex=0,calls=0;
+ const copyModule={exports:{}};
+ vm.runInNewContext(ts.transpileModule(fs.readFileSync("lib/display-copy.ts","utf8"),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:copyModule,exports:copyModule.exports});
  const listeners={addEventListener:(event,fn)=>events.set(event,fn),removeEventListener:(event,fn)=>{if(events.get(event)===fn)events.delete(event);}};
  const document={...listeners,visibilityState:"visible"},window={...listeners,setInterval:fn=>{intervals.set(1,fn);return 1;},clearInterval:id=>intervals.delete(id)};
  const modules={
   react:{...React,useState:initial=>{const index=stateIndex++;states[index]=initial;return[initial,v=>{states[index]=v;}];},useEffect:fn=>{effect=fn;}},
   "next/link":{__esModule:true,default:()=>null},
   "@/context/UserContext":{useUser:()=>({currentUser:{id:12,role:"siswa"},authStatus:"authenticated",refreshSession:()=>{}})},
+  "@/lib/b4-scholarship-evidence":{},
+  "@/lib/display-copy":copyModule.exports,
   "./B4Shell":{__esModule:true,default:()=>null},"./NumberPagination":{__esModule:true,default:()=>null}
  };
  const compiled=ts.transpileModule(fs.readFileSync("components/b4/StudentAlumniApi.tsx","utf8"),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText;

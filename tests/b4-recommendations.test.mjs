@@ -145,3 +145,38 @@ test("local catalog preview never invents a personal score or publication",()=>{
  assert.equal(result[0].batchId,0);assert.equal(result[0].score,null);
  assert.match(result[0].reason,/Belum dinilai/);assert.equal(result[0].timing,null);
 });
+
+test("chat rate limiting preserves retry timing without exposing backend diagnostics",async()=>{
+ const route=harness(async()=>Response.json({message:"PRIVATE database or provider detail"},{status:429,headers:{"Retry-After":"17"}}))("app/api/b4/recommendations/chat/route.ts");
+ const response=await route.POST(request("/api/b4/recommendations/chat",{message:"Apa yang perlu aku persiapkan?"}));
+ const payload=await response.json();
+ assert.equal(response.status,429);assert.equal(response.headers.get("retry-after"),"17");
+ assert.equal(payload.retry_after,17);assert.match(payload.message,/17 detik/);assert.equal(payload.message.includes("PRIVATE"),false);
+});
+test("client retry errors retain bounded cooldown metadata",async()=>{
+ const api=harness(async()=>Response.json({message:"Tunggu sebentar.",retry_after:12},{status:429}))("lib/b4-recommendation-data.ts");
+ await assert.rejects(api.recommendationRequest("/api/b4/recommendations/chat",{method:"POST",body:{message:"Pertanyaan"}}),error=>error.status===429&&error.retryAfter===12);
+});
+
+test("automatic student results retain unknown and unmet criteria without a publication gate",()=>{
+ const api=harness()("lib/b4-recommendation-data.ts");
+ const unknown={...evaluation,lengkap:false,memenuhi:false,checklist:[{...evaluation.checklist[0],status:"belum_diketahui"}]};
+ const input={automatic:true,data:{target_jenjang:"SMA",llm_used:false,PRIVATE_NOTE:"not for UI",kandidat:[
+  {beasiswa_id:4,beasiswa:info,evaluasi:evaluation,alasan:"Hasil kriteria.",persiapan:[]},
+  {beasiswa_id:5,beasiswa:info,evaluasi:unknown,alasan:"Data belum lengkap.",persiapan:["Lengkapi profil."]}
+ ]}};
+ const result=api.parseStudentRecommendations(input);
+ assert.equal(result.length,2);assert.equal(result[0].automatic,true);assert.equal(result[0].key,"auto-SMA-4");
+ assert.equal(result[1].complete,false);assert.equal(result[1].meets,false);assert.equal(result[1].checklist[0].status,"belum_diketahui");
+ assert.equal(result[1].llmUsed,false);assert.equal(JSON.stringify(result).includes("PRIVATE_NOTE"),false);
+ assert.equal(result[0].registrationUrl,null);
+});
+
+test("student proxy reads automatic calculations from the authenticated own-profile endpoint",async()=>{
+ let forwarded;
+ const automatic={automatic:true,data:{target_jenjang:"SMA",llm_used:true,kandidat:[{beasiswa_id:4,beasiswa:info,evaluasi:evaluation,alasan:"Penjelasan sesuai kriteria.",persiapan:[]}]}};
+ const route=harness(async(url,init)=>{forwarded={url,init};return Response.json(automatic);})("app/api/b4/rekomendasi/route.ts");
+ const r=await route.GET(new NextRequest("http://localhost:3000/api/b4/rekomendasi?role=siswa",{headers:{Cookie:"eightracer_session=test-only-token"}}));
+ assert.equal(r.status,200);const p=await r.json();assert.equal(p.data[0].key,"auto-SMA-4");assert.equal(p.data[0].llmUsed,true);
+ assert.equal(forwarded.url,"https://backend.example/api/rekomendasi-beasiswa/saya");assert.equal(forwarded.init.method,"GET");
+});

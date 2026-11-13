@@ -1,4 +1,4 @@
-import type { AlumniProgressRow } from "./b4-alumni";
+import type { AlumniDetail, AlumniProgressRow } from "./b4-alumni";
 
 export interface ProgressForm {
   id: number | null; period: string; semester: string; status: string; date: string;
@@ -8,6 +8,26 @@ export function blankProgress(): ProgressForm {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
   const pick = (type: string) => parts.find((item) => item.type === type)?.value;
   return { id: null, period: "", semester: "", status: "", date: `${pick("year")}-${pick("month")}-${pick("day")}`, gpa: "", kipk: "", ukt: "", ipi: "", awardIds: [] };
+}
+// A new period starts blank; only known aid is suggested for administrator review.
+export function newProgressForAlumni(alumni: AlumniDetail): ProgressForm {
+  const form = blankProgress();
+  const latestStatus = new Map<number, string>();
+  for (const row of alumni.progress) for (const award of row.scholarships) {
+    if (!latestStatus.has(award.id)) latestStatus.set(award.id, award.status);
+  }
+  form.awardIds = [...latestStatus].filter(([, status]) => status === "diterima").map(([id]) => String(id));
+  const evidence = alumni.scholarshipEvidence;
+  if (!evidence.needsReview && evidence.kipk !== null) form.kipk = evidence.kipk ? "1" : "0";
+  return form;
+}
+export function progressScholarshipOptions(alumni: AlumniDetail): Map<number, string> {
+  const options = new Map(alumni.catalogOptions.map((item) => [item.id, item.name]));
+  // An award remains part of the alumnus' record even when its catalog program is archived.
+  for (const row of alumni.progress) for (const award of row.scholarships) {
+    if (award.name && !options.has(award.id)) options.set(award.id, award.name);
+  }
+  return new Map([...options].sort((a,b) => a[1].localeCompare(b[1], "id-ID") || a[0]-b[0]));
 }
 export function formFromProgress(row: AlumniProgressRow): ProgressForm {
   return { id: row.id, period: row.period ?? "", semester: row.semester === null ? "" : String(row.semester),
