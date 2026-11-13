@@ -216,19 +216,55 @@ export default function AdminB1Subviews({
   if (activeTab === "Dashboard Konseling") {
     return (
       <div className="space-y-8 font-sans animate-in fade-in duration-150">
-        {/* Top 3 Stat Cards Grid */}
+        {/* Scoped CSS Keyframe for Fluid Animated Blob (Gaya Uiverse Fluid Glow) */}
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+            @keyframes adminBlobBounce {
+              0% {
+                transform: translate(-50%, -50%) translate3d(-35px, -30px, 0);
+              }
+              25% {
+                transform: translate(-50%, -50%) translate3d(55px, -20px, 0);
+              }
+              50% {
+                transform: translate(-50%, -50%) translate3d(45px, 45px, 0);
+              }
+              75% {
+                transform: translate(-50%, -50%) translate3d(-40px, 40px, 0);
+              }
+              100% {
+                transform: translate(-50%, -50%) translate3d(-35px, -30px, 0);
+              }
+            }
+          `,
+          }}
+        />
+
+        {/* Top 3 Stat Cards Grid with Ambient Fluid Glow */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card 1: TOTAL SISWA TERDATA */}
+          {/* Card 1: TOTAL SISWA TERDATA (Brand Ungu SMARIHASTA) */}
           <div
             onClick={() => {
               setSelectedStatCard(selectedStatCard === "total" ? null : "total");
               onShowToast?.("Detail: 384 siswa aktif terdata dari 10 rombel angkatan 2026/2027.");
             }}
-            className={`bg-white border transition-all duration-300 cursor-pointer rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-xs min-h-[160px] group hover:border-[#5F089E]/50 hover:shadow-xl hover:shadow-purple-950/5 hover:-translate-y-1 active:scale-[0.98] ${
+            className={`relative overflow-hidden transition-all duration-300 cursor-pointer rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-xs min-h-[160px] group hover:border-purple-300 hover:shadow-xl hover:shadow-purple-950/10 hover:-translate-y-1 active:scale-[0.98] border ${
               selectedStatCard === "total" ? "ring-2 ring-[#5F089E] border-[#5F089E]" : "border-slate-200"
             }`}
           >
-            <div className="flex items-center justify-between">
+            {/* Animated Purple Fluid Blob (Z-Index 1) */}
+            <div
+              className="absolute pointer-events-none rounded-full w-44 h-44 bg-[#5F089E] opacity-25 filter blur-2xl top-1/2 left-1/2 transition-opacity duration-300 group-hover:opacity-45"
+              style={{
+                animation: "adminBlobBounce 6s infinite ease-in-out",
+              }}
+            />
+            {/* Frosted Glass Layer (Z-Index 2) */}
+            <div className="absolute inset-[2px] rounded-[14px] bg-white/94 backdrop-blur-xl pointer-events-none z-[2]" />
+
+            {/* Foreground Content (Z-Index 10) */}
+            <div className="relative z-10 flex items-center justify-between">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                 TOTAL SISWA TERDATA
               </span>
@@ -236,73 +272,107 @@ export default function AdminB1Subviews({
                 <Users className="w-5 h-5" />
               </div>
             </div>
-            <div className="mt-4">
-              <span className="text-4xl font-extrabold text-slate-900 leading-none tracking-tight">
+            <div className="relative z-10 mt-4">
+              <span className="text-4xl font-extrabold text-[#5F089E] leading-none tracking-tight">
                 384
               </span>
+              <p className="text-xs text-purple-700 font-medium mt-2 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#5F089E] animate-pulse" />
+                10 Rombel Fase F aktif
+              </p>
               {selectedStatCard === "total" && (
-                <p className="text-xs text-[#5F089E] font-medium mt-2 animate-in fade-in">
+                <p className="text-xs text-[#5F089E] font-semibold mt-1.5 animate-in fade-in">
                   ✓ 100% data biodata siswa telah tersinkron
                 </p>
               )}
             </div>
           </div>
 
-          {/* Card 2: DRAF USULAN REKOMENDASI */}
+          {/* Card 2: DRAF USULAN REKOMENDASI (Amber / Honey Gold) */}
           <div
             onClick={() => {
               setSelectedStatCard(selectedStatCard === "draft" ? null : "draft");
               onShowToast?.("Detail: 14 usulan rekomendasi peminatan masih dalam status tinjauan konseling BK.");
             }}
-            className={`bg-white border transition-all duration-300 cursor-pointer rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-xs min-h-[160px] group hover:border-amber-400 hover:shadow-xl hover:shadow-amber-950/5 hover:-translate-y-1 active:scale-[0.98] ${
+            className={`relative overflow-hidden transition-all duration-300 cursor-pointer rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-xs min-h-[160px] group hover:border-amber-300 hover:shadow-xl hover:shadow-amber-950/10 hover:-translate-y-1 active:scale-[0.98] border ${
               selectedStatCard === "draft" ? "ring-2 ring-amber-400 border-amber-400" : "border-slate-200"
             }`}
           >
-            <div className="flex items-center justify-between">
+            {/* Animated Amber/Golden Fluid Blob (Z-Index 1) */}
+            <div
+              className="absolute pointer-events-none rounded-full w-44 h-44 bg-amber-400 opacity-25 filter blur-2xl top-1/2 left-1/2 transition-opacity duration-300 group-hover:opacity-45"
+              style={{
+                animation: "adminBlobBounce 7s infinite ease-in-out reverse",
+              }}
+            />
+            {/* Frosted Glass Layer (Z-Index 2) */}
+            <div className="absolute inset-[2px] rounded-[14px] bg-white/94 backdrop-blur-xl pointer-events-none z-[2]" />
+
+            {/* Foreground Content (Z-Index 10) */}
+            <div className="relative z-10 flex items-center justify-between">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                 DRAF USULAN REKOMENDASI
               </span>
-              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-700 shrink-0 transition-transform duration-300 group-hover:scale-115 group-hover:rotate-6 shadow-2xs">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shrink-0 transition-transform duration-300 group-hover:scale-115 group-hover:rotate-6 shadow-2xs">
                 <ClipboardList className="w-5 h-5" />
               </div>
             </div>
-            <div className="mt-4">
-              <span className="text-4xl font-extrabold text-slate-900 leading-none tracking-tight">
+            <div className="relative z-10 mt-4">
+              <span className="text-4xl font-extrabold text-amber-600 leading-none tracking-tight">
                 14
               </span>
+              <p className="text-xs text-amber-700 font-medium mt-2 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                Memerlukan penyesuaian asesmen BK
+              </p>
               {selectedStatCard === "draft" && (
-                <p className="text-xs text-amber-700 font-medium mt-2 animate-in fade-in">
-                  • Memerlukan penyesuaian asesmen BK
+                <p className="text-xs text-amber-700 font-semibold mt-1.5 animate-in fade-in">
+                  • Dalam proses telaah ulang guru BK
                 </p>
               )}
             </div>
           </div>
 
-          {/* Card 3: SK TERBIT & TERKUNCI */}
+          {/* Card 3: SK TERBIT & TERKUNCI (Emerald / Mint Green Sukses) */}
           <div
             onClick={() => {
               setSelectedStatCard(selectedStatCard === "sk" ? null : "sk");
               onShowToast?.("Detail: 312 Surat Keputusan Rekomendasi telah divalidasi dan dikunci.");
             }}
-            className={`bg-white border transition-all duration-300 cursor-pointer rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-xs min-h-[160px] group hover:border-[#5F089E]/50 hover:shadow-xl hover:shadow-purple-950/5 hover:-translate-y-1 active:scale-[0.98] ${
-              selectedStatCard === "sk" ? "ring-2 ring-[#5F089E] border-[#5F089E]" : "border-slate-200"
+            className={`relative overflow-hidden transition-all duration-300 cursor-pointer rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-xs min-h-[160px] group hover:border-emerald-300 hover:shadow-xl hover:shadow-emerald-950/10 hover:-translate-y-1 active:scale-[0.98] border ${
+              selectedStatCard === "sk" ? "ring-2 ring-emerald-500 border-emerald-500" : "border-slate-200"
             }`}
           >
-            <div className="flex items-center justify-between">
+            {/* Animated Emerald Fluid Blob (Z-Index 1) */}
+            <div
+              className="absolute pointer-events-none rounded-full w-44 h-44 bg-emerald-500 opacity-25 filter blur-2xl top-1/2 left-1/2 transition-opacity duration-300 group-hover:opacity-45"
+              style={{
+                animation: "adminBlobBounce 6.5s infinite ease-in-out",
+              }}
+            />
+            {/* Frosted Glass Layer (Z-Index 2) */}
+            <div className="absolute inset-[2px] rounded-[14px] bg-white/94 backdrop-blur-xl pointer-events-none z-[2]" />
+
+            {/* Foreground Content (Z-Index 10) */}
+            <div className="relative z-10 flex items-center justify-between">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                 SK TERBIT &amp; TERKUNCI
               </span>
-              <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-[#5F089E] shrink-0 transition-transform duration-300 group-hover:scale-115 group-hover:rotate-6 shadow-2xs">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0 transition-transform duration-300 group-hover:scale-115 group-hover:rotate-6 shadow-2xs">
                 <BadgeCheck className="w-5 h-5" />
               </div>
             </div>
-            <div className="mt-4">
-              <span className="text-4xl font-extrabold text-[#5F089E] leading-none tracking-tight">
+            <div className="relative z-10 mt-4">
+              <span className="text-4xl font-extrabold text-emerald-600 leading-none tracking-tight">
                 312
               </span>
+              <p className="text-xs text-emerald-700 font-medium mt-2 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Berkas resmi tervalidasi &amp; terkunci
+              </p>
               {selectedStatCard === "sk" && (
-                <p className="text-xs text-[#5F089E] font-medium mt-2 animate-in fade-in">
-                  ✓ Berkas resmi siap cetak dan diarsipkan
+                <p className="text-xs text-emerald-700 font-semibold mt-1.5 animate-in fade-in">
+                  ✓ Siap cetak dan diarsipkan secara legal
                 </p>
               )}
             </div>

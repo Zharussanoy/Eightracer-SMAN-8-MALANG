@@ -1,43 +1,41 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
 import {
-  Home,
-  CircleUserRound,
-  ShieldCheck,
-  Eye,
-  Download,
-  Calculator,
-  Atom,
-  TerminalSquare,
-  FlaskConical,
   ArrowRight,
+  Atom,
+  Calculator,
   CheckCircle2,
-  X,
-  Lock,
-  BadgeAlert,
+  CircleUserRound,
+  Download,
+  FlaskConical,
+  Home,
   Hourglass,
+  Lock,
+  ShieldCheck,
+  TerminalSquare,
+  X
 } from "lucide-react";
-import SiswaB1Navbar from "./SiswaB1Navbar";
-import { SiswaB1PdfPreviewModal } from "./SiswaB1PdfPreviewModal";
-import { SiswaB1SuratPendingModal } from "./SiswaB1SuratPendingModal";
-import { SiswaB1SubjectDetailModal } from "./SiswaB1SubjectDetailModal";
-import { SiswaB1EvaluasiSection } from "./SiswaB1EvaluasiSection";
-import { SiswaB1ProfilSection } from "./SiswaB1ProfilSection";
-import { SiswaB1DirektoriSection } from "./SiswaB1DirektoriSection";
-import { SiswaB1SimulasiSwitcher } from "./SiswaB1SimulasiSwitcher";
-import { SiswaB1EvaluasiLockedState } from "./SiswaB1EvaluasiLockedState";
-import {
-  SiswaB1Tab,
-  MapelPilihanDetail,
-  StudentB1Account,
-} from "./types";
+import Link from "next/link";
+import { useState } from "react";
 import {
   MOCK_STUDENT_ACCOUNTS,
   RECOMMENDED_SUBJECTS,
 } from "./mockData";
+import { SiswaB1DirektoriSection } from "./SiswaB1DirektoriSection";
+import { SiswaB1EvaluasiLockedState } from "./SiswaB1EvaluasiLockedState";
+import { SiswaB1EvaluasiSection } from "./SiswaB1EvaluasiSection";
+import SiswaB1Navbar from "./SiswaB1Navbar";
+import { SiswaB1PdfPreviewModal } from "./SiswaB1PdfPreviewModal";
+import { SiswaB1ProfilSection } from "./SiswaB1ProfilSection";
+import { SiswaB1SimulasiSwitcher } from "./SiswaB1SimulasiSwitcher";
+import { SiswaB1SubjectDetailModal } from "./SiswaB1SubjectDetailModal";
+import { SiswaB1SuratPendingModal } from "./SiswaB1SuratPendingModal";
 import { determineStudentAccess } from "./studentAccessPolicy";
+import {
+  MapelPilihanDetail,
+  SiswaB1Tab,
+  StudentB1Account,
+} from "./types";
 
 export default function SiswaB1Page() {
   // Simulasi akun aktif: Default Amalia Mayasari (Kelas X-3)
@@ -298,9 +296,7 @@ export default function SiswaB1Page() {
             {/* Official Recommendation Letter Card */}
             <div className="relative pt-2">
               <div
-                className={`absolute top-0 left-2 right-2 h-8 rounded-[20px] transition-colors ${
-                  !isSuratValidated ? "bg-amber-500" : "bg-[#5F089E]"
-                }`}
+                className="absolute top-0 left-2 right-2 h-8 rounded-[20px] transition-colors bg-[#5F089E]"
               />
 
               <div
@@ -310,24 +306,18 @@ export default function SiswaB1Page() {
               >
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                   <div className="flex items-start sm:items-center gap-5 sm:gap-6">
-                    <div
-                      className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-2xs shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 ${
-                        !isSuratValidated
-                          ? "bg-amber-100 text-amber-800"
-                          : "bg-[#F1DBFF] text-[#2D0050]"
-                      }`}
-                    >
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-2xs shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 bg-[#F1DBFF] text-[#2D0050]">
                       <ShieldCheck className="w-6 h-6" />
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex items-center gap-2.5 flex-wrap">
-                        <h2 className="text-lg sm:text-2xl lg:text-[26px] font-semibold text-black tracking-tight leading-snug uppercase group-hover:text-[#5F089E] transition-colors">
+                        <h2 className="text-lg sm:text-2xl lg:text-[26px] font-semibold tracking-tight leading-snug uppercase text-slate-900 group-hover:text-[#5F089E] transition-colors">
                           SURAT REKOMENDASI PEMINATAN
                         </h2>
                         {!isSuratValidated ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] font-bold bg-[#FEF3C7] text-[#854D0E] border border-amber-300 transition-transform group-hover:scale-105">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-pulse" />
+                          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] font-bold bg-purple-50 text-[#5F089E] border border-purple-200 transition-transform group-hover:scale-105">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#5F089E] animate-pulse" />
                             Menunggu Validasi BK
                           </span>
                         ) : (
@@ -354,32 +344,30 @@ export default function SiswaB1Page() {
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
+                  {/* Action Button */}
                   <div
-                    className="flex flex-wrap items-center justify-end gap-3 pt-2 lg:pt-0 lg:self-end"
+                    className="flex items-center justify-end pt-2 lg:pt-0 lg:self-end"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <button
-                      type="button"
-                      onClick={handleOpenSuratRekomendasi}
-                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 h-9 rounded-lg bg-[#ECEEF1] hover:bg-[#dfe3e8] text-[#410070] text-xs sm:text-sm font-bold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs active:scale-95 cursor-pointer"
-                    >
-                      <Eye className="w-4 h-4 transition-transform group-hover:scale-110" />
-                      <span>Pratinjau PDF</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleDownloadPdf}
-                      className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 h-9 rounded-lg text-white text-xs sm:text-sm font-semibold shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-95 cursor-pointer ${
-                        !isSuratValidated
-                          ? "bg-amber-600 hover:bg-amber-700"
-                          : "bg-[#5F089E] hover:bg-[#4d0680]"
-                      }`}
-                    >
-                      <Download className="w-4 h-4 transition-transform group-hover:translate-y-0.5" />
-                      <span>Unduh Surat Rekomendasi (PDF)</span>
-                    </button>
+                    {!isSuratValidated ? (
+                      <button
+                        type="button"
+                        onClick={handleOpenSuratRekomendasi}
+                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 h-10 rounded-xl bg-[#5F089E] hover:bg-[#4d0680] text-white text-xs sm:text-sm font-semibold shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-95 cursor-pointer"
+                      >
+                        <Hourglass className="w-4 h-4 transition-transform group-hover:rotate-12" />
+                        <span>Sedang dalam Proses Peninjauan</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleOpenSuratRekomendasi}
+                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 h-10 rounded-xl bg-[#5F089E] hover:bg-[#4d0680] text-white text-xs sm:text-sm font-semibold shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-95 cursor-pointer"
+                      >
+                        <Download className="w-4 h-4 transition-transform group-hover:translate-y-0.5" />
+                        <span>Unduh Surat Rekomendasi (PDF)</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -418,19 +406,32 @@ export default function SiswaB1Page() {
                   </div>
                 </div>
               ) : (
-                /* KONDISI TERVALIDASI: 4 Cards Grid Muncul Lengkap */
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                /* KONDISI TERVALIDASI: 4 Cards Grid Muncul Lengkap (Gaya Uiverse dengan Tema Ungu Sistem) */
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
                   {RECOMMENDED_SUBJECTS.map((subj) => (
                     <div
                       key={subj.id}
                       onClick={() => setSelectedSubject(subj)}
-                      className="group rounded-[20px] border-2 border-[#E9E9E9] hover:border-[#5F089E] bg-white p-6 sm:p-7 flex flex-col justify-between min-h-[260px] transition-all duration-300 hover:shadow-xl hover:shadow-purple-950/10 hover:-translate-y-2 active:scale-[0.98] cursor-pointer"
+                      className="group relative rounded-[24px] border-2 border-slate-200/90 bg-white p-6 sm:p-7 flex flex-col justify-between min-h-[300px] transition-all duration-300 hover:border-[#5F089E] hover:shadow-2xl hover:shadow-purple-950/10 hover:-translate-y-2 active:scale-[0.98] cursor-pointer overflow-hidden font-sans"
                     >
-                      <div className="space-y-5">
-                        {/* Icon Box */}
-                        <div className="flex items-center justify-between">
+                      {/* Top Floating Tag (Persis .tag di snippet Uiverse) */}
+                      <div className="absolute top-4 right-4 z-10">
+                        <span
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold shadow-2xs transition-all duration-300 group-hover:scale-105 ${
+                            subj.tingkatKesesuaian >= 95
+                              ? "bg-[#5F089E] text-white"
+                              : "bg-purple-50 text-[#5F089E] border border-purple-200/80"
+                          }`}
+                        >
+                          {subj.tingkatKesesuaian}% Cocok
+                        </span>
+                      </div>
+
+                      <div className="space-y-4 pt-1">
+                        {/* Card Visual / Icon Showcase Area (Persis .card-image di snippet) */}
+                        <div className="w-full flex items-center justify-start pt-1">
                           <div
-                            className="w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-115 group-hover:rotate-6 shadow-2xs"
+                            className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-xs"
                             style={{
                               backgroundColor: subj.iconBg,
                               color: subj.iconColor,
@@ -438,13 +439,9 @@ export default function SiswaB1Page() {
                           >
                             {renderSubjectIcon(subj.iconType)}
                           </div>
-
-                          <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-purple-50 text-[#5F089E] opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:scale-105">
-                            {subj.tingkatKesesuaian}% Cocok
-                          </span>
                         </div>
 
-                        {/* Subject Label & Name */}
+                        {/* Content Area (Persis .content di snippet) */}
                         <div className="space-y-1.5 pt-1">
                           <span
                             className="text-[11px] font-bold uppercase tracking-wider block transition-colors group-hover:opacity-90"
@@ -452,16 +449,24 @@ export default function SiswaB1Page() {
                           >
                             {subj.urutan}
                           </span>
-                          <h3 className="text-lg font-bold text-[#191C1E] group-hover:text-[#5F089E] transition-colors leading-snug">
+                          <h3 className="text-lg font-extrabold text-slate-900 group-hover:text-[#5F089E] transition-colors leading-snug">
                             {subj.nama}
                           </h3>
+                          <p className="text-xs text-slate-500 font-medium line-clamp-2 leading-relaxed">
+                            {subj.kategori}
+                          </p>
                         </div>
                       </div>
 
-                      {/* Bottom Action Bar */}
-                      <div className="pt-5 mt-8 border-t border-[#CFC2D4]/30 flex items-center justify-between text-[#410070]">
-                        <span className="text-sm font-semibold group-hover:text-[#5F089E] transition-colors">Cek Detail</span>
-                        <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-2 text-[#5F089E]" />
+                      {/* Card Button Full-Width: Tersembunyi saat normal, muncul saat kursor di area card */}
+                      <div className="pt-4 mt-3 border-t border-slate-100/90 transition-all duration-300 opacity-0 translate-y-3 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto">
+                        <button
+                          type="button"
+                          className="w-full h-10 rounded-xl bg-[#5F089E] hover:bg-[#4d0680] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 shadow-md shadow-purple-900/20 active:scale-95 cursor-pointer"
+                        >
+                          <span>Cek Detail Mata Pelajaran</span>
+                          <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1.5" />
+                        </button>
                       </div>
                     </div>
                   ))}
