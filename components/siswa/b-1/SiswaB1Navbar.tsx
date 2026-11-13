@@ -13,9 +13,20 @@ import {
   BookOpen,
 } from "lucide-react";
 
-export default function SiswaB1Navbar() {
+import { StudentB1Account } from "./types";
+
+interface SiswaB1NavbarProps {
+  currentStudent?: StudentB1Account;
+}
+
+export default function SiswaB1Navbar({ currentStudent }: SiswaB1NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
+
+  const nama = currentStudent?.nama || "Amalia Mayasari";
+  const kelas = currentStudent?.kelas || "X-3";
+  const initials = currentStudent?.avatarInitials || "AM";
+  const nisn = currentStudent?.nisn || "012345678";
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#F5F5F5] transition-all font-sans">
@@ -43,7 +54,7 @@ export default function SiswaB1Navbar() {
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-7 text-sm font-bold text-[#1E1E1E]">
+          <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600">
             <Link
               href="/"
               className="hover:text-[#5F089E] transition-colors"
@@ -133,13 +144,13 @@ export default function SiswaB1Navbar() {
             <div className="flex items-center gap-2.5 py-1.5 pl-3 pr-2 rounded-full bg-[#FAF5FF] border border-[#E9D5FF] hover:border-[#5F089E]/40 transition-all">
               <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#5F089E]/10 text-[#5F089E] flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#5F089E]" />
-                Siswa X-3
+                Siswa {kelas}
               </span>
               <span className="text-xs font-bold text-[#1E1E1E] pr-1">
-                Amalia Mayasari
+                {nama}
               </span>
               <div className="w-8 h-8 rounded-full bg-[#5F089E] text-white font-bold text-xs flex items-center justify-center shadow-xs">
-                AM
+                {initials}
               </div>
             </div>
           </div>
@@ -161,12 +172,12 @@ export default function SiswaB1Navbar() {
         <div className="md:hidden border-t border-purple-100 bg-white px-4 pt-4 pb-6 space-y-3 animate-in slide-in-from-top-2 duration-150">
           <div className="p-3 rounded-2xl bg-[#FAF5FF] border border-[#E9D5FF] flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-full bg-[#5F089E] text-white font-bold text-sm flex items-center justify-center shrink-0">
-              AM
+              {initials}
             </div>
             <div>
-              <p className="text-xs font-bold text-[#1E1E1E]">Amalia Mayasari</p>
+              <p className="text-xs font-bold text-[#1E1E1E]">{nama}</p>
               <p className="text-[11px] text-[#5F089E] font-semibold">
-                Siswa Kelas X-3 &bull; NISN: 012345678
+                Siswa Kelas {kelas} &bull; NISN: {nisn}
               </p>
             </div>
           </div>

@@ -10,12 +10,21 @@ export default function AdminB1Header({
   activeTab = "Pusat Manajemen Data",
 }: AdminB1HeaderProps) {
   let title = "Pusat Manajemen Data";
+  let description =
+    "Pantau kelengkapan data siswa SMAN 8 Malang secara berkala. Unggah data akademik dan tes RIASEC dengan mudah secara otomatis.";
+
   if (activeTab === "Dashboard Konseling") {
     title = "Dashboard Konseling";
+    description =
+      "Analisis keselarasan nilai akademik dengan rekomendasi mapel pilihan dan hasil asesmen minat bakat siswa.";
   } else if (activeTab === "Validasi & Surat Rekomendasi") {
     title = "Validasi dan Penerbitan Surat Rekomendasi";
+    description =
+      "Validasi dan terbitkan surat rekomendasi resmi peminatan mata pelajaran pilihan bagi siswa.";
   } else if (activeTab === "Feedback Strategi & Direktori BK") {
     title = "Feedback Strategi & Direktori BK";
+    description =
+      "Evaluasi tren capaian nilai mapel peminatan dan direktori kontak guru BK pembimbing.";
   }
 
   return (
@@ -24,7 +33,7 @@ export default function AdminB1Header({
         {title}
       </h1>
       <p className="text-sm sm:text-base text-slate-600 font-normal leading-relaxed max-w-3xl">
-        Pantau kelengkapan data siswa SMAN 8 Malang secara berkala. Unggah data akademik dan tes RIASEC dengan mudah secara otomatis.
+        {description}
       </p>
     </div>
   );

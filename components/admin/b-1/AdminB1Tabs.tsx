@@ -20,7 +20,10 @@ export default function AdminB1Tabs({
 
   return (
     <div className="w-full border-b border-slate-200 mb-8 sm:mb-10 font-sans overflow-x-auto no-scrollbar">
-      <nav className="flex items-center gap-8 sm:gap-12 min-w-max pb-0" aria-label="Tabs Peminatan B1">
+      <nav
+        className="flex items-center justify-between w-full min-w-max pb-0 gap-6 sm:gap-8"
+        aria-label="Tabs Peminatan B1"
+      >
         {tabs.map((tab) => {
           const isActive = activeTab === tab;
           return (
@@ -28,15 +31,15 @@ export default function AdminB1Tabs({
               key={tab}
               type="button"
               onClick={() => onTabChange(tab)}
-              className={`pb-3 px-1 transition-all cursor-pointer relative text-sm ${
+              className={`pb-3 px-1 transition-all duration-200 cursor-pointer relative text-sm active:scale-95 whitespace-nowrap ${
                 isActive
                   ? "text-[#5F089E] font-bold"
-                  : "text-slate-600 font-medium hover:text-[#5F089E]"
+                  : "text-slate-600 font-medium hover:text-[#5F089E] hover:-translate-y-0.5"
               }`}
             >
               {tab}
               {isActive && (
-                <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#5F089E] rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#5F089E] rounded-full animate-in fade-in zoom-in-95 duration-200" />
               )}
             </button>
           );

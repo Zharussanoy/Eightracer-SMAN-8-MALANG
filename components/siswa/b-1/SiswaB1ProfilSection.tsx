@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Lock,
   Plus,
@@ -17,8 +17,12 @@ import {
   Code,
   Sparkles,
   Camera,
+  History,
+  CheckCircle2,
+  Save,
+  ShieldCheck,
 } from "lucide-react";
-import { PenghargaanSiswaItem, RiwayatPendidikanItem } from "./types";
+import { PenghargaanSiswaItem, RiwayatPendidikanItem, StudentB1Account } from "./types";
 import {
   INITIAL_AWARDS,
   INITIAL_SKILLS,
@@ -30,17 +34,30 @@ import { SiswaB1AddSkillModal } from "./SiswaB1AddSkillModal";
 
 interface SiswaB1ProfilSectionProps {
   onShowToast: (msg: string) => void;
+  student?: StudentB1Account;
 }
 
 export const SiswaB1ProfilSection: React.FC<SiswaB1ProfilSectionProps> = ({
   onShowToast,
+  student,
 }) => {
   // 1. Identitas Diri state
-  const [namaLengkap, setNamaLengkap] = useState("Amalia Mayasari");
-  const [namaPanggilan, setNamaPanggilan] = useState("Amalia");
-  const [kelas, setKelas] = useState("X - 3");
-  const [email, setEmail] = useState("amalia.mayasari@siswa.sman8malang.sch.id");
-  const [avatarInitials, setAvatarInitials] = useState("AM");
+  const [namaLengkap, setNamaLengkap] = useState(student?.nama || "Amalia Mayasari");
+  const [namaPanggilan, setNamaPanggilan] = useState(student?.namaPanggilan || "Amalia");
+  const [kelas, setKelas] = useState(student?.kelas || "X - 3");
+  const [email, setEmail] = useState(student?.email || "amalia.mayasari@siswa.sman8malang.sch.id");
+  const [avatarInitials, setAvatarInitials] = useState(student?.avatarInitials || "AM");
+
+  // Sync state when student switches
+  useEffect(() => {
+    if (student) {
+      setNamaLengkap(student.nama);
+      setNamaPanggilan(student.namaPanggilan);
+      setKelas(student.kelas);
+      setEmail(student.email);
+      setAvatarInitials(student.avatarInitials);
+    }
+  }, [student]);
 
   // 2. Biografi state
   const [bio, setBio] = useState(
@@ -86,10 +103,30 @@ export const SiswaB1ProfilSection: React.FC<SiswaB1ProfilSectionProps> = ({
     onShowToast("Foto profil dikembalikan ke inisial nama.");
   };
 
+  const handleSaveChanges = () => {
+    onShowToast("Perubahan profil dan portofolio akademik berhasil disimpan!");
+  };
+
+  const handleResetChanges = () => {
+    if (student) {
+      setNamaLengkap(student.nama);
+      setNamaPanggilan(student.namaPanggilan);
+      setKelas(student.kelas);
+      setEmail(student.email);
+      setAvatarInitials(student.avatarInitials);
+    }
+    setBio(
+      "Siswa kelas XII SMAN 8 Kota Malang yang memiliki minat mendalam di bidang pemrograman, kecerdasan buatan, dan sains data. Aktif mengembangkan proyek teknologi terbuka dan berambisi melanjutkan studi di Teknik Informatika ITS."
+    );
+    setSkills(INITIAL_SKILLS);
+    setAwards(INITIAL_AWARDS);
+    onShowToast("Perubahan profil dikembalikan ke data awal.");
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in duration-200 font-sans">
       {/* ========================================================== */}
-      {/* SECTION 1: IDENTITAS DIRI & PRIVASI + PRATINJAU KARTU */}
+      {/* SECTION 1: IDENTITAS DIRI & DATA TERPROTEKSI + PRATINJAU KARTU */}
       {/* ========================================================== */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Card: 1 Identitas Diri */}
@@ -121,7 +158,7 @@ export const SiswaB1ProfilSection: React.FC<SiswaB1ProfilSectionProps> = ({
                 <button
                   type="button"
                   onClick={handlePhotoUpload}
-                  className="px-3.5 py-1.5 rounded-lg bg-[#5F089E] hover:bg-[#4d0680] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+                  className="px-3.5 py-1.5 rounded-lg bg-[#5F089E] hover:bg-[#4d0680] text-white text-xs font-semibold shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex items-center gap-1.5"
                 >
                   <Camera className="w-3.5 h-3.5" />
                   <span>Ganti Foto</span>
@@ -129,7 +166,7 @@ export const SiswaB1ProfilSection: React.FC<SiswaB1ProfilSectionProps> = ({
                 <button
                   type="button"
                   onClick={handlePhotoDelete}
-                  className="px-3 py-1.5 rounded-lg bg-white border border-[#E5E7EB] hover:bg-slate-50 text-[#4B5563] text-xs font-semibold transition-colors cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg bg-white border border-[#E5E7EB] hover:bg-slate-50 hover:text-slate-900 active:scale-95 text-[#4B5563] text-xs font-semibold transition-all duration-200 cursor-pointer"
                 >
                   Hapus
                 </button>
@@ -210,37 +247,73 @@ export const SiswaB1ProfilSection: React.FC<SiswaB1ProfilSectionProps> = ({
           </div>
         </div>
 
-        {/* Right Column: Privasi & Keamanan + Widget Pratinjau Kartu Publik */}
+        {/* Right Column: Data Pokok Siswa Terproteksi + Widget Pratinjau Kartu Publik */}
         <div className="lg:col-span-5 space-y-6">
-          {/* Privasi & Keamanan Data Card */}
+          {/* Data Pokok Siswa Terproteksi Card (Hanya Baca / Read-Only) */}
           <div className="rounded-[20px] border-2 border-[#E9E9E9] bg-white p-6 space-y-4 shadow-2xs">
-            <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-              <Lock className="w-4 h-4 text-[#5F089E]" />
-              <h3 className="text-xs font-bold text-[#111827]">
-                Privasi &amp; Keamanan Data
-              </h3>
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-[#5F089E]" />
+                <h3 className="text-xs font-bold text-[#111827]">
+                  Data Pokok Siswa Terproteksi
+                </h3>
+              </div>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold">
+                <Lock className="w-2.5 h-2.5" />
+                Read-Only
+              </span>
             </div>
+
+            <p className="text-[11px] text-[#6B7280] leading-relaxed">
+              Data pokok ini tersinkronisasi langsung dengan Dapodik &amp; arsip sekolah, ditampilkan untuk verifikasi dan tidak dapat diedit secara mandiri.
+            </p>
 
             <div className="space-y-2">
               {[
-                { title: "Nomor Induk Kependudukan (NIK)" },
-                { title: "Alamat Rumah & RT/RW" },
-                { title: "Bantuan Sosial / PIP" },
-                { title: "Catatan Layanan Konseling" },
+                {
+                  label: "Nomor Induk Kependudukan (NIK)",
+                  value: "357301******0004",
+                  badge: "Terkunci",
+                },
+                {
+                  label: "Alamat Rumah & RT/RW",
+                  value: "Jl. Simpang Borobudur No. 18, Malang",
+                  badge: "Terkunci",
+                },
+                {
+                  label: "Status Bantuan Sosial / PIP",
+                  value: "Bukan Penerima KIP / PIP",
+                  badge: "Terverifikasi",
+                },
+                {
+                  label: "Catatan Layanan Konseling",
+                  value: "Arsip Khusus Bimbingan Konseling",
+                  badge: "Privat BK",
+                },
               ].map((item, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between p-2.5 rounded-lg bg-[#FFF1F2]/40 border border-[#FFE4E6] text-xs"
+                  className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs"
                 >
-                  <div className="flex items-center gap-2 text-[#374151]">
-                    <Lock className="w-3.5 h-3.5 text-[#F43F5E] shrink-0" />
-                    <span>{item.title}</span>
+                  <div className="space-y-0.5">
+                    <span className="text-[11px] font-semibold text-[#374151] block">
+                      {item.label}
+                    </span>
+                    <span className="text-xs font-mono font-medium text-slate-700">
+                      {item.value}
+                    </span>
                   </div>
-                  <span className="px-1.5 py-0.5 rounded bg-[#FFE4E6] text-[#BE123C] text-[10px] font-bold">
-                    Terkunci
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-600 text-[10px] font-bold shrink-0 shadow-2xs">
+                    <Lock className="w-2.5 h-2.5 text-slate-400" />
+                    <span>{item.badge}</span>
                   </span>
                 </div>
               ))}
+            </div>
+
+            <div className="pt-1 border-t border-slate-100 text-[11px] text-[#854D0E] bg-amber-50/70 p-2.5 rounded-xl border border-amber-200/70 flex items-start gap-2">
+              <Lock className="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5" />
+              <span>Untuk perubahan data pokok di atas, silakan mengajukan permohonan ke loket Tata Usaha atau Koordinator BK SMAN 8 Malang.</span>
             </div>
           </div>
 
@@ -416,6 +489,54 @@ export const SiswaB1ProfilSection: React.FC<SiswaB1ProfilSectionProps> = ({
           </div>
         </div>
 
+        {/* 4.0 RIWAYAT KELAS & SEMESTER AKADEMIK (KETENTUAN 8) */}
+        {student?.riwayatAkademik && student.riwayatAkademik.length > 0 && (
+          <div className="space-y-3 pb-6 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <History className="w-4 h-4 text-[#5F089E]" />
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#9CA3AF] block">
+                RIWAYAT KELAS &amp; SEMESTER (Fase Akademik)
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {student.riwayatAkademik.map((rw) => (
+                <div
+                  key={rw.id}
+                  className="p-3.5 rounded-xl border border-purple-100 bg-purple-50/40 flex items-start justify-between gap-3 shadow-2xs"
+                >
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-[#5F089E] text-white">
+                        Jenjang {rw.jenjang}
+                      </span>
+                      <span className="text-xs font-bold text-slate-900">
+                        Kelas {rw.kelas} &bull; Smt {rw.semester}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 font-medium">
+                      Tahun Ajaran: {rw.tahunAjaran}
+                    </p>
+                    <p className="text-[10px] text-purple-900/80 mt-1 font-semibold">
+                      {rw.statusKeterangan}
+                    </p>
+                  </div>
+                  {rw.rataRataNilai && (
+                    <div className="text-right shrink-0">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase block">
+                        Rerata
+                      </span>
+                      <span className="text-sm font-extrabold text-[#5F089E]">
+                        {rw.rataRataNilai.toFixed(1)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* 4.1 RIWAYAT PENDIDIKAN */}
         <div className="space-y-3">
           <span className="text-[11px] font-bold uppercase tracking-wider text-[#9CA3AF] block">
@@ -552,6 +673,41 @@ export const SiswaB1ProfilSection: React.FC<SiswaB1ProfilSectionProps> = ({
               </p>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Button Simpan Perubahan di Akhir Halaman */}
+      <div className="rounded-[20px] border-2 border-[#E9E9E9] bg-white p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xs">
+        <div className="flex items-center gap-3.5 text-center sm:text-left">
+          <div className="w-11 h-11 rounded-xl bg-purple-100 text-[#5F089E] flex items-center justify-center shrink-0 shadow-2xs">
+            <Save className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-[#1E1E1E]">
+              Simpan Pembaruan Profil &amp; Portofolio
+            </h4>
+            <p className="text-xs text-[#737373] mt-0.5">
+              Simpan seluruh perubahan informasi profil, biografi, keahlian, dan prestasi akademik siswa.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <button
+            type="button"
+            onClick={handleResetChanges}
+            className="px-5 py-2.5 rounded-xl border border-[#E5E7EB] hover:bg-slate-100 hover:text-slate-900 active:scale-95 text-slate-600 text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer"
+          >
+            Batal
+          </button>
+          <button
+            type="button"
+            onClick={handleSaveChanges}
+            className="flex items-center justify-center gap-2 px-7 py-2.5 rounded-xl bg-[#5F089E] hover:bg-[#4d0680] text-white text-xs sm:text-sm font-bold shadow-md hover:shadow-xl hover:shadow-purple-950/20 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            <span>Simpan Perubahan</span>
+          </button>
         </div>
       </div>
 

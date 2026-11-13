@@ -278,10 +278,10 @@ export default function AdminB1TableSection({
                     <button
                       type="button"
                       onClick={() => onSelectStudent(student)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 text-[#5F089E] text-xs font-semibold transition-all group-hover:scale-105 cursor-pointer border border-purple-100"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-[#5F089E] hover:text-white text-[#5F089E] text-xs font-bold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs active:scale-95 cursor-pointer border border-purple-100 group/btn"
                     >
                       <span>Lihat Detail</span>
-                      <ArrowRight className="w-3 h-3 text-[#5F089E]" />
+                      <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover/btn:translate-x-1" />
                     </button>
                   </td>
                 </tr>

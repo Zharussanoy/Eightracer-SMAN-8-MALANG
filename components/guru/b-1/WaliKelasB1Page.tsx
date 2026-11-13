@@ -320,10 +320,10 @@ export default function WaliKelasB1Page() {
                                 e.stopPropagation();
                                 handleOpenDetailModal(student);
                               }}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-[#5F089E] hover:bg-[#4E0782] transition-colors shadow-2xs active:scale-95"
+                              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-[#5F089E] hover:bg-[#4E0782] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-95 cursor-pointer shadow-2xs group/btn"
                             >
-                              <Eye className="w-3 h-3" />
-                              Tinjau Profil
+                              <Eye className="w-3.5 h-3.5 transition-transform group-hover/btn:scale-110" />
+                              <span>Tinjau Profil</span>
                             </button>
                           </td>
                         </tr>
@@ -512,30 +512,30 @@ export default function WaliKelasB1Page() {
                   </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="space-y-2 pt-2">
+                {/* Action Buttons with Microinteractions */}
+                <div className="space-y-2.5 pt-2">
                   <button
                     type="button"
                     onClick={() => setIsApproveModalOpen(true)}
-                    className="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-[#0E6245] hover:bg-[#094732] flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-[0.99]"
+                    className="w-full py-3 px-4 rounded-xl text-xs font-bold text-white bg-[#0E6245] hover:bg-[#094732] flex items-center justify-center gap-2 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 active:scale-95 cursor-pointer"
                   >
                     <CheckCircle2 className="w-4 h-4" />
-                    Validasi &amp; Setujui
+                    <span>Validasi &amp; Setujui</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsRevisiModalOpen(true)}
-                    className="w-full py-2 px-4 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 flex items-center justify-center gap-1.5 transition-colors"
+                    className="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 hover:border-slate-400 flex items-center justify-center gap-2 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 transition-all duration-200 active:scale-95 cursor-pointer"
                   >
                     <FileText className="w-3.5 h-3.5 text-slate-500" />
-                    Minta Revisi
+                    <span>Minta Revisi</span>
                   </button>
                 </div>
               </div>
             ) : (
               /* State when student is already validated or has no discrepancy */
-              <div className="text-center py-8 px-4 bg-emerald-50/50 rounded-xl border border-emerald-100">
-                <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto mb-2" />
+              <div className="text-center py-8 px-4 bg-emerald-50/50 rounded-xl border border-emerald-100 transition-all hover:shadow-xs">
+                <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto mb-2 transition-transform hover:scale-110" />
                 <h4 className="text-xs font-bold text-emerald-800">
                   Semua Nilai Telah Sesuai Rapor Fisik
                 </h4>
@@ -545,10 +545,10 @@ export default function WaliKelasB1Page() {
                 <button
                   type="button"
                   onClick={() => handleOpenDetailModal(selectedStudent)}
-                  className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-[#5F089E] hover:bg-[#4E0782] rounded-lg transition-colors"
+                  className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-[#5F089E] hover:bg-[#4E0782] rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 active:scale-95 cursor-pointer"
                 >
                   <Eye className="w-3.5 h-3.5" />
-                  Lihat Detail Profil Siswa
+                  <span>Lihat Detail Profil Siswa</span>
                 </button>
               </div>
             )}

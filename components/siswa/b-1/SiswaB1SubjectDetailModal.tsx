@@ -47,7 +47,7 @@ export const SiswaB1SubjectDetailModal: React.FC<
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-hidden bg-[#1F1A22]/50 backdrop-blur-[4px] flex justify-end font-sans animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 overflow-hidden bg-[#1F1A22]/50 backdrop-blur-[4px] flex justify-end font-sans text-slate-900 animate-in fade-in duration-200"
       onClick={onClose}
     >
       {/* Right Slide-Over Panel (Width 646px matching Figma spec) */}
@@ -194,7 +194,7 @@ export const SiswaB1SubjectDetailModal: React.FC<
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-[#6750A4] hover:bg-[#563f91] active:bg-[#483280] text-white text-sm font-medium transition-colors shadow-xs cursor-pointer"
+            className="px-5 py-2.5 rounded-xl bg-[#5F089E] hover:bg-[#4d0680] text-white text-sm font-semibold transition-all duration-200 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-95 cursor-pointer"
           >
             Tutup
           </button>

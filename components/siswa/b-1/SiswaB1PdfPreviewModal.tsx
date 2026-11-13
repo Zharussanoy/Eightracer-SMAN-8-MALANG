@@ -8,21 +8,27 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { SISWA_B1_PROFILE } from "./mockData";
+import { StudentB1Account } from "./types";
 
 interface SiswaB1PdfPreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   onDownload: () => void;
+  student?: StudentB1Account;
 }
 
 export const SiswaB1PdfPreviewModal: React.FC<SiswaB1PdfPreviewModalProps> = ({
   isOpen,
   onClose,
   onDownload,
+  student,
 }) => {
   if (!isOpen) return null;
 
   const { suratRekomendasi } = SISWA_B1_PROFILE;
+  const namaSiswa = student?.nama || SISWA_B1_PROFILE.nama;
+  const nisnSiswa = student?.nisn || SISWA_B1_PROFILE.nisn;
+  const kelasSiswa = student?.kelas || SISWA_B1_PROFILE.kelas;
 
   // Paket mapel persis seperti di gambar user & Admin B1
   const paketMataPelajaran = [
@@ -34,7 +40,7 @@ export const SiswaB1PdfPreviewModal: React.FC<SiswaB1PdfPreviewModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 font-sans animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 font-sans text-slate-900 animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div
@@ -61,7 +67,7 @@ export const SiswaB1PdfPreviewModal: React.FC<SiswaB1PdfPreviewModalProps> = ({
             <button
               type="button"
               onClick={() => window.print()}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs active:scale-95 cursor-pointer"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Cetak</span>
@@ -69,7 +75,7 @@ export const SiswaB1PdfPreviewModal: React.FC<SiswaB1PdfPreviewModalProps> = ({
             <button
               type="button"
               onClick={onDownload}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#5F089E] hover:bg-[#4d0680] text-white text-xs font-bold transition-colors shadow-xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#5F089E] hover:bg-[#4d0680] text-white text-xs font-bold transition-all duration-200 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-95 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Unduh PDF</span>
@@ -77,7 +83,7 @@ export const SiswaB1PdfPreviewModal: React.FC<SiswaB1PdfPreviewModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="w-9 h-9 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
+              className="w-9 h-9 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-all duration-200 hover:rotate-90 hover:scale-110 active:scale-95 cursor-pointer"
               aria-label="Tutup modal"
             >
               <X className="w-5 h-5" />
@@ -85,10 +91,10 @@ export const SiswaB1PdfPreviewModal: React.FC<SiswaB1PdfPreviewModalProps> = ({
           </div>
         </div>
 
-        {/* Document Body - 100% Match Gambar Surat Admin B1 */}
+        {/* Document Body - 100% Presisi Match 4 Gambar Surat Admin & Siswa */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-slate-100/70">
-          <div className="bg-white border border-purple-100 rounded-2xl p-6 sm:p-10 shadow-sm max-w-3xl mx-auto space-y-6">
-            {/* Kop Surat Resmi */}
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-10 shadow-sm max-w-3xl mx-auto space-y-6">
+            {/* Kop Surat Resmi (Sesuai Gambar 1) */}
             <div className="text-center space-y-0.5 pb-2">
               <p className="text-xs sm:text-[13px] font-bold text-slate-900 uppercase tracking-wider">
                 PEMERINTAH PROVINSI JAWA TIMUR
@@ -99,16 +105,16 @@ export const SiswaB1PdfPreviewModal: React.FC<SiswaB1PdfPreviewModalProps> = ({
               <p className="text-sm sm:text-base font-extrabold text-slate-900 uppercase tracking-wide">
                 SEKOLAH MENENGAH ATAS NEGERI 8 MALANG
               </p>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] sm:text-xs text-slate-500">
                 Jl. Veteran 37 Telp. (0341) 551096 FAX (0341) 575795 MALANG
               </p>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] sm:text-xs text-slate-500">
                 website: www.sman8malang.sch.id &bull; E-mail: sman8malang@gmail.com
               </p>
-              <p className="text-[11px] text-slate-500">
-                NPSN : 20533640 Kode Pos : 65145
+              <p className="text-[11px] sm:text-xs text-slate-500">
+                NPSN: 20533640 Kode Pos : 65145
               </p>
-              <p className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+              <p className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-0.5">
                 KOTA MALANG
               </p>
             </div>
@@ -116,61 +122,64 @@ export const SiswaB1PdfPreviewModal: React.FC<SiswaB1PdfPreviewModalProps> = ({
             {/* Divider Line */}
             <hr className="border-slate-200" />
 
-            {/* Judul & Nomor Surat */}
+            {/* Judul & Nomor Surat (Sesuai Gambar 1) */}
             <div className="text-center space-y-1">
               <h3 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide underline underline-offset-4">
                 SURAT REKOMENDASI PEMINATAN
               </h3>
-              <p className="text-xs text-slate-600 font-mono">
+              <p className="text-xs sm:text-sm text-slate-600">
                 Nomor: {suratRekomendasi.nomorSurat}
               </p>
             </div>
 
-            {/* Paragraf Pembuka */}
-            <p className="text-xs sm:text-sm text-slate-700 leading-relaxed text-justify">
+            {/* Paragraf Pembuka (Sesuai Gambar 1) */}
+            <p className="text-xs sm:text-sm text-slate-700 leading-relaxed text-left">
               {suratRekomendasi.pembuka}
             </p>
 
-            {/* Student Metadata Box */}
-            <div className="space-y-1.5 text-xs sm:text-sm text-slate-900 bg-slate-50/70 p-4 rounded-xl border border-slate-100 font-sans">
-              <div className="grid grid-cols-12 gap-2">
-                <span className="col-span-3 sm:col-span-2 text-slate-500">
+            {/* Student Metadata Box (Sesuai Gambar 2) */}
+            <div className="space-y-1.5 text-xs sm:text-sm text-slate-900 bg-[#F8FAFC] p-4 sm:p-5 rounded-2xl border border-slate-100 font-sans">
+              <div className="flex items-center">
+                <span className="w-28 sm:w-32 text-slate-500 shrink-0">
                   Nama Lengkap
                 </span>
-                <span className="col-span-9 sm:col-span-10 font-semibold">
-                  : {SISWA_B1_PROFILE.nama}
+                <span className="text-slate-400 mr-2 shrink-0">:</span>
+                <span className="font-semibold text-slate-900">
+                  {namaSiswa}
                 </span>
               </div>
-              <div className="grid grid-cols-12 gap-2">
-                <span className="col-span-3 sm:col-span-2 text-slate-500">
+              <div className="flex items-center">
+                <span className="w-28 sm:w-32 text-slate-500 shrink-0">
                   NISN
                 </span>
-                <span className="col-span-9 sm:col-span-10 font-medium font-mono">
-                  : 0012345678
+                <span className="text-slate-400 mr-2 shrink-0">:</span>
+                <span className="font-medium text-slate-900">
+                  {nisnSiswa}
                 </span>
               </div>
-              <div className="grid grid-cols-12 gap-2">
-                <span className="col-span-3 sm:col-span-2 text-slate-500">
+              <div className="flex items-center">
+                <span className="w-28 sm:w-32 text-slate-500 shrink-0">
                   Kelas
                 </span>
-                <span className="col-span-9 sm:col-span-10 font-semibold">
-                  : {SISWA_B1_PROFILE.kelas}
+                <span className="text-slate-400 mr-2 shrink-0">:</span>
+                <span className="font-semibold text-slate-900">
+                  {kelasSiswa}
                 </span>
               </div>
             </div>
 
-            {/* Paket Mata Pelajaran Pilihan */}
+            {/* Paket Mata Pelajaran Pilihan (Sesuai Gambar 2) */}
             <div className="space-y-2 pt-1">
               <span className="text-xs sm:text-sm font-bold text-slate-900 block">
                 Paket Mata Pelajaran Pilihan:
               </span>
 
-              {/* Chips Mata Pelajaran Ungu Muda persis di gambar */}
-              <div className="flex flex-wrap gap-2 pt-1">
+              {/* Chips Mata Pelajaran Ungu Muda Sesuai Gambar 2 */}
+              <div className="flex flex-wrap gap-2.5 pt-1">
                 {paketMataPelajaran.map((mapel, idx) => (
                   <span
                     key={idx}
-                    className="inline-flex items-center px-3 py-1.5 rounded-lg bg-[#FAF5FF] text-[#5F089E] text-xs font-semibold border border-[#F3E8FF]"
+                    className="inline-flex items-center px-3.5 py-1.5 rounded-xl bg-[#F6EEFE] text-[#5F089E] text-xs sm:text-sm font-semibold"
                   >
                     {mapel}
                   </span>
@@ -178,35 +187,35 @@ export const SiswaB1PdfPreviewModal: React.FC<SiswaB1PdfPreviewModalProps> = ({
               </div>
             </div>
 
-            {/* Keterangan dan Penegasan Box */}
-            <div className="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-6 sm:p-8 space-y-4">
-              <h4 className="text-center font-bold text-xs uppercase tracking-wider text-slate-900">
+            {/* Keterangan dan Penegasan Box (Sesuai Gambar 2 & 3) */}
+            <div className="bg-[#F8FAFC] border border-slate-200/90 rounded-2xl p-6 sm:p-8 space-y-4">
+              <h4 className="text-center font-bold text-xs sm:text-sm uppercase tracking-wider text-slate-900">
                 KETERANGAN DAN PENEGASAN
               </h4>
 
-              <div className="space-y-3 text-xs sm:text-sm text-slate-600 leading-relaxed text-justify">
+              <div className="space-y-3.5 text-xs sm:text-sm text-slate-600 leading-relaxed text-left">
                 {suratRekomendasi.keterangan.map((paragraf, idx) => (
                   <p key={idx}>{paragraf}</p>
                 ))}
               </div>
             </div>
 
-            {/* Area Tanda Tangan (Sebelah Kanan Bawah persis di gambar 3 & 4) */}
-            <div className="pt-4 flex justify-end text-xs sm:text-sm text-slate-900">
-              <div className="text-left w-64 space-y-1">
+            {/* Area Tanda Tangan (Sesuai Gambar 3 & 4) */}
+            <div className="pt-6 flex justify-end text-xs sm:text-sm text-slate-900">
+              <div className="text-left w-64 sm:w-72 space-y-1">
                 <p className="text-slate-800">Malang, 12 Mei 2026</p>
-                <p className="font-bold text-slate-900 uppercase">
-                  KOORDINATOR BIMBINGAN KONSELING
+                <p className="font-bold text-slate-900 uppercase leading-snug">
+                  KOORDINATOR BIMBINGAN<br />KONSELING
                 </p>
-                <div className="h-14 flex items-center">
+                <div className="h-16 flex items-center">
                   <span className="text-xs italic text-slate-400 font-serif">
                     (Telah Ditandatangani Secara Elektronik)
                   </span>
                 </div>
-                <p className="font-bold text-slate-900 underline underline-offset-2">
+                <p className="font-bold text-slate-900 underline underline-offset-4">
                   Dra. Endang Sulastri
                 </p>
-                <p className="text-xs text-slate-500 font-mono">
+                <p className="text-xs text-slate-500 font-normal">
                   NIP: 196908151994122003
                 </p>
               </div>

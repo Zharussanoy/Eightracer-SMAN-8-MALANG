@@ -224,7 +224,7 @@ export default function AdminB1Subviews({
               setSelectedStatCard(selectedStatCard === "total" ? null : "total");
               onShowToast?.("Detail: 384 siswa aktif terdata dari 10 rombel angkatan 2026/2027.");
             }}
-            className={`bg-white border transition-all duration-200 cursor-pointer rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-sm min-h-[160px] group hover:border-[#5F089E]/40 hover:shadow-md ${
+            className={`bg-white border transition-all duration-300 cursor-pointer rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-xs min-h-[160px] group hover:border-[#5F089E]/50 hover:shadow-xl hover:shadow-purple-950/5 hover:-translate-y-1 active:scale-[0.98] ${
               selectedStatCard === "total" ? "ring-2 ring-[#5F089E] border-[#5F089E]" : "border-slate-200"
             }`}
           >
@@ -232,7 +232,7 @@ export default function AdminB1Subviews({
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                 TOTAL SISWA TERDATA
               </span>
-              <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-[#5F089E] shrink-0 group-hover:scale-105 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-[#5F089E] shrink-0 transition-transform duration-300 group-hover:scale-115 group-hover:rotate-6 shadow-2xs">
                 <Users className="w-5 h-5" />
               </div>
             </div>
@@ -254,7 +254,7 @@ export default function AdminB1Subviews({
               setSelectedStatCard(selectedStatCard === "draft" ? null : "draft");
               onShowToast?.("Detail: 14 usulan rekomendasi peminatan masih dalam status tinjauan konseling BK.");
             }}
-            className={`bg-white border transition-all duration-200 cursor-pointer rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-sm min-h-[160px] group hover:border-amber-400/50 hover:shadow-md ${
+            className={`bg-white border transition-all duration-300 cursor-pointer rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-xs min-h-[160px] group hover:border-amber-400 hover:shadow-xl hover:shadow-amber-950/5 hover:-translate-y-1 active:scale-[0.98] ${
               selectedStatCard === "draft" ? "ring-2 ring-amber-400 border-amber-400" : "border-slate-200"
             }`}
           >
@@ -262,7 +262,7 @@ export default function AdminB1Subviews({
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                 DRAF USULAN REKOMENDASI
               </span>
-              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-700 shrink-0 group-hover:scale-105 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-700 shrink-0 transition-transform duration-300 group-hover:scale-115 group-hover:rotate-6 shadow-2xs">
                 <ClipboardList className="w-5 h-5" />
               </div>
             </div>
@@ -284,7 +284,7 @@ export default function AdminB1Subviews({
               setSelectedStatCard(selectedStatCard === "sk" ? null : "sk");
               onShowToast?.("Detail: 312 Surat Keputusan Rekomendasi telah divalidasi dan dikunci.");
             }}
-            className={`bg-white border transition-all duration-200 cursor-pointer rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-sm min-h-[160px] group hover:border-[#5F089E]/40 hover:shadow-md ${
+            className={`bg-white border transition-all duration-300 cursor-pointer rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-xs min-h-[160px] group hover:border-[#5F089E]/50 hover:shadow-xl hover:shadow-purple-950/5 hover:-translate-y-1 active:scale-[0.98] ${
               selectedStatCard === "sk" ? "ring-2 ring-[#5F089E] border-[#5F089E]" : "border-slate-200"
             }`}
           >
@@ -292,7 +292,7 @@ export default function AdminB1Subviews({
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                 SK TERBIT &amp; TERKUNCI
               </span>
-              <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-[#5F089E] shrink-0 group-hover:scale-105 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-[#5F089E] shrink-0 transition-transform duration-300 group-hover:scale-115 group-hover:rotate-6 shadow-2xs">
                 <BadgeCheck className="w-5 h-5" />
               </div>
             </div>
@@ -724,10 +724,10 @@ export default function AdminB1Subviews({
               key={teacher.id}
               type="button"
               onClick={() => openEditModal(teacher)}
-              className="text-left p-5 rounded-2xl border border-slate-200 bg-white hover:border-purple-300 hover:shadow-md transition-all duration-200 cursor-pointer group space-y-3"
+              className="text-left p-5 rounded-2xl border border-slate-200 bg-white hover:border-[#5F089E]/50 hover:shadow-xl hover:shadow-purple-950/5 hover:-translate-y-1.5 active:scale-[0.98] transition-all duration-300 cursor-pointer group space-y-3"
             >
               {/* Avatar */}
-              <div className={`w-12 h-12 rounded-full ${teacher.color} flex items-center justify-center text-white font-bold text-sm shrink-0`}>
+              <div className={`w-12 h-12 rounded-full ${teacher.color} flex items-center justify-center text-white font-bold text-sm shrink-0 transition-transform duration-300 group-hover:scale-110 shadow-2xs`}>
                 {teacher.initials}
               </div>
               <div>
