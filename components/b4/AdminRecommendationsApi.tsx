@@ -20,7 +20,9 @@ export default function AdminRecommendationsApi(){
  const queryKey=query.toString(),allowed=currentUser.schoolStaff===true;
  const [students,setStudents]=useState<{key:string;data?:RecommendationStudentPage;error?:string}>();
  const currentStudents=students?.key===queryKey?students:undefined;
- const page=currentStudents?.data,student=page?.data[0];
+ const page=currentStudents?.data;
+ const matches=filters.query.trim()?page?.data.filter(v=>v.name.trim().toLocaleLowerCase("id")===filters.query.trim().toLocaleLowerCase("id")):[];
+ const student=matches?.length===1?matches[0]:undefined;
  const [target,setTarget]=useState<{studentId:number;level:string}>();
  const targetLevel=target?.studentId===student?.id?target?.level??"SMA":student?.cohort?"Kuliah":"SMA";
  const [version,setVersion]=useState(0),[directoryVersion,setDirectoryVersion]=useState(0),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
@@ -53,12 +55,12 @@ export default function AdminRecommendationsApi(){
    .catch(error=>{if(abort.signal.aborted)return;if(error?.status===401){void refreshSession();router.replace("/login");return;}setResult({key:requestKey,error:error instanceof Error?error.message:"Rekomendasi belum dapat dimuat."});});
   return()=>abort.abort();
  },[student,allowed,targetLevel,requestKey,refreshSession,router]);
- async function save(){
+ async function save(action:"save"|"generate"){
   if(!student||lock.current)return;
   lock.current=true;setBusy(true);setMessage("");
   try{
-   const response=await recommendationRequest<{draft:RecommendationDraft}>("/api/b4/recommendations/"+student.id+"/generate",{method:"POST",body:{target_jenjang:targetLevel}});
-   setMutation({key:requestKey,draft:response.draft});setDirectoryVersion(v=>v+1);setMessage("Hasil rekomendasi berhasil diperbarui. Siswa mengakses hasil perhitungan secara otomatis.");
+   const response=await recommendationRequest<{draft:RecommendationDraft}>("/api/b4/recommendations/"+student.id+"/"+action,{method:"POST",body:{target_jenjang:targetLevel}});
+   setMutation({key:requestKey,draft:response.draft});setDirectoryVersion(v=>v+1);setMessage(action==="save"?"Rekomendasi berhasil disimpan.":"Hasil rekomendasi berhasil diperbarui.");
   }catch(error){
    if(!expired(error))setMessage(error instanceof Error?error.message:"Perubahan belum dapat disimpan.");
    if(error&&typeof error==="object"&&"status" in error&&error.status===409){setMutation(undefined);setVersion(v=>v+1);}
@@ -86,6 +88,6 @@ export default function AdminRecommendationsApi(){
   onTarget={level=>{if(student&&!busy){setTarget({studentId:student.id,level});setMessage("");}}}
   onEdit={(candidate,reason,timing)=>change(candidate,"PATCH",{reason,timing})}
   onVisibility={candidate=>change(candidate,"PATCH",{hidden:!candidate.hidden})} onRemove={candidate=>change(candidate,"DELETE")}
-  busy={busy} canGenerate={!!student&&!!current?.data} message={message} onGenerate={()=>void save()}
+  busy={busy} canGenerate={!!student&&!!current?.data} message={message} onGenerate={()=>void save("generate")} onSave={()=>void save("save")}
   onReset={()=>{setFilters(emptyFilters);setVersion(v=>v+1);setMessage("");}}/>;
 }

@@ -13,3 +13,13 @@ Penjelasan Gemini disimpan sementara selama 15 menit berdasarkan fingerprint pro
 Program dengan data belum lengkap tetap terlihat dengan status belum diketahui. Program nonaktif atau kedaluwarsa dikeluarkan. Hasil bukan keputusan penerimaan beasiswa.
 
 Riwayat/edit/review admin lama dipertahankan untuk kompatibilitas dan pencatatan; tidak menentukan akses siswa ke hasil otomatis. Aturan publikasi data pribadi alumni pada Jejak Alumni tetap terpisah.
+
+## Simpan rekomendasi dan catatan BK (14 November 2026)
+
+- Admin/Guru BK mencari dan memilih nama siswa terlebih dahulu. Halaman tidak memilih profil pertama secara otomatis.
+- Tombol **Simpan** memanggil `POST /api/b4/recommendations/{siswaId}/save`, diteruskan ke Laravel `POST /api/siswa/{siswa}/rekomendasi-beasiswa/save` dengan `{ "target_jenjang": "SMA" }` atau `Kuliah`.
+- Server menghitung ulang kriteria dan pemeringkatan dari sumber terkini. Respons 200 berisi snapshot tersimpan, `meta.saved: true`, `meta.requires_review: false`.
+- Penyimpanan tidak memanggil Gemini. Pengulangan dengan sumber sama menggunakan catatan terakhir, mempertahankan edit opsional dan tidak menggandakan catatan. Sumber berubah membuat riwayat baru.
+- **Generate Ulang** tetap aksi terpisah untuk menghitung dan meminta penjelasan Gemini baru.
+- Edit, sembunyikan, dan hapus mengelola catatan internal BK. Akses rekomendasi otomatis siswa tidak menunggu penyimpanan, peninjauan, atau publikasi BK.
+- Tidak ada migrasi atau perubahan data siswa/alumni saat pemasangan kode ini. Login staf dan perlindungan kepemilikan tetap berlaku.

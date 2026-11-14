@@ -1,7 +1,7 @@
 "use client";
 
 import {useRef,useState,type FormEvent} from "react";
-import {CheckCircle2,CircleAlert,Eye,EyeOff,GraduationCap,RefreshCw,Search,Sparkles,X} from "lucide-react";
+import {CheckCircle2,CircleAlert,Eye,EyeOff,GraduationCap,RefreshCw,Save,Search,Sparkles,X} from "lucide-react";
 import B4Shell,{Avatar} from "./B4Shell";
 import {recommendationCriterionLabel,recommendationEligibility,type RecommendationCandidate} from "@/lib/b4-recommendations";
 import type {RecommendationStudent,RecommendationStudentPage} from "@/lib/b4-students";
@@ -17,7 +17,7 @@ export interface RecommendationAdminViewProps {
  onEdit:(candidate:EditableRecommendationCandidate,reason:string,timing:string)=>Promise<boolean>;
  onVisibility:(candidate:EditableRecommendationCandidate)=>Promise<boolean>;
  onRemove:(candidate:EditableRecommendationCandidate)=>Promise<boolean>;
- busy:boolean;canGenerate:boolean;message:string;onGenerate:()=>void;onReset:()=>void;
+ busy:boolean;canGenerate:boolean;message:string;onGenerate:()=>void;onSave?:()=>void;onReset:()=>void;
 }
 const known=(value:string|null|undefined)=>value??"-";
 function Evaluation({candidate}:{candidate:RecommendationCandidate}){
@@ -51,8 +51,8 @@ export default function RecommendationAdminView(p:RecommendationAdminViewProps){
   </div>
   {p.error&&<p className="bc4-status" role="alert">{p.error}</p>}
   {p.loading&&<p className="bc4-status" role="status">Memuat data siswa dan rekomendasi…</p>}
-  {!p.loading&&p.page&&!student&&<div className="bc4-empty">Tidak ada siswa yang sesuai.<button className="bc4-button" onClick={p.onReset}>Reset Filter</button></div>}
-  <div className="bc4-profileRow"><div className="bc4-profile"><Avatar name={student?.name??"-"} example={false}/><div><h2>{displayTitle(student?.name??"-")}</h2><p>{known(student?.classroom)} · Angkatan {known(student?.cohort)}</p><p>NISN {student?.hasNisn?"••••••••••":"-"}</p></div></div>
+  {!p.loading&&p.page&&!student&&<div className="bc4-empty">Cari dan pilih nama siswa untuk melihat rekomendasi.<button className="bc4-button" onClick={p.onReset}>Reset Filter</button></div>}
+  {student&&<><div className="bc4-profileRow"><div className="bc4-profile"><Avatar name={student?.name??"-"} example={false}/><div><h2>{displayTitle(student?.name??"-")}</h2><p>{known(student?.classroom)} · Angkatan {known(student?.cohort)}</p><p>NISN {student?.hasNisn?"••••••••••":"-"}</p></div></div>
    <section className="bc4-current"><h3>Status Rekomendasi</h3><dl className="bc4-metrics"><div><dt>Status</dt><dd>{draft?"Tersimpan":"Perhitungan Terkini"}</dd></div><div><dt>Jumlah</dt><dd>{candidates.length?visibleCount+" Beasiswa":"-"}</dd></div><div><dt>Akses Siswa</dt><dd>Otomatis</dd></div></dl></section>
   </div>
   <section className="bc4-section"><h2 className="bc4-sectionHeading">Kelengkapan Data Siswa</h2><div className="bc4-sectionBody"><div className="bc4-grid3">{cards.map(card=><article className="bc4-yellowCard" key={card.title}><div className="bc4-splitTitle"><h3>{displayTitle(card.title)}</h3><span className={"bc4-badge"+(card.known?"":" bc4-badgeWarning")}>{card.known&&<CheckCircle2 size={12}/>} {card.known?"Tersedia":"Belum Lengkap"}</span></div><p>{card.text}</p></article>)}</div>
@@ -62,24 +62,24 @@ export default function RecommendationAdminView(p:RecommendationAdminViewProps){
    <div className="bc4-toggleRow"><label className="bc4-field">Target Jenjang<select value={p.targetLevel} disabled={p.busy||!student} onChange={e=>p.onTarget(e.target.value)}><option>SMA</option><option>Kuliah</option></select></label></div>
    {candidates.map(candidate=><article className={"bc4-recommendation"+(candidate.hidden?" bc4-recommendationHidden":"")} key={candidate.id}>
     <header className="bc4-recommendationHeader"><div><h3>{displayTitle(candidate.name)}</h3><p>{displayTitle(known(candidate.provider))}</p></div><div className="bc4-score"><span>Skor Kecocokan</span><strong>{candidate.complete&&candidate.score!==null?candidate.score+"/100":"-"}</strong></div></header>
-    <div className="bc4-recBody"><div><h4>Alasan Kecocokan AI</h4><p>{candidate.reason??recommendationEligibility(candidate)}</p><div className="bc4-evaluation"><GraduationCap size={30}/><span>Referensi alumni mengikuti catatan yang dipublikasikan sekolah.</span></div><div className="bc4-pair"><div className="bc4-yellowCard"><p>Periode Pendaftaran</p><strong>{known(candidate.period)}</strong></div><div className="bc4-yellowCard"><p>Tipe Pendanaan</p><strong>-</strong></div></div></div><div><h4>Evaluasi Kriteria Siswa</h4><Evaluation candidate={candidate}/></div></div>
-    <footer className="bc4-recFooter"><span>{candidate.hidden?"Disembunyikan dari publikasi":recommendationEligibility(candidate)}</span><div className="bc4-actions"><button type="button" className="bc4-button" disabled={p.busy||!draft||!candidate.detailId} title={!draft?"Simpan draft melalui Generate Ulang terlebih dahulu.":undefined} onClick={()=>void p.onVisibility(candidate)}>{candidate.hidden?<Eye size={16}/>:<EyeOff size={16}/>} {candidate.hidden?"Tampilkan":"Sembunyikan"}</button><button type="button" className="bc4-button" disabled={p.busy||!draft||!candidate.detailId} onClick={()=>edit(candidate)}>Edit</button><button type="button" className="bc4-button bc4-danger" disabled={p.busy||!draft||!candidate.detailId} onClick={()=>{setDeleting(candidate);confirmation.current?.showModal();}}>Hapus</button></div></footer>
+    <div className="bc4-recBody"><div><h4>Alasan Rekomendasi</h4><p>{candidate.reason??recommendationEligibility(candidate)}</p><div className="bc4-evaluation"><GraduationCap size={30}/><span>Referensi alumni mengikuti catatan yang dipublikasikan sekolah.</span></div><div className="bc4-pair"><div className="bc4-yellowCard"><p>Periode Pendaftaran</p><strong>{known(candidate.period)}</strong></div><div className="bc4-yellowCard"><p>Tipe Pendanaan</p><strong>-</strong></div></div></div><div><h4>Evaluasi Kriteria Siswa</h4><Evaluation candidate={candidate}/></div></div>
+    <footer className="bc4-recFooter"><span>{candidate.hidden?"Disembunyikan dari catatan BK":recommendationEligibility(candidate)}</span><div className="bc4-actions"><button type="button" className="bc4-button" disabled={p.busy||!draft||!candidate.detailId} title={!draft?"Simpan rekomendasi terlebih dahulu.":undefined} onClick={()=>void p.onVisibility(candidate)}>{candidate.hidden?<Eye size={16}/>:<EyeOff size={16}/>} {candidate.hidden?"Tampilkan":"Sembunyikan"}</button><button type="button" className="bc4-button" disabled={p.busy||!draft||!candidate.detailId} onClick={()=>edit(candidate)}>Edit</button><button type="button" className="bc4-button bc4-danger" disabled={p.busy||!draft||!candidate.detailId} onClick={()=>{setDeleting(candidate);confirmation.current?.showModal();}}>Hapus</button></div></footer>
    </article>)}
    {!candidates.length&&<div className="bc4-empty">Belum ada rekomendasi untuk ditampilkan.</div>}
-   <aside className="bc4-note"><CircleAlert size={25}/><div><h3>Catatan Sistem</h3><p>Siswa menerima hasil perhitungan otomatis tanpa menunggu persetujuan. Data yang belum lengkap ditandai pada rincian kriteria; hasil bukan jaminan penerimaan.</p></div></aside>
-  </div></section><p className="bc4-status" role="status">{p.message}</p>
+   <aside className="bc4-note"><CircleAlert size={25}/><div><h3>Catatan Sistem</h3><p>Penyimpanan dan catatan Guru BK bersifat opsional. Rekomendasi otomatis tetap tersedia bagi siswa.</p></div><button type="button" className="bc4-button bc4-primary" disabled={p.busy||!p.canGenerate} onClick={p.onSave}><Save size={18}/>{p.busy?"Memproses…":"Simpan"}</button></aside>
+  </div></section></>}<p className="bc4-status" role="status">{p.message}</p>
 
   <dialog ref={editor} className="bc4-dialog" aria-labelledby="bc4-edit-recommendation-title" onCancel={e=>{if(p.busy)e.preventDefault();}}>
    <header className="bc4-dialogTitle"><h2 id="bc4-edit-recommendation-title">Edit Rekomendasi Beasiswa</h2><button className="bc4-iconButton" type="button" aria-label="Tutup edit rekomendasi" disabled={p.busy} onClick={()=>editor.current?.close()}><X/></button></header>
    <form className="bc4-dialogBody bc4-fields" onSubmit={e=>void submit(e)}>
-    <section className="bc4-readonly"><h3>Informasi Referensi · Read Only</h3><div className="bc4-pair"><div className="bc4-yellowCard"><p>Nama Beasiswa</p><strong>{displayTitle(editing?.name??"-")}</strong></div><div className="bc4-yellowCard"><p>Skor Kecocokan</p><strong>{editing?.complete&&editing.score!==null?editing.score+"/100":"-"}</strong></div></div><h3>Evaluasi Kriteria Beasiswa</h3>{editing&&<Evaluation candidate={editing}/>}<p>Data master dikelola melalui Basis Data Beasiswa. Skor tidak dapat diubah dari formulir ini.</p></section>
+    <section className="bc4-readonly"><h3>Informasi Referensi</h3><div className="bc4-pair"><div className="bc4-yellowCard"><p>Nama Beasiswa</p><strong>{displayTitle(editing?.name??"-")}</strong></div><div className="bc4-yellowCard"><p>Skor Kecocokan</p><strong>{editing?.complete&&editing.score!==null?editing.score+"/100":"-"}</strong></div></div><h3>Evaluasi Kriteria Beasiswa</h3>{editing&&<Evaluation candidate={editing}/>}<p>Data master dikelola melalui Basis Data Beasiswa. Skor tidak dapat diubah dari formulir ini.</p></section>
     <label className="bc4-field">Alasan Kecocokan<textarea required value={reason} onChange={e=>setReason(e.target.value)} maxLength={1500} disabled={p.busy}/></label>
     <label className="bc4-field">Waktu yang Disarankan untuk Mendaftar<input value={timing} onChange={e=>setTiming(e.target.value)} maxLength={180} disabled={p.busy}/></label>
     <p className="bc4-status" role="status">{p.message}</p><div className="bc4-actions"><button type="button" className="bc4-button" disabled={p.busy} onClick={()=>editor.current?.close()}>Batal</button><button type="submit" className="bc4-button bc4-primary" disabled={p.busy||!reason.trim()}>Simpan</button></div>
    </form>
   </dialog>
   <dialog ref={confirmation} className="bc4-dialog" style={{maxWidth:480}} aria-labelledby="bc4-delete-title" onCancel={e=>{if(p.busy)e.preventDefault();}}>
-   <div className="bc4-dialogBody"><h2 id="bc4-delete-title" style={{fontWeight:700,fontSize:23}}>Hapus Rekomendasi?</h2><p style={{margin:"16px 0"}}>Rekomendasi ini akan dihapus dari daftar siswa. Riwayatnya tetap tersimpan oleh sekolah.</p><p className="bc4-status" role="status">{p.message}</p><div className="bc4-actions"><button type="button" className="bc4-button" disabled={p.busy} onClick={()=>confirmation.current?.close()}>Batal</button><button type="button" className="bc4-button bc4-primary" disabled={p.busy||!deleting} onClick={async()=>{if(deleting&&await p.onRemove(deleting))confirmation.current?.close();}}>Hapus Rekomendasi</button></div></div>
+   <div className="bc4-dialogBody"><h2 id="bc4-delete-title" style={{fontWeight:700,fontSize:23}}>Hapus Rekomendasi?</h2><p style={{margin:"16px 0"}}>Catatan rekomendasi ini akan dihapus dari riwayat aktif BK. Rekomendasi otomatis siswa tetap tersedia.</p><p className="bc4-status" role="status">{p.message}</p><div className="bc4-actions"><button type="button" className="bc4-button" disabled={p.busy} onClick={()=>confirmation.current?.close()}>Batal</button><button type="button" className="bc4-button bc4-primary" disabled={p.busy||!deleting} onClick={async()=>{if(deleting&&await p.onRemove(deleting))confirmation.current?.close();}}>Hapus Rekomendasi</button></div></div>
   </dialog>
  </B4Shell>;
 }

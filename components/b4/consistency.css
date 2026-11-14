@@ -79,3 +79,11 @@
   .b4-page .bc4-grid3>.bc4-yellowCard { min-height: 132px; }
 }
 @media(prefers-reduced-motion:reduce) { .b4-page *, .b4-page *::before, .b4-page *::after { scroll-behavior: auto; transition: none; animation: none; } }
+
+/* Readable scholarship chat formatting, preserving the existing palette. */
+.b4-page .bc4-chatText { white-space: normal; overflow-wrap: anywhere; }
+.b4-page .bc4-chatText p { margin: 0 0 12px; }
+.b4-page .bc4-chatText ul { list-style: disc; padding-left: 22px; margin: 8px 0 16px; }
+.b4-page .bc4-chatText li { margin: 6px 0; }
+.b4-page .bc4-chatText strong { font-weight: 700; }
+.b4-page .bc4-chatText > :last-child { margin-bottom: 0; }

@@ -10,6 +10,7 @@ const allowedMessages = new Set([
   "Jenjang siswa belum diketahui. Lengkapi riwayat kelas aktif SMA.",
   "Belum ada beasiswa aktif yang sesuai jenjang.",
   "Data sumber berubah. Generate ulang sebelum publikasi.",
+  "Data sumber berubah. Hitung ulang rekomendasi.",
   "Data kriteria belum lengkap; rekomendasi tidak dapat dipublikasikan.",
   "Belum ada beasiswa yang memenuhi seluruh persyaratan.",
   "Rekomendasi sudah ditinjau. Buat draft baru untuk revisi.",
@@ -21,7 +22,7 @@ const allowedMessages = new Set([
 export async function backendRecommendations(request: NextRequest, path: string, options: { method?: "GET" | "POST" | "PATCH" | "DELETE"; query?: URLSearchParams; body?: unknown } = {}) {
   const method=options.method??"GET";
   const valid=method==="GET" ? path==="/siswa" || /^\/siswa\/[1-9]\d*\/rekomendasi-beasiswa\/preview$/.test(path) || /^\/rekomendasi-beasiswa(?:\/saya|\/[1-9]\d*)?$/.test(path)
-    : method==="POST" ? path==="/chat-beasiswa" || /^\/siswa\/[1-9]\d*\/rekomendasi-beasiswa\/generate$/.test(path)
+    : method==="POST" ? path==="/chat-beasiswa" || /^\/siswa\/[1-9]\d*\/rekomendasi-beasiswa\/(?:generate|save)$/.test(path)
     : method==="PATCH" ? /^\/rekomendasi-beasiswa\/[1-9]\d*\/(?:review|detail\/[1-9]\d*)$/.test(path)
     : /^\/rekomendasi-beasiswa\/[1-9]\d*\/detail\/[1-9]\d*$/.test(path);
   if(!valid)throw new AuthError(422,"Tujuan rekomendasi tidak valid.");
@@ -47,7 +48,7 @@ export async function backendRecommendations(request: NextRequest, path: string,
     throw new AuthError(response.status>=500?503:response.status,known??(
       response.status===401?"Sesi berakhir. Silakan masuk lagi.":response.status===403?"Akun ini belum memiliki izin mengakses rekomendasi ini.":
       response.status===404?(path==="/chat-beasiswa"||path.endsWith("/saya")?"Akun belum terhubung dengan data siswa.":"Data rekomendasi atau siswa tidak ditemukan."):
-      response.status===409?"Data berubah. Generate ulang dan tinjau kembali sebelum publikasi.":
+      response.status===409?"Data berubah. Muat ulang rekomendasi sebelum menyimpan.":
       response.status===422?"Periksa pilihan siswa, jenjang, atau kelengkapan data kriteria.":
       response.status===429?"Terlalu banyak permintaan. Tunggu sebelum mencoba lagi.":"Layanan rekomendasi belum tersedia."));
   }

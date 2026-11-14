@@ -180,3 +180,20 @@ test("student proxy reads automatic calculations from the authenticated own-prof
  assert.equal(r.status,200);const p=await r.json();assert.equal(p.data[0].key,"auto-SMA-4");assert.equal(p.data[0].llmUsed,true);
  assert.equal(forwarded.url,"https://backend.example/api/rekomendasi-beasiswa/saya");assert.equal(forwarded.init.method,"GET");
 });
+
+test("save proxy persists selected student's snapshot without using generate or review",async()=>{
+ const calls=[],load=harness(async(url,init)=>{calls.push({url,init});return Response.json({data:rawDraft});});
+ const route=load("app/api/b4/recommendations/[id]/save/route.ts");
+ const r=await route.POST(request("/api/b4/recommendations/11/save",{target_jenjang:"SMA"}),{params:Promise.resolve({id:"11"})});
+ assert.equal(r.status,200);const p=await r.json();assert.equal(p.draft.id,7);
+ assert.equal(calls.length,1);assert.equal(calls[0].url,"https://backend.example/api/siswa/11/rekomendasi-beasiswa/save");
+ assert.equal(calls[0].init.method,"POST");assert.equal(JSON.stringify(p).includes("PRIVATE"),false);
+});
+test("save proxy rejects cross-origin, extra identifiers, and mismatched response owners",async()=>{
+ let calls=0;const route=harness(async()=>{calls++;return Response.json({data:{...rawDraft,siswa_id:99}});})("app/api/b4/recommendations/[id]/save/route.ts");
+ const context={params:Promise.resolve({id:"11"})};
+ assert.equal((await route.POST(request("/api/b4/recommendations/11/save",{target_jenjang:"SMA"},"https://invalid.example"),context)).status,403);
+ assert.equal((await route.POST(request("/api/b4/recommendations/11/save",{target_jenjang:"SMA",status_review:"disetujui"}),context)).status,422);
+ assert.equal(calls,0);
+ assert.equal((await route.POST(request("/api/b4/recommendations/11/save",{target_jenjang:"SMA"}),context)).status,502);
+});

@@ -7,6 +7,7 @@ import {useUser} from "@/context/UserContext";
 import {recommendationRequest,type ScholarshipChatReply} from "@/lib/b4-recommendation-data";
 import B4Shell from "./B4Shell";
 import {useStudentRecommendations} from "./useStudentRecommendations";
+import ChatMessageText from "./ChatMessageText";
 import { displayTitle } from "@/lib/display-copy";
 
 type Message={role:"user"|"bot";text:string;recommendationId?:string};
@@ -31,7 +32,7 @@ export default function ScholarshipChatApi({recommendationId}:{recommendationId?
    const programId=overview?undefined:(remembered??selected);
    const reply=await recommendationRequest<ScholarshipChatReply>("/api/b4/recommendations/chat",{method:"POST",body:{message:question.trim(),...(programId?{beasiswa_id:programId}:{})}});
    conversation.current={userId:String(currentUser.id),scholarshipId:reply.scholarshipId??undefined};
-   const choices=reply.suggestions.length?" Program tersedia: "+reply.suggestions.map(v=>v.name).join(", ")+". Ketik nama program yang ingin diperiksa.":"";
+   const choices=reply.suggestions.length?"\n\n**Program yang bisa kamu bahas:**\n"+reply.suggestions.map(v=>"- "+v.name).join("\n")+"\n\nKetik nama program yang ingin kamu pelajari, ya.":"";
    const linked=recommendations.find(item=>item.scholarshipId===reply.scholarshipId);
    setMessages(v=>[...v,{role:"bot",text:reply.answer+choices,recommendationId:linked?.key}]);
    setMode(reply.llmUsed?"Jawaban berdasarkan informasi program dan data siswa yang tersedia.":"Jawaban faktual berdasarkan data dan aturan yang tersedia.");
@@ -46,10 +47,10 @@ export default function ScholarshipChatApi({recommendationId}:{recommendationId?
  }
  return <B4Shell student showDemoProfile={false} title="AI Rekomendasi Beasiswa" description="Pelajari informasi dan alasan kecocokan beasiswa yang direkomendasikan untukmu." dataNote="">
   <section className="bc4-chat"><header className="bc4-chatHeader"><Bot size={36}/><div><h2>Eightracer AI</h2><p>Asisten Informasi Beasiswa</p></div></header>
-   <div className="bc4-chatMessages" aria-live="polite"><div className="bc4-chatLine"><span className="bc4-botAvatar"><Bot size={30}/></span><div className="bc4-bubble"><p>Hai, {currentUser.name.split(" ")[0]}! Aku siap membantumu mempelajari informasi rekomendasi beasiswa dari sekolah.</p><p>Data yang belum tercatat akan dijelaskan sebagai belum diketahui. Hasil ini bukan keputusan penerimaan beasiswa.</p>{context&&recommendationId&&<p>Konteks percakapan: <strong>{displayTitle(context.name)}</strong></p>}{!messages.length&&<><h3>Mulai dengan Salah Satu Pertanyaan Berikut:</h3><div className="bc4-chatSuggestions">{suggestions.map(question=><button key={question} disabled={busy||cooldown>0||currentUser.role!=="siswa"} onClick={()=>void send(question)}>{question}</button>)}</div></>}</div></div>
+   <div className="bc4-chatMessages" aria-live="polite"><div className="bc4-chatLine"><span className="bc4-botAvatar"><Bot size={30}/></span><div className="bc4-bubble"><p><strong>Hai {displayTitle(currentUser.name.trim().split(/\s+/)[0]||"teman")}! 👋🏻</strong></p><p>Aku siap membantumu mencari pilihan beasiswa, memahami persyaratannya, dan menyiapkan langkah berikutnya. Yuk, kita pelajari bersama! 🎓</p><p>Data yang belum tercatat akan dijelaskan sebagai belum diketahui. Hasil ini bukan keputusan penerimaan beasiswa.</p>{context&&recommendationId&&<p>Konteks percakapan: <strong>{displayTitle(context.name)}</strong></p>}{!messages.length&&<><h3>Mulai dengan Salah Satu Pertanyaan Berikut:</h3><div className="bc4-chatSuggestions">{suggestions.map(question=><button key={question} disabled={busy||cooldown>0||currentUser.role!=="siswa"} onClick={()=>void send(question)}>{question}</button>)}</div></>}</div></div>
     {messages.map((message,index)=>{
      const linked=recommendations.find(item=>item.key===message.recommendationId);
-     return <div key={index} className={"bc4-chatLine "+(message.role==="user"?"bc4-chatUser":"")}>{message.role==="bot"&&<span className="bc4-botAvatar"><Bot size={30}/></span>}<div className="bc4-bubble"><p>{message.text}</p>{linked&&<div className="bc4-chatScholar"><h3><GraduationCap size={25}/>{displayTitle(linked.name)}</h3><p>{displayTitle(linked.provider??"-")}</p><strong>Skor kecocokan: {linked.complete&&linked.score!==null?linked.score+"/100":"-"}</strong><Link className="bc4-button" href={"/siswa/rekomendasi-beasiswa/"+linked.key}>Lihat Detail</Link></div>}</div></div>;
+     return <div key={index} className={"bc4-chatLine "+(message.role==="user"?"bc4-chatUser":"")}>{message.role==="bot"&&<span className="bc4-botAvatar"><Bot size={30}/></span>}<div className="bc4-bubble">{message.role==="bot"?<ChatMessageText text={message.text}/>:<p>{message.text}</p>}{linked&&<div className="bc4-chatScholar"><h3><GraduationCap size={25}/>{displayTitle(linked.name)}</h3><p>{displayTitle(linked.provider??"-")}</p><strong>Skor kecocokan: {linked.complete&&linked.score!==null?linked.score+"/100":"-"}</strong><Link className="bc4-button" href={"/siswa/rekomendasi-beasiswa/"+linked.key}>Lihat Detail</Link></div>}</div></div>;
     })}
     {busy&&<div className="bc4-chatLine"><span className="bc4-botAvatar"><Bot size={30}/></span><div className="bc4-bubble"><p role="status">Memeriksa informasi beasiswa…</p></div></div>}<div ref={end}/>
    </div>
