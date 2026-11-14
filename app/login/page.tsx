@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { User, Lock, Eye, EyeOff } from 'lucide-react';
 import { useUser, PresetKey } from '@/context/UserContext';
+import { authService } from '@/services/b2';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,7 +17,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
 
@@ -27,17 +28,45 @@ export default function LoginPage() {
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      const u = username.toLowerCase();
-      let preset: PresetKey = 'siswa_aktif';
-      if (u.includes('admin')) preset = 'admin';
-      else if (u.includes('guru') || u.includes('bambang') || u.includes('nip')) preset = 'guru';
-      else if (u.includes('alumni') || u.includes('nabila') || u.includes('lulus')) preset = 'siswa_alumni';
+    try {
+      // 1. Panggil API Login Laravel Backend
+      const res = await authService.login({
+        username: username.trim(),
+        password: password.trim(),
+      });
 
-      login(preset);
+      // 2. Petakan role dari backend (administrator/guru/siswa)
+      const role = String(res.user?.role || '').toLowerCase();
+      let preset: PresetKey = 'siswa_aktif';
+      if (role === 'administrator' || role === 'admin') {
+        preset = 'admin';
+      } else if (role === 'guru') {
+        preset = 'guru';
+      } else if (role === 'alumni') {
+        preset = 'siswa_alumni';
+      } else {
+        preset = 'siswa_aktif';
+      }
+
+      login(preset, res.token, res.user);
+
+      // 3. Arahkan pengguna ke halaman yang sesuai
+      if (preset === 'admin') {
+        router.push('/admin/b2');
+      } else if (preset === 'guru') {
+        router.push('/guru');
+      } else if (preset === 'siswa_alumni') {
+        router.push('/alumni');
+      } else {
+        router.push('/siswa');
+      }
+    } catch (err: any) {
+      setErrorMessage(
+        err?.message || 'Login gagal. Silakan periksa kembali username dan kata sandi Anda.'
+      );
+    } finally {
       setIsLoading(false);
-      if (preset === 'admin') router.push('/admin'); else if (preset === 'guru') router.push('/guru'); else if (preset === 'siswa_alumni') router.push('/alumni'); else router.push('/siswa');
-    }, 900);
+    }
   };
 
   return (

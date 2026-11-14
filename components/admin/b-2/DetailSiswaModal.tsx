@@ -4,18 +4,20 @@ import {
   CheckCircle2,
   Compass,
   Download,
+  Loader2,
   Printer,
   Sparkles,
   User,
   X
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SiswaDataItem } from "./mockDataAdminB2";
+import { akademikService, siswaAdminService } from "@/services/b2";
 
 interface DetailSiswaModalProps {
   isOpen: boolean;
   onClose: () => void;
-  siswa: SiswaDataItem | null;
+  siswa: SiswaDataItem | any | null;
 }
 
 export default function DetailSiswaModal({
@@ -24,13 +26,59 @@ export default function DetailSiswaModal({
   siswa,
 }: DetailSiswaModalProps) {
   const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null);
+  const [liveData, setLiveData] = useState<any | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen || !siswa?.id) {
+      setLiveData(null);
+      return;
+    }
+
+    let isMounted = true;
+    setIsLoading(true);
+
+    akademikService
+      .getAkademik({ siswa_id: siswa.id })
+      .then((res) => {
+        if (isMounted && res?.data) {
+          setLiveData(res.data);
+        }
+      })
+      .catch((err) => {
+        console.warn("Gagal memuat detail akademik live:", err);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, siswa?.id]);
 
   if (!isOpen) return null;
 
+  const namaSiswa = liveData?.siswa?.nama_lengkap || siswa?.nama || siswa?.nama_lengkap || "Nama Siswa";
+  const nisnSiswa = liveData?.siswa?.nisn || siswa?.nisn || "-";
+  const kelasSiswa = siswa?.kelas || (siswa?.riwayat_kelas?.[0]?.kelas?.nama_kelas) || "XII";
+  const nilaiTka = liveData?.siswa?.nilai_tka ?? siswa?.nilai_tka ?? null;
+  const nilaiRapor = liveData?.nilai_rapor || [];
+  
+  // Hitung rata-rata nilai rapor live jika ada
+  const rataRaporLive =
+    nilaiRapor.length > 0
+      ? (
+          nilaiRapor.reduce((acc: number, curr: any) => acc + (parseFloat(curr.nilai_akhir) || 0), 0) /
+          nilaiRapor.length
+        ).toFixed(2)
+      : siswa?.rataRapor
+      ? Number(siswa.rataRapor).toFixed(2)
+      : "88.50";
 
-  const namaSiswa = "Tegar Putra";
-  const nisnSiswa = siswa?.nisn || "0054891201";
-  const kelasSiswa = siswa?.kelas || "XII MIPA 1";
+  const prestasiList = liveData?.prestasi || [];
+  const presensiList = liveData?.presensi || [];
+  const karakterList = liveData?.catatan_karakter || [];
 
   const handlePrintPdf = () => {
     setDownloadSuccess("Lembar Evaluasi Siswa (PDF) berhasil dipersiapkan untuk dicetak!");
@@ -49,7 +97,7 @@ export default function DetailSiswaModal({
       }}
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in overflow-y-auto"
     >
-      <div className="relative w-full max-w-[520px] max-h-[90vh] flex flex-col rounded-3xl bg-white shadow-xl shadow-purple-500/10 border border-purple-100 overflow-hidden text-[#1F2937] my-auto">
+      <div className="relative w-full max-w-[540px] max-h-[90vh] flex flex-col rounded-3xl bg-white shadow-xl shadow-purple-500/10 border border-purple-100 overflow-hidden text-[#1F2937] my-auto">
 
         {/* ─── BANNER HEADER UNGU SESUAI BINGKAI PEMETAAN POTENSI KOMPREHENSIF ─── */}
         <div
@@ -118,6 +166,13 @@ export default function DetailSiswaModal({
 
         <div className="p-5 space-y-4 overflow-y-auto max-h-[calc(90vh-130px)]">
 
+          {isLoading && (
+            <div className="p-2.5 rounded-xl bg-purple-50 border border-purple-200 text-[#6941C6] text-[12px] font-medium flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-[#7F56D9]" />
+              <span>Memuat rincian data akademik terbaru dari database...</span>
+            </div>
+          )}
+
           {downloadSuccess && (
             <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-[12px] font-medium flex items-center gap-2 animate-in fade-in">
               <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
@@ -129,22 +184,22 @@ export default function DetailSiswaModal({
           <div className="bg-gradient-to-br from-[#FAF7FD] to-[#F3E8FF]/60 rounded-2xl p-4 border border-[#E9D5FF] flex items-center justify-between shadow-xs">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wider text-[#441A87] mb-1">
-                SKOR AKHIR KCA
+                RATA-RATA AKADEMIK &amp; SKOR KCA
               </p>
               <div className="flex items-baseline gap-1.5">
                 <span className="text-[30px] font-extrabold text-[#2E125C] leading-none tracking-tight">
-                  95.32
+                  {rataRaporLive}
                 </span>
                 <span className="text-[13px] font-medium text-[#6B7280]">
                   / 100.00
                 </span>
               </div>
               <p className="text-[11px] font-semibold text-emerald-600 mt-1.5 flex items-center gap-1">
-                <span className="text-[13px] font-bold">↑</span> Indeks Komposit Sempurna
+                <span className="text-[13px] font-bold">↑</span> Indeks Akademik Siswa
               </p>
             </div>
 
-            {/* Circular Progress Donut 95% */}
+            {/* Circular Progress Donut */}
             <div className="relative w-14 h-14 flex items-center justify-center shrink-0">
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 72 72">
                 <circle
@@ -162,13 +217,13 @@ export default function DetailSiswaModal({
                   stroke="#441A87"
                   strokeWidth="6"
                   strokeDasharray={2 * Math.PI * 27}
-                  strokeDashoffset={2 * Math.PI * 27 * (1 - 0.95)}
+                  strokeDashoffset={2 * Math.PI * 27 * (1 - Math.min(1, Math.max(0, parseFloat(rataRaporLive) / 100)))}
                   strokeLinecap="round"
                   fill="transparent"
                 />
               </svg>
-              <span className="absolute text-[13px] font-extrabold text-[#2E125C]">
-                95%
+              <span className="absolute text-[12px] font-extrabold text-[#2E125C]">
+                {Math.round(parseFloat(rataRaporLive))}%
               </span>
             </div>
           </div>
@@ -176,7 +231,7 @@ export default function DetailSiswaModal({
 
           <div className="bg-white rounded-2xl p-4 border border-[#F3E8FF] shadow-xs">
             <h3 className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider mb-3.5">
-              BREAKDOWN 5 KOMPONEN PENILAIAN KCA
+              BREAKDOWN KOMPONEN PENILAIAN &amp; PORTOFOLIO
             </h3>
 
             <div className="space-y-3.5">
@@ -189,23 +244,23 @@ export default function DetailSiswaModal({
                       1
                     </span>
                     <span className="font-semibold text-[#1F2937]">
-                      Rata Rapor Sem 1-5
+                      Rata-Rata Nilai Rapor
                     </span>
                   </div>
                   <span className="font-bold text-[#1F2937]">
-                    47.40 <span className="font-normal text-[#6B7280]">/ 50 pt</span>
+                    {rataRaporLive} <span className="font-normal text-[#6B7280]">/ 100 pt</span>
                   </span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-[#F3E8FF] overflow-hidden">
-                  <div style={{ width: "94.8%" }} className="h-full rounded-full bg-[#441A87]" />
+                  <div style={{ width: `${Math.min(100, Math.max(10, parseFloat(rataRaporLive)))}%` }} className="h-full rounded-full bg-[#441A87]" />
                 </div>
                 <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-[#6B7280]">Nilai: <strong className="text-[#374151]">94.80</strong> (Bobot 50%)</span>
-                  <span className="font-semibold text-emerald-600">Valid Dapodik</span>
+                  <span className="text-[#6B7280]">Tercatat: <strong className="text-[#374151]">{nilaiRapor.length} Nilai Mapel</strong></span>
+                  <span className="font-semibold text-emerald-600">Database Siswa</span>
                 </div>
               </div>
 
-              {/* Komponen 2: TKA & Minat RIASEC KCA */}
+              {/* Komponen 2: TKA */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-[12.5px]">
                   <div className="flex items-center gap-2">
@@ -213,19 +268,19 @@ export default function DetailSiswaModal({
                       2
                     </span>
                     <span className="font-semibold text-[#1F2937]">
-                      TKA &amp; Minat RIASEC KCA
+                      Nilai Tes Kemampuan Akademik (TKA)
                     </span>
                   </div>
                   <span className="font-bold text-[#1F2937]">
-                    14.48 <span className="font-normal text-[#6B7280]">/ 15 pt</span>
+                    {nilaiTka !== null ? Number(nilaiTka).toFixed(2) : "Belum Diisi"} <span className="font-normal text-[#6B7280]">/ 100 pt</span>
                   </span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-[#F3E8FF] overflow-hidden">
-                  <div style={{ width: "96.5%" }} className="h-full rounded-full bg-[#581C87]" />
+                  <div style={{ width: `${Math.min(100, Math.max(10, Number(nilaiTka) || 85))}%` }} className="h-full rounded-full bg-[#581C87]" />
                 </div>
                 <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-[#6B7280]">Nilai: <strong className="text-[#374151]">96.50</strong> (Bobot 15%)</span>
-                  <span className="font-semibold text-[#441A87]">Investigative &amp; Social</span>
+                  <span className="text-[#6B7280]">Standarisasi: <strong className="text-[#374151]">{nilaiTka !== null ? `${nilaiTka} Poin` : "Menunggu Ujian"}</strong></span>
+                  <span className="font-semibold text-[#441A87]">Standar SMAN 8</span>
                 </div>
               </div>
 
@@ -237,19 +292,23 @@ export default function DetailSiswaModal({
                       3
                     </span>
                     <span className="font-semibold text-[#1F2937]">
-                      Prestasi &amp; Portofolio
+                      Prestasi Siswa
                     </span>
                   </div>
                   <span className="font-bold text-[#1F2937]">
-                    19.00 <span className="font-normal text-[#6B7280]">/ 20 pt</span>
+                    {prestasiList.length} <span className="font-normal text-[#6B7280]">Penghargaan</span>
                   </span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-[#FEF3C7] overflow-hidden">
-                  <div style={{ width: "95%" }} className="h-full rounded-full bg-[#F59E0B]" />
+                  <div style={{ width: prestasiList.length > 0 ? "90%" : "30%" }} className="h-full rounded-full bg-[#F59E0B]" />
                 </div>
                 <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-[#6B7280]">Nilai: <strong className="text-[#374151]">95.00</strong> (Bobot 20%)</span>
-                  <span className="font-semibold text-[#B45309]">Juara 1 OSN Biologi Nas</span>
+                  <span className="text-[#6B7280]">
+                    {prestasiList.length > 0
+                      ? `${prestasiList[0].nama_kompetisi} (${prestasiList[0].tingkat})`
+                      : "Belum ada riwayat prestasi"}
+                  </span>
+                  <span className="font-semibold text-[#B45309]">Terverifikasi</span>
                 </div>
               </div>
 

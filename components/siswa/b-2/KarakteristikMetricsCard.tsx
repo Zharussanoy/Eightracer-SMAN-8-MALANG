@@ -1,9 +1,13 @@
 "use client";
 
-import { METRIK_KARAKTERISTIK } from "./mockDataSiswa";
+import { KarakteristikMetric, METRIK_KARAKTERISTIK } from "./mockDataSiswa";
 
-export default function KarakteristikMetricsCard() {
-  const metrics = METRIK_KARAKTERISTIK;
+interface KarakteristikMetricsCardProps {
+  metrics?: KarakteristikMetric[];
+}
+
+export default function KarakteristikMetricsCard({ metrics }: KarakteristikMetricsCardProps = {}) {
+  const activeMetrics = metrics && metrics.length > 0 ? metrics : METRIK_KARAKTERISTIK;
 
   return (
     <div
@@ -20,11 +24,11 @@ export default function KarakteristikMetricsCard() {
 
 
       <div className="flex flex-col">
-        {metrics.map((item, index) => (
+        {activeMetrics.map((item, index) => (
           <div
             key={item.kategori}
             className={`flex items-center gap-4 sm:gap-6 py-4 ${
-              index !== metrics.length - 1 ? "border-b border-[#DECFE8]" : ""
+              index !== activeMetrics.length - 1 ? "border-b border-[#DECFE8]" : ""
             }`}
           >
  
