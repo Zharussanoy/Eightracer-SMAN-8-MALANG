@@ -34,7 +34,7 @@ export default function CapstoneNavbar({ pathname }: { pathname: string }) {
         <Link href="/#tentang" onClick={close}>Tentang Kami</Link><Link href="/tim-pengembang" onClick={close}>Pengembang</Link>
       </nav>
       <div className="b4-capstoneAccount b4-capstoneMenu">{isLoggedIn ? <>
-        <button type="button" aria-expanded={menu === "account"} aria-controls="b4-account-menu" onClick={() => setMenu(menu === "account" ? null : "account")}><FigmaIcon name="account" size={36} /><span><span>{currentUser.name}</span><small>{getDisplayRole().label}</small></span><FigmaIcon name="caret" size={20} /></button>
+        <button type="button" aria-expanded={menu === "account"} aria-controls="b4-account-menu" onClick={() => setMenu(menu === "account" ? null : "account")}><FigmaIcon name="account" size={36} /><span><span>{currentUser.name}</span><small>{getDisplayRole().label}</small></span><FigmaIcon name="accountCaret" size={24} /></button>
         {menu === "account" && <div id="b4-account-menu" className="b4-capstoneDropdown"><Link href="/profile" onClick={close}>Profil saya</Link><button type="button" onClick={() => { close(); void logout(); }}>Keluar</button></div>}
       </> : <Link href="/login" className="b4-capstoneLogin">Masuk</Link>}</div>
       <button className="b4-capstoneMobileToggle" type="button" aria-label={menu === "mobile" ? "Tutup navigasi" : "Buka navigasi"} aria-expanded={menu === "mobile"} aria-controls="b4-mobile-menu" onClick={() => setMenu(menu === "mobile" ? null : "mobile")}>{menu === "mobile" ? <X /> : <Menu />}</button>

@@ -6,9 +6,10 @@ const assets = {
   school: "96e41.svg", graduate: "76309.svg", university: "ff7f3.svg",
   bot: "0a933.svg", botAvatar: "8f122.svg", send: "647ce.svg",
   scholarship: "5cb6c.svg", shield: "a94e6.svg", discover: "cb9d4.svg",
+  breadcrumb: "breadcrumb-caret.svg", accountCaret: "account-caret.svg",
 } as const;
 
 /** Original exported artwork; dimensions belong to the slot, not the SVG paths. */
 export default function FigmaIcon({ name, size = 24, className }: { name: keyof typeof assets; size?: number; className?: string }) {
-  return <Image src={`/images/b4/figma/${assets[name]}`} alt="" width={size} height={size} className={className} unoptimized aria-hidden="true" />;
+  return <Image src={`/images/b4/figma/${assets[name]}`} alt="" width={size} height={size} className={className} style={{ objectFit: "contain" }} unoptimized aria-hidden="true" />;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import AdminTimelineView from "./AdminTimelineView";
 import { UserRound } from "lucide-react";
 import type { AlumniProfile, AlumniTimeline } from "@/lib/b4-alumni-legacy";
 const known = (value: string | number | null | undefined) => value ?? "Belum tercatat";
@@ -12,6 +12,6 @@ export default function AdminAlumniInformationView({ profile, data }: { profile?
     <div className="bc4-grid2"><section className="bc4-panel"><h2 className="bc4-underlined">Data Induk Alumni</h2><dl className="bc4-infoList">{[["Nama Lengkap", profile?.name ?? data.name], ["Nama Perguruan Tinggi", profile?.university], ["Program Studi", profile?.program], ["Jalur Masuk", profile?.admission], ["Tahun Masuk", profile?.entryYear], ["Status Penerimaan", profile?.status]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{known(value)}</dd></div>)}</dl></section>
       <section className="bc4-panel"><h2 className="bc4-underlined">Progres Kuliah Terakhir</h2>{latest ? <dl className="bc4-infoList">{[["Periode / Semester", latest.period ?? latest.semester], ["IP Kumulatif", latest.ipk], ["Penerima KIP-K", latest.kipk === null ? null : latest.kipk ? "Ya" : "Tidak"], ["UKT / Semester", money(latest.ukt)]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{known(value)}</dd></div>)}</dl> : <p>Belum ada progres kuliah yang dikirim BE untuk penerimaan ini.</p>}</section></div>
     <section className="bc4-panel"><h2 className="bc4-underlined">Riwayat Progress Perkuliahan</h2><div className="b4-tableScroll"><table className="b4-table"><thead><tr><th>Periode Semester</th><th>IPK</th><th>Penerima KIP-K</th><th>Beasiswa Terdaftar</th><th>UKT</th></tr></thead><tbody>{records.map((item) => <tr key={item.id}><td>{item.period ?? `Semester ${item.semester}`}{item.current === false && " · Revisi terdahulu"}</td><td>{known(item.ipk)}</td><td>{item.kipk === null ? "Belum tercatat" : item.kipk ? "Ya" : "Tidak"}</td><td>{item.scholarships.length ? item.scholarships.map((program) => `${program.name}${program.status ? ` (${program.status})` : ""}`).join(", ") : "Belum tercatat"}</td><td>{money(item.ukt)}</td></tr>)}{!records.length && <tr><td colSpan={5}>Belum ada riwayat progres perkuliahan dari BE.</td></tr>}</tbody></table></div></section>
-    {profile && <div className="bc4-actions" style={{marginTop:24}}><Link className="bc4-button bc4-primary" href={`/admin/timeline-individu?id=${profile.studentId}${profile.id ? `&penerimaan_id=${profile.id}` : ""}`}>Lihat Timeline Alumni</Link></div>}
+    <section aria-label="Timeline individu alumni" style={{ marginTop: 24 }}><AdminTimelineView data={data} profile={profile} embedded /></section>
   </div>;
 }

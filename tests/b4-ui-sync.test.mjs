@@ -16,10 +16,13 @@ test('dashboard and PDF normalize the same selected scholarship, cohort and peri
  assert.throws(()=>query(new URLSearchParams('siswa_id=99')));
  assert.throws(()=>query(new URLSearchParams('angkatan=2025&angkatan=2026')));
 });
-test('new analytics and summary tabs preserve the filter context and timeline remains reachable',()=>{
+test('analytics filters stay in tabs and timeline is embedded in alumni detail',()=>{
  const Tab=load('components/admin/b-4/B4Tabs.tsx',{'next/link':{__esModule:true,default:({children,...props})=>React.createElement('a',props,children)},'@/lib/display-copy':{displayTitle:v=>v},'@/components/b4/FigmaIcon':{__esModule:true,default:()=>null}}).default;
  const html=renderToStaticMarkup(React.createElement(Tab,{active:'Analitik Beasiswa',query:'angkatan=2026&beasiswa_id=kip'}));
  assert.match(html,/href="\/admin\/ringkasan-pola\?angkatan=2026&amp;beasiswa_id=kip"/);
  assert.match(html,/href="\/admin\/analitik-beasiswa\?angkatan=2026&amp;beasiswa_id=kip"/);
- assert.match(html,/href="\/admin\/timeline-individu"/);
+ assert.doesNotMatch(html,/href="\/admin\/timeline-individu"/);
+ const detail=fs.readFileSync('components/b4/AdminAlumniDetailPage.tsx','utf8');
+ assert.match(detail,/aria-label="Timeline individu alumni"/);
+ assert.match(detail,/<AlumniAcademicTimeline/);
 });

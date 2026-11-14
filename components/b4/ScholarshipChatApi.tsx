@@ -54,6 +54,7 @@ export default function ScholarshipChatApi({recommendationId,targetLevel}:{recom
     })}
     {busy&&<div className="bc4-chatLine"><span className="bc4-botAvatar"><Bot size={30}/></span><div className="bc4-bubble"><p role="status">Memeriksa informasi beasiswa…</p></div></div>}<div ref={end}/>
    </div>
+   {messages.some(message=>message.role==="bot")&&<div className="bc4-chatFollowups"><h3>Pertanyaan yang bisa kamu ajukan ↗</h3><div className="bc4-chatSuggestions">{["Kenapa beasiswa ini sesuai untuk saya?","Apa yang perlu aku persiapkan?","Apa saja persyaratannya?"].map(question=><button type="button" key={question} disabled={busy||cooldown>0||currentUser.role!=="siswa"} onClick={()=>void send(question)}>{question}</button>)}</div></div>}
    <form className="bc4-chatInput" onSubmit={e=>{e.preventDefault();void send(input);}}><label className="b4-srOnly" htmlFor="b4-chat-question">Pertanyaan Tentang Beasiswa</label><input id="b4-chat-question" placeholder="Tulis pertanyaanmu tentang beasiswa…" value={input} maxLength={1000} disabled={busy||currentUser.role!=="siswa"} onChange={e=>setInput(e.target.value)}/><button type="submit" disabled={busy||cooldown>0||input.trim().length<3||currentUser.role!=="siswa"} aria-label={cooldown>0?"Tunggu "+cooldown+" detik":"Kirim pertanyaan"}><Send size={30}/></button><small>{cooldown>0?"Tunggu "+cooldown+" detik. Pertanyaanmu tetap tersimpan.":mode??"Jawaban berdasarkan informasi yang tersedia."}</small></form>
   </section>
  </B4Shell>;

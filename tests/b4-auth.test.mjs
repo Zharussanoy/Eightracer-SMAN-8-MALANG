@@ -24,7 +24,7 @@ test("katalog memetakan paginator dan menjaga filter tanpa mengarang tanggal ata
   assert.equal(page.data[0].opens, null);
   assert.equal(catalog.scholarshipPeriod(page.data[0]), "Belum tercatat");
   assert.equal("private_note" in page.data[0], false);
-  assert.equal("duration" in page.data[0], false);
+  assert.equal(page.data[0].duration, null);
   const query = new URLSearchParams(catalog.scholarshipQuery(" prestasi & seni ", "Keduanya", 2));
   assert.equal(query.get("search"), "prestasi & seni");
   assert.equal(query.get("jenjang"), "Keduanya");
@@ -163,7 +163,7 @@ async function login(name = "admin") {
   return { response, cookie, pair: cookie?.split(";")[0], payload: await response.json() };
 }
 
-test("katalog menolak tamu, siswa, filter invalid dan metode tulis", async () => {
+test("katalog menolak tamu, siswa, filter invalid dan POST tanpa JSON", async () => {
   const url = `${origin}/api/b4/beasiswa`;
   const beforeRequests = backendRequests;
   assert.equal((await fetch(url)).status, 401);
@@ -176,7 +176,8 @@ test("katalog menolak tamu, siswa, filter invalid dan metode tulis", async () =>
     assert.equal((await fetch(`${url}?${query}`, { headers: { Cookie: admin.pair } })).status, 422);
   }
   assert.equal(backendRequests, beforeValidation);
-  assert.equal((await fetch(url, { method: "POST", headers: { Cookie: admin.pair } })).status, 405);
+  assert.equal((await fetch(url, { method: "POST", headers: { Cookie: admin.pair } })).status, 415);
+  assert.equal(backendRequests, beforeValidation);
 });
 
 test("katalog memakai Bearer server, 20 baris dan filter tetap pada halaman kedua", async () => {

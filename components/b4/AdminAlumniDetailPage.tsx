@@ -11,6 +11,9 @@ import type { AlumniDetail, AlumniProgressRow } from "@/lib/b4-alumni";
 import { blankProgress, newProgressForAlumni, progressScholarshipOptions, educationStatusLabels, formFromProgress, progressPayload, type ProgressForm } from "@/lib/b4-progress";
 import B4Shell, { Avatar } from "./B4Shell";
 import { displayTitle } from "@/lib/display-copy";
+import { getAlumniTimeline } from "@/lib/b4-alumni-api";
+import type { AlumniTimelineDetail } from "@/lib/b4-timeline";
+import AlumniAcademicTimeline from "./AlumniAcademicTimeline";
 
 const back = "/admin/alumni-perguruan-tinggi", missing = "-";
 const money = (value: number | null) => value === null ? missing : new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(value);
@@ -27,6 +30,18 @@ export default function AdminAlumniDetailPage({ id }: { id?: string }) {
   const confirm = useRef<HTMLDialogElement>(null), editor = useRef<HTMLFormElement>(null);
   const current = allowed && result?.id === id ? result : null, alumni = current?.data;
   const validId = typeof id === "string" && /^[1-9]\d*$/.test(id) && Number.isSafeInteger(Number(id));
+  const [timelineResult, setTimelineResult] = useState<{ id: string; data?: AlumniTimelineDetail; error?: string } | null>(null);
+  const timeline = allowed && timelineResult?.id === id ? timelineResult : null;
+  useEffect(() => {
+    if (!allowed || !validId || !id) return;
+    const controller = new AbortController();
+    void getAlumniTimeline(Number(id), controller.signal).then(({ data }) => {
+      if (!controller.signal.aborted) setTimelineResult({ id, data });
+    }).catch(error => {
+      if (!controller.signal.aborted) setTimelineResult({ id, error: explain(error) });
+    });
+    return () => controller.abort();
+  }, [allowed, validId, id, retry]);
 
   useEffect(() => {
     if (!allowed || !validId || !id) return;
@@ -71,7 +86,7 @@ export default function AdminAlumniDetailPage({ id }: { id?: string }) {
     </div>
   </B4Shell>;
 
-  const records = alumni.progress, latest = records[0], selected = records.find((row) => row.id === form.id);
+  const records = alumni.progress;
   const kipk = kipEvidenceLabel(alumni.scholarshipEvidence);
   const nisn = alumni.hasNisn ? "••••••••••" : missing;
   const catalogs = progressScholarshipOptions(alumni);
@@ -116,6 +131,9 @@ export default function AdminAlumniDetailPage({ id }: { id?: string }) {
         </tr>)}</tbody></table>{!records.length && <p className="bc4-empty">-</p>}</div>
       </section>
     </div>
+    <section aria-label="Timeline individu alumni" style={{ marginTop: 24 }}>
+      {timeline?.data ? <AlumniAcademicTimeline key={id} alumni={timeline.data} /> : <p role={timeline?.error ? "alert" : "status"}>{timeline?.error ?? "Memuat timeline alumni…"}</p>}
+    </section>
     <dialog ref={confirm} className="bc4-dialog"><div className="bc4-dialogTitle"><h2>Arsipkan Riwayat {deleting?.period}?</h2></div><div className="bc4-dialogBody"><p>Riwayat tidak ditampilkan sebagai progres aktif; jejak datanya tetap disimpan.</p><div className="bc4-actions"><button disabled={saving} type="button" className="bc4-button" onClick={() => confirm.current?.close()}>Batal</button><button disabled={saving} type="button" className="bc4-button bc4-primary" onClick={() => void archive()}>Arsipkan</button></div></div></dialog>
   </B4Shell>;
 }

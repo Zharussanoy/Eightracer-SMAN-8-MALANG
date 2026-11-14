@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ChevronRight, UserRound } from "lucide-react";
+import { UserRound } from "lucide-react";
 import FigmaIcon from "./FigmaIcon";
 import B4Tabs from "@/components/admin/b-4/B4Tabs";
 import { STUDENTS, updateDemo, useDemoData } from "./demoStore";
@@ -23,7 +23,8 @@ export default function B4Shell({ title, description, student = false, active = 
 }) {
   const data = useDemoData();
   return <div className="b4-page bc4-page">
-    <main><section className="b4-hero"><div className="b4-container"><nav className="b4-breadcrumb" aria-label="Breadcrumb"><Link href="/#layanan">Layanan</Link><ChevronRight size={14} /><span>Alumni dan Beasiswa</span><ChevronRight size={14} />{parent && <><Link href={parent.href}>{displayTitle(parent.label)}</Link><ChevronRight size={14} /></>}<span aria-current="page">{displayTitle(title)}</span></nav><h1>{displayTitle(title)}</h1><p>{description}</p></div></section>
+    <main><section className="b4-hero"><div className="b4-container"><nav className="b4-breadcrumb" aria-label="Breadcrumb"><Link href="/#layanan">Layanan</Link><FigmaIcon name="breadcrumb" size={24} /><span>Alumni dan Beasiswa</span><FigmaIcon name="breadcrumb" size={24} />{parent && <><Link href={parent.href}>{displayTitle(parent.label)}</Link><FigmaIcon name="breadcrumb" size={24} /></>}<span aria-current="page">{displayTitle(title)}</span></nav><h1>{displayTitle(title)}</h1><p>{description}</p></div></section>
+
       <div className="b4-container">{student ? <StudentTabs active={active === "alumni" ? "alumni" : "recommendations"} /> : <B4Tabs query={tabQuery} active={active === "database" ? "Basis Data Beasiswa" : active === "alumni" ? "Alumni di PT" : active === "timeline" ? "Timeline individu" : active === "summary" ? "Ringkasan Pola" : active === "analytics" ? "Analitik Beasiswa" : "Rekomendasi Beasiswa"} />}
         {student && showDemoProfile && <div className="bc4-viewer"><label>Profil Siswa Contoh <select aria-label="Profil siswa contoh" value={data.viewerId} onChange={(event) => updateDemo((current) => ({ ...current, viewerId: event.target.value }))}>{STUDENTS.map((item) => <option key={item.id} value={item.id}>{displayTitle(item.name)}</option>)}</select></label></div>}
         <div className="bc4-content">{children}</div>{dataNote && <p className="bc4-demoNote">{dataNote}</p>}

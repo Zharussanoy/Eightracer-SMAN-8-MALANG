@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Building2, GraduationCap, School, UserRound } from "lucide-react";
+import { UserRound } from "lucide-react";
 import type { AlumniProfile, AlumniEvent, AlumniTimeline } from "@/lib/b4-alumni-legacy";
 import FigmaIcon from "./FigmaIcon";
 
@@ -10,7 +10,7 @@ const money = (value: number | null | undefined) => value == null ? "Belum terca
 const kipk = (value: boolean | null | undefined) => value == null ? "Belum tercatat" : value ? "Ya" : "Tidak";
 function scholarships(event?: AlumniEvent) { return event?.scholarships.length ? event.scholarships.map((item) => `${item.name}${item.status ? ` (${item.status})` : ""}`).join(", ") : "Belum tercatat"; }
 
-export default function AdminTimelineView({ data, profile }: { data: AlumniTimeline; profile?: AlumniProfile }) {
+export default function AdminTimelineView({ data, profile, embedded = false }: { data: AlumniTimeline; profile?: AlumniProfile; embedded?: boolean }) {
   const events = profile?.id != null && data.events.some((item) => /^\d+:/.test(item.id)) ? data.events.filter((item) => item.id.startsWith(`${profile.id}:`)) : data.events;
   const school = events.filter((item) => item.semester === null);
   const progress = events.filter((item) => item.semester !== null);
@@ -24,8 +24,8 @@ export default function AdminTimelineView({ data, profile }: { data: AlumniTimel
   // Semester yang belum dikirim BE hanya berupa tempat kosong; tahun/periode tidak dibuat.
   const semesters = [...new Set([...Array.from({ length: 8 }, (_, index) => index + 1), ...progress.flatMap((item) => item.semester === null ? [] : [item.semester])])].sort((a, b) => a - b);
   return <div className="bc4-adminTimelineLive">
-    <div className="bc4-profileRow"><div className="bc4-profile"><span className="bc4-avatar" aria-label={`Profil ${name}`}><UserRound size={48} aria-hidden="true" /></span><div><h2>{name}</h2><p>{known(campus)} · {known(program)}</p>{profile?.admission && <span className="bc4-tag">{profile.admission}</span>}</div></div>
-      <div className="bc4-current"><h3>Progres Terakhir Tercatat</h3><dl className="bc4-metrics">{[["Semester", latest?.semester], ["IPK", latest?.ipk], ["Beasiswa", scholarships(latest)], ["Status KIP-K", kipk(latest?.kipk)], ["UKT/Semester", money(latest?.ukt)]].map(([label, value]) => <div key={String(label)}><dt>{label}</dt><dd>{known(value)}</dd></div>)}</dl></div></div>
+    {!embedded && <div className="bc4-profileRow"><div className="bc4-profile"><span className="bc4-avatar" aria-label={`Profil ${name}`}><UserRound size={48} aria-hidden="true" /></span><div><h2>{name}</h2><p>{known(campus)} · {known(program)}</p>{profile?.admission && <span className="bc4-tag">{profile.admission}</span>}</div></div>
+      <div className="bc4-current"><h3>Progres Terakhir Tercatat</h3><dl className="bc4-metrics">{[["Semester", latest?.semester], ["IPK", latest?.ipk], ["Beasiswa", scholarships(latest)], ["Status KIP-K", kipk(latest?.kipk)], ["UKT/Semester", money(latest?.ukt)]].map(([label, value]) => <div key={String(label)}><dt>{label}</dt><dd>{known(value)}</dd></div>)}</dl></div></div>}
     <section className="bc4-section"><h2 className="bc4-sectionHeading">Perjalanan Pendidikan SMA</h2>{school.length ? <ol className="bc4-schoolTimeline">{school.map((item) => {
       const icon = /masuk.*sma/i.test(item.kind) ? "school" : /perguruan|masuk.*pt/i.test(item.kind) ? "university" : "graduate";
       return <li key={item.id}><span className="bc4-stageIcon"><FigmaIcon name={icon} size={36} /></span><h3>{item.kind.replaceAll("_", " ")}</h3><strong>{item.date ?? item.year ?? "Waktu belum tercatat"}</strong>{item.university && <p>{item.university}</p>}</li>;

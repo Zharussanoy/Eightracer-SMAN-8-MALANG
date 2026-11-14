@@ -7,7 +7,6 @@ import FigmaIcon from "@/components/b4/FigmaIcon";
 
 const tabs = [
   { label: "Alumni di PT", href: "/admin/alumni-perguruan-tinggi" },
-  { label: "Timeline individu", href: "/admin/timeline-individu" },
   { label: "Ringkasan Pola", href: "/admin/ringkasan-pola" },
   { label: "Analitik Beasiswa", href: "/admin/analitik-beasiswa" },
   { label: "Basis Data Beasiswa", href: "/admin/basis-data-beasiswa" },
