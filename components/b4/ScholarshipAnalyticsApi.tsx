@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { BookOpen, Landmark, ChevronDown } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { getSchoolScholarships } from "@/lib/b4-school-data";
 import type { AnalyticsData } from "@/lib/b4-analytics";
@@ -51,13 +51,16 @@ function ScholarshipFilter({ value, onChange }: { value: string; onChange: (valu
   </details>;
 }
 export default function ScholarshipAnalyticsApi({view="analytics"}:{view?:"analytics"|"summary"}) {
-  const summary=view==="summary";
-  const { currentUser, refreshSession } = useUser();
+ return <Suspense fallback={<p role="status">Memuat analitik…</p>}><AnalyticsView view={view}/></Suspense>;
+}
+function AnalyticsView({view}:{view:"analytics"|"summary"}){
+  const summary=view==="summary", params=useSearchParams(), pathname=usePathname();
+  const { currentUser, authStatus, refreshSession } = useUser();
   const router = useRouter();
-  const [cohort, setCohort] = useState("");
-  const [program, setProgram] = useState("");
-  const [scholarship, setScholarship] = useState("");
-  const [period, setPeriod] = useState("");
+  const [cohort, setCohort] = useState(params.get("angkatan")??"");
+  const [program, setProgram] = useState(params.get("prodi")??"");
+  const [scholarship, setScholarship] = useState(params.get("beasiswa_id")??"");
+  const [period, setPeriod] = useState(params.get("periode")??"");
   const [retry, setRetry] = useState(0);
   const [more, setMore] = useState(false);
   const [mode, setMode] = useState("university");
@@ -71,7 +74,11 @@ export default function ScholarshipAnalyticsApi({view="analytics"}:{view?:"analy
   if (scholarship) query.set("beasiswa_id", scholarship);
   if (period.trim()) query.set("periode", period.trim());
   const search = query.toString();
-  const key = `${search}:${retry}`;
+  useEffect(()=>{
+    const timer=setTimeout(()=>window.history.replaceState(null,"",pathname+(search?"?"+search:"")),200);
+    return()=>clearTimeout(timer);
+  },[pathname,search]);
+  const key = `${search}:${retry}:${currentUser.id}:${authStatus}`;
   const [result, setResult] = useState<{ key: string; data?: AnalyticsData; error?: string }>();
   const invalidYear = !!cohort && !/^\d{4}$/.test(cohort);
   async function downloadPdf() {
@@ -91,7 +98,7 @@ export default function ScholarshipAnalyticsApi({view="analytics"}:{view?:"analy
     finally { pdfLock.current = false; setPdfBusy(false); }
   }
   useEffect(() => {
-    if (!currentUser.schoolStaff || invalidYear) return;
+    if (authStatus!=="authenticated" || !currentUser.schoolStaff || invalidYear) return;
     const abort = new AbortController();
     const timer = setTimeout(async () => {
       try {
@@ -104,15 +111,15 @@ export default function ScholarshipAnalyticsApi({view="analytics"}:{view?:"analy
       } catch (error) { if (!abort.signal.aborted) setResult({ key, error: error instanceof Error ? error.message : "Aplikasi belum dapat dihubungi." }); }
     }, 300);
     return () => { clearTimeout(timer); abort.abort(); };
-  }, [search, key, invalidYear, currentUser.schoolStaff, refreshSession, router]);
+  }, [search, key, invalidYear, authStatus, currentUser.schoolStaff, refreshSession, router]);
   const current = result?.key === key ? result : null;
   const data = current?.data;
   const modeRanges = mode === "university" ? data?.tuitionRanges?.university : data?.tuitionRanges?.program;
   const measuredRanges=(modeRanges??data?.ranges??[]).filter(item=>item.stats.minimum!==null&&item.stats.maximum!==null);
   const rangeMax=Math.max(1,...measuredRanges.map(item=>item.stats.maximum??0));
   const visibleRanges=showAllTuition?measuredRanges:measuredRanges.slice(0,5);
-  return <B4Shell title={summary?"Ringkasan Pola Per-Angkatan":"Analitik Beasiswa"} active={summary?"summary":"analytics"} description="Lihat perjalanan pendidikan dan perkembangan kuliah alumni dari masa sekolah hingga kondisi terkini." dataNote="">
-    {!currentUser.schoolStaff ? <p role="alert">Akun ini belum memiliki izin membaca analitik sekolah.</p> : <div className="b4-analyticsPage bc4-analyticsLive">
+  return <B4Shell title={summary?"Ringkasan Pola Per-Angkatan":"Analitik Beasiswa"} active={summary?"summary":"analytics"} tabQuery={search} description="Lihat perjalanan pendidikan dan perkembangan kuliah alumni dari masa sekolah hingga kondisi terkini." dataNote="">
+    {authStatus==="loading"?<p role="status">Memeriksa sesi akun…</p>:authStatus!=="authenticated"||!currentUser.schoolStaff ? <p role="alert">Akun ini belum memiliki izin membaca analitik sekolah.</p> : <div className="b4-analyticsPage bc4-analyticsLive">
       <div className="b4-analyticsFilters" aria-label="Filter analitik beasiswa">
         <label className="b4-searchField"><span className="b4-srOnly">Angkatan</span><input placeholder="Angkatan" inputMode="numeric" maxLength={4} value={cohort} onChange={(e) => setCohort(e.target.value)} /></label>
         <label className="b4-searchField"><span className="b4-srOnly">Program Studi</span><input placeholder="Program Studi" maxLength={100} value={program} onChange={(e) => setProgram(e.target.value)} /></label>
