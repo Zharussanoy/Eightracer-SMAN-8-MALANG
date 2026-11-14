@@ -61,6 +61,11 @@ function Form({ initial, id }: { initial: ScholarshipInput; id?: number }) {
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
   const submitting = useRef(false);
+  const form = useRef<HTMLFormElement>(null);
+  const archiveDialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    if (Object.keys(errors).length) form.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+  }, [errors]);
   const periodParts = String(input.periode_apply ?? "").split(/\s*[-–]\s*/);
   const monthPeriod = periodParts.length === 2 && periodParts.every((value) => MONTHS.includes(value));
   const set = (field: keyof ScholarshipInput, value: unknown) => setInput((current) => ({ ...current, [field]: value }));
@@ -104,7 +109,7 @@ function Form({ initial, id }: { initial: ScholarshipInput; id?: number }) {
   }
 
   async function archive() {
-    if (!id || submitting.current || !window.confirm(`Arsipkan ${input.nama_beasiswa}?`)) return;
+    if (!id || submitting.current) return;
     submitting.current = true; setSaving(true);
     let finished = false;
     try { await archiveScholarship(id); finished = true; router.push(BACK); router.refresh(); }
@@ -112,7 +117,7 @@ function Form({ initial, id }: { initial: ScholarshipInput; id?: number }) {
     finally { if (!finished) { submitting.current = false; setSaving(false); } }
   }
 
-  return <form className="bc4-section" onSubmit={save} noValidate>
+  return <form ref={form} className="bc4-section" onSubmit={save} noValidate>
     <h2 className="bc4-sectionHeading">{id ? "Edit" : "Tambah"} Basis Data Beasiswa</h2>
     <div className="bc4-sectionBody"><div className="bc4-formGrid">
       <section className="bc4-panel"><h3 className="bc4-underlined">Informasi Beasiswa</h3><div className="bc4-fields">
@@ -140,7 +145,8 @@ function Form({ initial, id }: { initial: ScholarshipInput; id?: number }) {
       </div>)}</div></section>
     </div>
     {message && <div role="alert" className="bc4-status"><p>{message}</p>{Object.entries(errors).map(([key, values]) => <p key={key}>{values.join(" ")}</p>)}</div>}
-    <aside className="bc4-note bc4-formNote"><CircleAlert size={25} /><div><h3>Catatan Sistem</h3><p>{id ? `Beasiswa ini ${input.is_active ? "Aktif dan dapat dirujuk oleh rekomendasi siswa" : "diarsipkan"}.` : "Beasiswa yang baru disimpan akan otomatis berstatus Aktif dan dapat dirujuk oleh Sistem Rekomendasi Siswa."}</p></div><div className="bc4-actions">{id && input.is_active && <button type="button" className="bc4-button" disabled={saving} onClick={() => void archive()}>Arsipkan</button>}<Link href={BACK} className="bc4-button" aria-disabled={saving} onClick={(event) => { if (saving) event.preventDefault(); }}>Batal</Link><button className="bc4-button bc4-primary" type="submit" disabled={saving}>{saving ? "Menyimpan…" : "Simpan"}</button></div></aside>
+    <aside className="bc4-note bc4-formNote"><CircleAlert size={25} /><div><h3>Catatan Sistem</h3><p>{id ? `Beasiswa ini ${input.is_active ? "Aktif dan dapat dirujuk oleh rekomendasi siswa" : "diarsipkan"}.` : "Beasiswa yang baru disimpan akan otomatis berstatus Aktif dan dapat dirujuk oleh Sistem Rekomendasi Siswa."}</p></div><div className="bc4-actions">{id && input.is_active && <button type="button" className="bc4-button" disabled={saving} onClick={() => { setMessage(""); archiveDialog.current?.showModal(); }}>Arsipkan</button>}<Link href={BACK} className="bc4-button" aria-disabled={saving} onClick={(event) => { if (saving) event.preventDefault(); }}>Batal</Link><button className="bc4-button bc4-primary" type="submit" disabled={saving}>{saving ? "Menyimpan…" : "Simpan"}</button></div></aside>
     </div>
+    <dialog className="bc4-dialog" ref={archiveDialog} aria-labelledby="bc4-editor-archive-title" onCancel={event => { if (saving) event.preventDefault(); }} onClick={event => { if (event.target === event.currentTarget && !saving) archiveDialog.current?.close(); }}><div className="bc4-dialogTitle"><h2 id="bc4-editor-archive-title">Arsipkan Beasiswa</h2></div><div className="bc4-dialogBody"><p>Arsipkan <strong>{input.nama_beasiswa}</strong> dari katalog aktif?</p><p>Riwayat program tetap disimpan. Program dapat diaktifkan kembali melalui katalog.</p>{message && <p role="alert">{message}</p>}<div className="bc4-actions"><button type="button" className="bc4-button" disabled={saving} onClick={() => archiveDialog.current?.close()}>Batal</button><button type="button" className="bc4-button bc4-primary" disabled={saving} aria-busy={saving} onClick={() => void archive()}>{saving ? "Mengarsipkan…" : "Arsipkan"}</button></div></div></dialog>
   </form>;
 }

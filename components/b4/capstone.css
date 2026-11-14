@@ -5,7 +5,7 @@
   --b4-lilac: #e7daf0;
   --b4-yellow: #feeec9;
   --b4-gold: #fcc850;
-  --b4-gradient: linear-gradient(110deg, #f5edff 0%, #cfc5ed 100%);
+  --b4-gradient: linear-gradient(90deg, #f5edff 0%, #d1c8f3 100%);
   --b4-card-shadow: 0 4px 8px -2px #0000001a, 0 2px 4px -2px #0000000f;
   font-family: var(--font-b4), sans-serif;
   font-size: 14px;
@@ -20,7 +20,7 @@
 .b4-page :is(button, a)[aria-busy="true"] { cursor: progress; }
 .b4-page .b4-container { max-width: 1280px; width: calc(100% - 80px); }
 .b4-page .b4-hero { padding: 18px 0 23px; min-height: 145px; background: #fff; color: #0b0b0b; box-shadow: 0 4px 4px #0000001a, 0 2px 2px #0000000f; }
-.b4-page .b4-breadcrumb { min-height: 24px; margin-bottom: 9px; gap: 7px; font-size: 12px; line-height: 1.5; flex-wrap: wrap; }
+.b4-page .b4-breadcrumb { min-height: 24px; margin-bottom: 9px; gap: 0; font-size: 12px; line-height: 1.5; flex-wrap: wrap; }
 .b4-page .b4-breadcrumb > :last-child { color: var(--b4-purple); font-weight: 400; }
 .b4-page .b4-hero h1 { margin-bottom: 9px; font-size: 24px; font-weight: 700; line-height: 1.2; letter-spacing: 0; }
 .b4-page .b4-hero p { font-size: 12px; line-height: 1.5; }
@@ -79,6 +79,9 @@
 .b4-page .bc4-profile { gap: 24px; padding: 16px 20px; }
 .b4-page .bc4-profile h2 { font-size: 24px; font-weight: 700; }
 .b4-page .bc4-profileRow { gap: 18px; }
+.b4-page .bc4-profileRow:has(.bc4-metrics > div:nth-child(5)) { grid-template-columns: 1fr 1fr; }
+.b4-page .bc4-current .bc4-metrics dd { min-height: 40px; }
+.b4-page .b4-historyStats > .bc4-empty { grid-column: 1 / -1; }
 .b4-page .bc4-avatar { flex-shrink: 0; }
 .b4-page .bc4-current { padding: 18px 25px; }
 .b4-page .bc4-current h3 { font-size: 20px; font-weight: 700; }
@@ -238,6 +241,23 @@
 .b4-page .bc4-chatSources a { color: var(--b4-purple); text-decoration: underline; }
 .b4-page .bc4-bubble ul { padding-left: 20px; margin: 12px 0; }
 .b4-page .bc4-chatSuggestions button:disabled { opacity: .55; cursor: not-allowed; }
+.b4-page .bc4-chatFollowups { padding: 0 40px 20px; }
+.b4-page .bc4-chatFollowups h3 { color: var(--b4-purple); font-size: 16px; font-weight: 700; }
+.b4-page .bc4-chatFollowups .bc4-chatSuggestions { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.b4-page .bc4-scholarCard { display: flex; flex-direction: column; }
+.b4-page .bc4-scholarCard > .bc4-button { margin-top: auto; width: 100%; justify-content: center; }
+.b4-page .bc4-scholarCard .bc4-reason { border: 1px solid var(--b4-gold); font-size: 12px; line-height: 1.5; margin: 18px 0; }
+.b4-page .bc4-button.bc4-danger { color: #dc2626; border-color: #dc2626; background: #fff; }
+.b4-page .bc4-button.bc4-danger:hover:not(:disabled) { color: #fff; background: #b42318; border-color: #b42318; }
+.b4-page .bc4-formGrid > .bc4-panel { align-self: stretch; }
+.b4-page .bc4-recommendationHeader h3 { line-height: 1.35; }
+.b4-page .bc4-recBody p, .b4-page .bc4-note p, .b4-page .bc4-yellowCard p { overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .b4-page .bc4-chatFollowups { padding: 0 16px 20px; }
+  .b4-page .bc4-chatFollowups .bc4-chatSuggestions { grid-template-columns: 1fr; gap: 10px; }
+  .b4-page .bc4-recommendationHeader { flex-wrap: wrap; gap: 16px; }
+  .b4-page .bc4-recommendationHeader .bc4-score { text-align: left; }
+}
 .b4-page .bc4-downloadTemplate { text-decoration: underline; text-underline-offset: 4px; }
 .b4-page .bc4-templateGuide { overflow-x: auto; padding: 16px; border: 1px solid var(--b4-border); border-radius: 16px; }
 .b4-page .bc4-templateGuide summary { cursor: pointer; color: var(--b4-purple); font-weight: 600; }
@@ -300,6 +320,9 @@
   .b4-page .bc4-referenceGrid { grid-template-columns: 1fr; }
   .b4-page .bc4-filterRow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .b4-page .bc4-note > .bc4-button { margin-left: auto; }
+}
+@media (max-width: 1000px) {
+  .b4-page .bc4-profileRow:has(.bc4-metrics > div:nth-child(5)) { grid-template-columns: 1fr; }
 }
 @media (max-width: 600px) {
   .b4-page .b4-hero { min-height: 130px; padding: 18px 0; }
