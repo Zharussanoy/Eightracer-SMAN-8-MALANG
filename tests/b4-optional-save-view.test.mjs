@@ -5,10 +5,12 @@ import vm from 'node:vm';
 import {createRequire} from 'node:module';
 import ts from 'typescript';
 const require=createRequire(import.meta.url),React=require('react'),{renderToStaticMarkup}=require('react-dom/server');
+const copyModule={exports:{}};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync('lib/b4-recommendation-copy.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:copyModule,exports:copyModule.exports});
 function view(){
  const code=ts.transpileModule(fs.readFileSync('components/b4/RecommendationAdminView.tsx','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText;
  const module={exports:{}};
- vm.runInNewContext(code,{module,exports:module.exports,require:id=>id==='./RecommendationHighlight'?{__esModule:true,default:()=>null}:id==='./B4Shell'?{__esModule:true,default:({children})=>React.createElement('main',null,children),Avatar:()=>null}:id==='@/lib/display-copy'?{displayTitle:v=>v}:id==='@/lib/b4-recommendations'?{recommendationCriterionLabel:v=>v,recommendationEligibility:()=>''}:require(id)});
+ vm.runInNewContext(code,{module,exports:module.exports,require:id=>id==='@/lib/b4-recommendation-copy'?copyModule.exports:id==='./RecommendationHighlight'?{__esModule:true,default:()=>null}:id==='./B4Shell'?{__esModule:true,default:({children})=>React.createElement('main',null,children),Avatar:()=>null}:id==='@/lib/display-copy'?{displayTitle:v=>v}:id==='@/lib/b4-recommendations'?{recommendationCriterionLabel:v=>v,recommendationEligibility:()=>''}:require(id)});
  return module.exports.default;
 }
 const base={filters:{query:'',classroom:'',cohort:''},page:{data:[],filters:{classrooms:[],cohorts:[]}},loading:false,candidates:[],draft:null,targetLevel:'SMA',busy:false,canGenerate:false,message:''};
