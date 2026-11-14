@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Montserrat, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { UserProvider } from "@/context/UserContext";
 import Navbar from "@/components/shared/Navbar";
@@ -11,6 +11,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
 });
+const montserrat = Montserrat({ variable: "--font-b4", subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
   title: "Eightracer | Satu Portal untuk Rencana Studi Siswa SMAN 8 Malang",
@@ -33,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id" className={`${plusJakartaSans.variable} font-sans h-full antialiased`}>
+    <html lang="id" className={`${plusJakartaSans.variable} ${montserrat.variable} font-sans h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-white text-slate-900 selection:bg-purple-100 selection:text-purple-900">
         <UserProvider>
           {/* Universal Navbar aktif di SEMUA halaman */}

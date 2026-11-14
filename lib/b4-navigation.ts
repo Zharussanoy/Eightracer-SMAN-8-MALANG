@@ -5,6 +5,7 @@ const b4Routes = [
   ADMIN_HOME,
   "/admin/timeline-individu",
   "/admin/analitik-beasiswa",
+  "/admin/ringkasan-pola",
   "/admin/basis-data-beasiswa",
   "/admin/rekomendasi-beasiswa",
   STUDENT_HOME,

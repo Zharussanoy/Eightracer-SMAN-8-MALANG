@@ -71,3 +71,31 @@ test("statistik UKT dan IPK numerik diproyeksikan tanpa atribut tambahan", () =>
   assert.equal(JSON.stringify(result).includes("private_note"), false);
   assert.throws(() => api.parseAnalytics({ data: {} }, source));
 });
+
+
+test("analitik sekolah menjaga cakupan, kode filter, nol dan null", () => {
+  const stats = { known: 0, unknown: 7, minimum: null, maximum: null, mean: null };
+  const source = { data: {
+    as_of: "2026-11-12", summary: { alumni: 7, admitted_alumni: 5, admissions: 6, scholarship_non_kip: 2, kip: 3, all_aid: 4 },
+    filters: { scholarships: [{ value: "kip", label: "KIP" }, { value: "program:abc", label: "Program Sintetis" }] },
+    scholarships: [{ value: "kip", label: "KIP", count: 3 }], kip_by_cohort: [{ label: "2025", count: 0 }],
+    financial: { measured_alumni: 0, ukt: stats, ipk: stats, ranges: [{ university: "Kampus Sintetis", program: "Prodi Sintetis", count: 5, stats }], ipk_trend: [], ipk_distribution: [{ label: "3.50–3.74", count: 0 }, { label: "Belum tercatat", count: 7 }] },
+    periods: [], notes: [],
+  } };
+  const result = api.parseSchoolAnalytics(source);
+  assert.equal(result.total, 7);
+  assert.equal(result.school.admittedAlumni, 5);
+  assert.equal(result.school.admissions, 6);
+  assert.equal(result.school.allAid, 4);
+  assert.equal(result.recipients, 2);
+  assert.equal(result.kipk, 3);
+  assert.equal(result.measuredAlumni, 0);
+  assert.equal(result.ukt.minimum, null);
+  assert.equal(result.ukt.known, 0);
+  assert.equal(result.cohorts[0].count, 0);
+  assert.equal(result.scholarshipOptions[1].value, "program:abc");
+  assert.deepEqual(result.ipkDistribution, [{ label: "3.50–3.74", count: 0 }, { label: "Belum tercatat", count: 7 }]);
+  source.data.financial.ukt = { known: 1, unknown: 6, minimum: 0, maximum: 0, mean: 0 };
+  assert.equal(api.parseSchoolAnalytics(source).ukt.minimum, 0);
+  assert.throws(() => api.parseSchoolAnalytics({ data: {} }));
+});

@@ -2,16 +2,17 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import FigmaIcon from "@/components/b4/FigmaIcon";
 
 const tabs = [
   { label: "Alumni di PT", href: "/admin/alumni-perguruan-tinggi" },
-  { label: "Timeline individu", href: "/admin/timeline-individu" },
+  { label: "Ringkasan Pola", href: "/admin/ringkasan-pola" },
   { label: "Analitik Beasiswa", href: "/admin/analitik-beasiswa" },
   { label: "Basis Data Beasiswa", href: "/admin/basis-data-beasiswa" },
   { label: "Rekomendasi Beasiswa", href: "/admin/rekomendasi-beasiswa" },
 ];
 
-export default function B4Tabs({ active }: { active: "Alumni di PT" | "Timeline individu" | "Analitik Beasiswa" | "Basis Data Beasiswa" | "Rekomendasi Beasiswa" }) {
+export default function B4Tabs({ active, query }: { query?: string; active: "Alumni di PT" | "Timeline individu" | "Ringkasan Pola" | "Analitik Beasiswa" | "Basis Data Beasiswa" | "Rekomendasi Beasiswa" }) {
   const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -33,8 +34,8 @@ export default function B4Tabs({ active }: { active: "Alumni di PT" | "Timeline 
   return (
     <nav ref={navRef} className="b4-tabs" aria-label="Layanan Alumni dan Beasiswa">
       {tabs.map((tab) => tab.href ? (
-        <Link key={tab.label} href={tab.href} className={active === tab.label ? "b4-activeTab" : undefined}
-          aria-current={active === tab.label ? "page" : undefined}>{tab.label === "Analitik Beasiswa" ? "Analitik Beasiswa & Ringkasan Pola Per-Angkatan" : tab.label}</Link>
+        <Link key={tab.label} href={`${tab.href}${query && ["Analitik Beasiswa", "Ringkasan Pola"].includes(tab.label) ? `?${query}` : ""}`} className={active === tab.label ? "b4-activeTab" : undefined}
+          aria-current={active === tab.label ? "page" : undefined}>{tab.label}{tab.label === "Rekomendasi Beasiswa" && <FigmaIcon name="sparkle" size={20} />}</Link>
       ) : (
         <button key={tab.label} type="button" disabled title="Halaman ini belum tersedia">
           {tab.label}<span className="b4-srOnly"> (belum tersedia)</span>

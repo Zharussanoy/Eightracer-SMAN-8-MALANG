@@ -4,7 +4,7 @@ import { AuthError, authResponse, clearSession, SESSION_COOKIE } from "./backend
 
 // Khusus baca; tidak ada path generate/review maupun metode tulis.
 export async function readBackendRecommendations(request: NextRequest, path: string, query = new URLSearchParams()) {
-  if (path !== "/siswa" && !/^\/siswa\/[1-9]\d*\/rekomendasi-beasiswa\/preview$/.test(path)) throw new AuthError(422, "Tujuan pratinjau tidak valid.");
+  if (path !== "/siswa" && path !== "/rekomendasi-beasiswa/saya" && !/^\/siswa\/[1-9]\d*\/rekomendasi-beasiswa\/preview$/.test(path)) throw new AuthError(422, "Tujuan rekomendasi tidak valid.");
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   if (!token) throw new AuthError(401, "Silakan masuk dengan akun sekolah.");
   let base: URL;
@@ -15,10 +15,10 @@ export async function readBackendRecommendations(request: NextRequest, path: str
   try { response = await fetch(`${base.href.replace(/\/+$/, "")}${path}?${query}`, {
     headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
     cache: "no-store", redirect: "error", signal: AbortSignal.timeout(20_000),
-  }); } catch { throw new AuthError(503, "Pratinjau belum dapat dihubungi. Periksa Tailscale dan BE."); }
+  }); } catch { throw new AuthError(503, "Layanan rekomendasi belum dapat dihubungi. Periksa koneksi BE."); }
   if (!response.ok) throw new AuthError(response.status >= 500 ? 503 : response.status,
     response.status === 401 ? "Sesi berakhir. Silakan masuk lagi."
-      : response.status === 403 ? "Akun ini belum memiliki izin membaca pratinjau siswa."
+      : response.status === 403 ? "Akun ini belum memiliki izin membaca rekomendasi pada halaman ini."
       : response.status === 404 ? "Data siswa tidak ditemukan atau tidak diizinkan."
       : response.status === 422 ? "Pilihan siswa atau jenjang belum diterima BE."
       : response.status === 429 ? "Terlalu banyak permintaan. Tunggu sebelum mencoba lagi."

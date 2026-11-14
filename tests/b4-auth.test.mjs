@@ -81,7 +81,7 @@ test("akses guru biasa, guru BK, dan akun belum terverifikasi dibedakan", () => 
 
 let nextProcess, baseUrl, origin, backend, fixtureUrl, releaseBrowser;
 const browserFinished = new Promise((done) => { releaseBrowser = done; });
-let backendRequests = 0, lastLogin, lastCatalog, lastAnalytics, lastDashboard, lastStudents, lastPreview, lastPdf;
+let backendRequests = 0, lastLogin, lastCatalog, lastAnalytics, lastDashboard, lastStudents, lastPreview, lastPdf, lastChat;
 const sessions = new Map();
 let counter = 0;
 const savedScholarships = new Map();
@@ -151,6 +151,33 @@ before(async () => {
       const empty = session.mode === "siswa-kosong";
       return send(200, { current_page: Number(url.searchParams.get("page") ?? 1), last_page: empty ? 1 : 2, per_page: 20, total: empty ? 0 : 21, data: empty ? [] : [row] });
     }
+    if (req.url === "/api/chat-beasiswa") {
+      assert.equal(req.method, "POST");
+      if (session.user.role !== "siswa") return send(403, { message: "Tidak diizinkan." });
+      let raw = ""; for await (const chunk of req) raw += chunk;
+      lastChat = JSON.parse(raw);
+      if (lastChat.message === "fixture:gagal") return send(503, { message: "detail server privat" });
+      if (lastChat.message === "fixture:batas") return send(429, { message: "limiter" });
+      if (lastChat.message === "fixture:rusak") return send(200, { data: { answer: null } });
+      if (lastChat.message === "fixture:ringkas") return send(200, { data: { answer: "Katalog sintetis belum cukup." } });
+      return send(200, { data: { answer: "Jawaban dari backend tiruan lokal, bukan data sekolah.\\nPersyaratan mengikuti katalog sintetis.", llm_used: false, token: "privat", context: "Persiapan jenjang berikutnya", eligibility: { skor: 0, lengkap: false, memenuhi: false, checklist: [{ kriteria: "Dokumen sintetis", syarat: "Berkas uji", status: "belum_dinilai" }] }, sources: [{ label: "Katalog sintetis", url: null }], historical_evidence: { siswa_id: 41 } } });
+    }
+    if (req.url.startsWith("/api/rekomendasi-beasiswa/saya")) {
+      assert.equal(req.method, "GET");
+      if (session.user.role !== "siswa") return send(403, { message: "Tidak diizinkan." });
+      const url = new URL(req.url, "http://fixture.invalid");
+      assert.deepEqual([...url.searchParams.keys()], ["page"]);
+      const page = Number(url.searchParams.get("page"));
+      if (session.mode === "siswa-kelompok") return send(200, { current_page: page, last_page: 1, total: 1, per_page: 20, data: [{ id: 91, target_jenjang: "SMA", tanggal_rekomendasi: "2026-11-14", status: "Terpublikasi", beasiswa: [] }] });
+      const empty = session.mode === "siswa-kosong";
+      if (page === 9) return send(503, { message: "Rincian server privat tidak diteruskan" });
+      if (page === 8) return send(200, { data: { tidak_dikenal: true } });
+      return send(200, { current_page: page, last_page: empty ? 1 : 2, total: empty ? 0 : 21, per_page: 20, data: empty ? [] : [{
+        id: page === 2 ? 72 : 71, beasiswa_id: 101, status_review: "disetujui", siswa_id: 41, nisn: "privat", token: "privat",
+        beasiswa: { nama_beasiswa: `Program Disetujui Sintetis ${page}`, jenjang: "Kuliah", tipe_pendanaan: "Penuh", periode_apply: "September–Oktober", penyelenggara: "Penyelenggara Sintetis" },
+        skor_kecocokan: 0, alasan: "Kecocokan berdasarkan fixture sintetis, bukan data sekolah.", persiapan: ["Berkas sintetis"], checklist: [{ kriteria: "Dokumen", status: "belum_dinilai", syarat: "Tersedia", nilai_siswa: "privat" }],
+      }] });
+    }
     if (req.url === "/api/me") {
       if (session.mode === "invalid-me") return send(200, { role: "administrator" });
       return send(200, { ...session.user, token: "not-for-the-browser", private_note: "tidak diteruskan" });
@@ -160,12 +187,12 @@ before(async () => {
       sessions.delete(token);
       return send(200, { message: "Logout berhasil." });
     }
-    if (req.url === "/api/buku-alumni/pdf" || req.url.startsWith("/api/buku-alumni/pdf?")) {
+    if (req.url === "/api/analitik-beasiswa/sekolah/pdf" || req.url.startsWith("/api/analitik-beasiswa/sekolah/pdf?")) {
       assert.equal(req.method, "GET");
       if (!session.user.email_verified || !session.user.school_staff) return send(403, { message: "Tidak diizinkan." });
       lastPdf = new URL(req.url, "http://fixture.invalid").searchParams;
-      if (lastPdf.get("program_studi") === "Gagal") return send(503, { message: "detail internal privat" });
-      if (lastPdf.get("program_studi") === "Rusak") { res.writeHead(200, { "Content-Type": "text/html" }); return res.end("bukan PDF"); }
+      if (lastPdf.get("prodi") === "Gagal") return send(503, { message: "detail internal privat" });
+      if (lastPdf.get("prodi") === "Rusak") { res.writeHead(200, { "Content-Type": "text/html" }); return res.end("bukan PDF"); }
       res.writeHead(200, { "Content-Type": "application/pdf" });
       return res.end("%PDF-1.4\n% Berkas sintetis untuk pengujian transport API\n%%EOF");
     }
@@ -188,6 +215,19 @@ before(async () => {
         pemeringkatan_ml: { status: "fallback", alasan_status: "Data teks sintetis belum cukup", model_hash: "privat" },
         kandidat: lastPreview.level === "Kuliah" ? [] : [{ beasiswa_id: 101, beasiswa: { nama_beasiswa: "Program Sintetis", jenjang: "Keduanya", penyelenggara: "Penyelenggara Sintetis", durasi: "8", satuan_durasi: "semester", periode_apply: "September–Oktober", tanggal_buka: null, tanggal_tutup: null },
           evaluasi: { skor: 0, lengkap: false, memenuhi: false, checklist: [{ kriteria: "Nilai minimum", operator: ">=", syarat: "85", status: "belum_dinilai" }], pemeringkatan_ml: { status: "fallback", skor_kemiripan: null, peringkat: 1, model_hash: "privat" } } }] } });
+    }
+    if (req.url === "/api/analitik-beasiswa/sekolah" || req.url.startsWith("/api/analitik-beasiswa/sekolah?")) {
+      assert.equal(req.method, "GET");
+      if (!session.user.email_verified || !session.user.school_staff) return send(403, { message: "Tidak diizinkan." });
+      lastAnalytics = new URL(req.url, "http://fixture.invalid").searchParams;
+      if (lastAnalytics.get("prodi") === "Gagal") return send(503, { message: "detail internal privat" });
+      if (lastAnalytics.get("prodi") === "Rusak") return send(200, { data: {} });
+      const stats = { known: 0, unknown: 12, minimum: null, maximum: null, mean: null };
+      return send(200, { data: {
+        as_of: "2026-11-12", summary: { alumni: 12, admitted_alumni: 9, admissions: 11, scholarship_non_kip: 3, kip: 2, all_aid: 4 },
+        filters: { scholarships: [{ value: "kip", label: "KIP" }] }, scholarships: [], kip_by_cohort: [],
+        financial: { measured_alumni: 0, ukt: stats, ipk: stats, ranges: [], ipk_trend: [] }, periods: [], notes: [], private_note: "privat",
+      } });
     }
     if (["/api/analitik-beasiswa", "/api/dashboard/ukt-ipk"].some((path) => req.url === path || req.url.startsWith(`${path}?`))) {
       assert.equal(req.method, "GET");
@@ -366,14 +406,56 @@ test("ekspor PDF memakai Bearer server, filter dashboard dan tidak melakukan ope
   const response = await get("?angkatan=2024&prodi=Teknik%20%26%20Seni&beasiswa_id=1");
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type"), /application\/pdf/);
-  assert.match(response.headers.get("content-disposition"), /attachment; filename="eightracer-buku-alumni.pdf"/);
+  assert.match(response.headers.get("content-disposition"), /attachment; filename="eightracer-analitik-sekolah.pdf"/);
   assert.match(response.headers.get("cache-control"), /no-store/);
   assert.equal((await response.text()).slice(0, 5), "%PDF-");
-  assert.equal(lastPdf.get("tahun_lulus"), "2024");
-  assert.equal(lastPdf.get("program_studi"), "Teknik & Seni");
+  assert.equal(lastPdf.get("angkatan"), "2024");
+  assert.equal(lastPdf.get("prodi"), "Teknik & Seni");
   assert.equal((await get("?prodi=Gagal")).status, 503);
   assert.equal((await get("?prodi=Rusak")).status, 502);
   assert.equal(writes, before);
+});
+
+test("chat memakai satu pertanyaan tanpa history, sesi siswa, origin sah, dan fallback tanpa bocoran", async () => {
+  const siswa = await login("siswa"), admin = await login();
+  const post = (body, pair = siswa.pair, extra = {}, path = "") => fetch(`${origin}/api/b4/chat${path}`, { method: "POST", headers: { Cookie: pair, Origin: origin, "Content-Type": "application/json", ...extra }, body: JSON.stringify(body) });
+  const result = await post({ message: "Apa syaratnya?", beasiswa_id: 101, target_jenjang: "Kuliah" });
+  assert.equal(result.status, 200); assert.match(result.headers.get("cache-control"), /no-store/);
+  const body = await result.json(); assert.equal(body.llmUsed, false); assert.equal(body.eligibility.score, 0);
+  assert.deepEqual(lastChat, { message: "Apa syaratnya?", beasiswa_id: 101, target_jenjang: "Kuliah" });
+  assert.equal(JSON.stringify(body).includes("privat"), false); assert.equal(JSON.stringify(body).includes("siswa_id"), false);
+  assert.equal((await post({ message: "Pertanyaan" }, admin.pair)).status, 403);
+  assert.equal((await post({ message: "Pertanyaan" }, "")).status, 401);
+  assert.equal((await post({ message: "Pertanyaan" }, siswa.pair, { Origin: "https://asing.test" })).status, 403);
+  for (const extra of [{ history: [] }, { siswa_id: 41 }, { beasiswa_id: "101" }]) assert.equal((await post({ message: "Pertanyaan", ...extra })).status, 422);
+  assert.equal((await post({ message: "Pertanyaan" }, siswa.pair, {}, "?siswa_id=41")).status, 422);
+  assert.equal((await post({ message: "fixture:gagal" })).status, 503);
+  assert.equal((await post({ message: "fixture:batas" })).status, 429);
+  assert.equal((await post({ message: "fixture:rusak" })).status, 502);
+  assert.equal((await (await post({ message: "fixture:ringkas" })).json()).answer, "Katalog sintetis belum cukup.");
+  assert.equal((await fetch(`${origin}/api/b4/chat`, { headers: { Cookie: siswa.pair } })).status, 405);
+});
+
+test("rekomendasi siswa hanya membaca milik sesi, menjaga pagination, privasi dan status gagal", async () => {
+  const siswa = await login("siswa"), admin = await login(), empty = await login("siswa-kosong");
+  const get = (query = "", pair = siswa.pair) => fetch(`${origin}/api/b4/student-recommendations${query}`, { headers: { Cookie: pair } });
+  assert.equal((await fetch(`${origin}/api/b4/student-recommendations`)).status, 401);
+  assert.equal((await get("", admin.pair)).status, 403);
+  const result = await get("?page=2");
+  assert.equal(result.status, 200);
+  assert.match(result.headers.get("cache-control"), /no-store/);
+  const body = await result.json();
+  assert.equal(body.currentPage, 2); assert.equal(body.data[0].id, 72); assert.equal(body.data[0].score, 0);
+  for (const value of ["siswa_id", "nisn", "token", "nilai_siswa", "privat"]) assert.equal(JSON.stringify(body).includes(value), false);
+  assert.deepEqual((await (await get("", empty.pair)).json()).data, []);
+  const grouped = await login("siswa-kelompok");
+  const groupedBody = await (await get("", grouped.pair)).json();
+  assert.deepEqual(groupedBody.data, []);
+  assert.deepEqual(groupedBody.groups, [{ id: 91, level: "SMA", status: "terpublikasi", scholarshipCount: 0 }]);
+  for (const query of ["?page=0", "?page=1&page=2", "?siswa_id=42", "?status_review=draft"]) assert.equal((await get(query)).status, 422);
+  assert.equal((await get("?page=8")).status, 502);
+  assert.equal((await get("?page=9")).status, 503);
+  assert.equal((await fetch(`${origin}/api/b4/student-recommendations`, { method: "POST", headers: { Cookie: siswa.pair } })).status, 405);
 });
 
 test("pilihan siswa dan preview memakai GET berizin, menjaga ID dan tidak menulis BE", async () => {
@@ -411,7 +493,7 @@ test("preview menolak query/ID cacat, jenjang salah, siswa hilang dan bentuk res
   assert.equal((await get("recommendations/997/preview?target_jenjang=SMA")).status, 502);
 });
 
-test("analitik memakai GET dengan sesi staff, memetakan filter kedua endpoint dan menjaga data kosong", async () => {
+test("analitik memakai GET dengan sesi staff, memakai kontrak sekolah dan menjaga kode filter dan menjaga data kosong", async () => {
   const admin = await login(), student = await login("siswa");
   const get = (query = "", pair = admin.pair) => fetch(`${origin}/api/b4/analytics${query}`, { headers: { Cookie: pair } });
   assert.equal((await fetch(`${origin}/api/b4/analytics`)).status, 401);
@@ -420,22 +502,25 @@ test("analitik memakai GET dengan sesi staff, memetakan filter kedua endpoint da
   assert.equal(response.status, 200);
   const payload = await response.json();
   assert.equal(payload.total, 12);
-  assert.equal(payload.recipients, null);
+  assert.equal(payload.recipients, 3);
   assert.equal(payload.ukt.minimum, null);
   assert.equal(payload.ukt.unknown, 12);
   assert.deepEqual(payload.cohorts, []);
   assert.equal(JSON.stringify(payload).includes("privat"), false);
   assert.equal(lastAnalytics.get("prodi"), "Teknik & Seni");
   assert.equal(lastAnalytics.get("angkatan"), "2024");
-  assert.equal(lastDashboard.get("program_studi"), "Teknik & Seni");
-  assert.equal(lastDashboard.get("tahun_lulus"), "2024");
-  assert.equal(lastDashboard.get("beasiswa_id"), "1");
-  assert.equal(lastDashboard.get("periode"), "Semester 1");
+  assert.equal(lastAnalytics.get("beasiswa_id"), "1");
+  assert.equal(lastAnalytics.get("periode"), "Semester 1");
+  const kip = await get("?beasiswa_id=kip");
+  assert.equal(kip.status, 200);
+  assert.equal(lastAnalytics.get("beasiswa_id"), "kip");
+  await get("");
+  assert.equal([...lastAnalytics].length, 0);
 });
 test("analitik menolak filter cacat dan respons gagal tanpa mengisi angka contoh", async () => {
   const admin = await login();
   const get = (query) => fetch(`${origin}/api/b4/analytics${query}`, { headers: { Cookie: admin.pair } });
-  for (const query of ["?angkatan=24", "?beasiswa_id=0", "?prodi=a&prodi=b", "?url=https://example.test", "?periode="]) assert.equal((await get(query)).status, 422);
+  for (const query of ["?angkatan=24", "?beasiswa_id=null", "?prodi=a&prodi=b", "?url=https://example.test", "?periode="]) assert.equal((await get(query)).status, 422);
   const failure = await get("?prodi=Gagal");
   assert.equal(failure.status, 503);
   assert.equal(JSON.stringify(await failure.json()).includes("detail internal"), false);

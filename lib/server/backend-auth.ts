@@ -75,6 +75,9 @@ export async function backendAuth(path: "/login" | "/me" | "/logout", options: {
     throw new AuthError(503, "Backend belum dapat dihubungi. Periksa Tailscale dan pastikan server BE menyala.");
   }
   const payload: unknown = await response.json().catch(() => null);
+  if (response.ok && (payload === null || typeof payload !== "object" || Array.isArray(payload))) {
+    throw new AuthError(502, "Server akun belum mengirim respons JSON yang sesuai. Coba lagi setelah layanan BE siap.");
+  }
   if (!response.ok) {
     const object = payload && typeof payload === "object" ? payload as Record<string, unknown> : {};
     const errors: Record<string, string[]> = {};
@@ -85,7 +88,15 @@ export async function backendAuth(path: "/login" | "/me" | "/logout", options: {
         }
       }
     }
-    const fallback = response.status === 429 ? "Terlalu banyak percobaan. Tunggu sebelum mencoba kembali." : "Permintaan login tidak dapat diproses.";
+    const fallback = response.status === 429
+      ? "Terlalu banyak percobaan. Tunggu sebelum mencoba kembali."
+      : response.status >= 500
+        ? "Layanan akun sedang bermasalah. Coba lagi setelah layanan BE siap."
+        : path === "/me"
+          ? response.status === 401
+            ? "Sesi telah berakhir. Silakan masuk lagi."
+            : "Akun belum dapat diverifikasi oleh layanan BE."
+          : "Permintaan login tidak dapat diproses.";
     throw new AuthError(response.status >= 500 ? 503 : response.status,
       response.status < 500 && typeof object.message === "string" ? object.message : fallback, errors);
   }

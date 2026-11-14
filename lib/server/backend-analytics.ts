@@ -2,7 +2,7 @@ import "server-only";
 import { NextRequest } from "next/server";
 import { AuthError, authResponse, clearSession, SESSION_COOKIE } from "./backend-auth";
 
-export async function readBackendAnalytics(request: NextRequest, path: "/analitik-beasiswa" | "/dashboard/ukt-ipk", query = new URLSearchParams()) {
+export async function readBackendAnalytics(request: NextRequest, path: "/analitik-beasiswa" | "/dashboard/ukt-ipk" | "/analitik-beasiswa/sekolah", query = new URLSearchParams()) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   if (!token) throw new AuthError(401, "Silakan masuk dengan akun sekolah.");
   let base: URL;
