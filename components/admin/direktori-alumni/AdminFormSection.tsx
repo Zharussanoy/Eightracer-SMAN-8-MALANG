@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FileText,
   School,
@@ -12,20 +12,35 @@ import {
 } from "lucide-react";
 import { AdminRole, B3Role } from "./types";
 import { FormDataPendataan } from "@/types/user";
+import { useUser } from "@/context/UserContext";
+import {
+  KELAS_OPTIONS, JENIS_KAMPUS_OPTIONS, PILIHAN_OPTIONS,
+  JALUR_OPTIONS, BEASISWA_OPTIONS, WHATSAPP_PATTERN,
+  normalizePendataan, validatePendataan, pendataanStorageKey,
+} from "@/lib/pendataan";
 
 interface AdminFormSectionProps {
   role?: AdminRole | B3Role;
-  onSaveSuccess?: (data: FormDataPendataan) => void;
+  onSaveSuccess?: (data: FormDataPendataan) => void | Promise<void>;
 }
 
 const DEFAULT_B3_FORM: FormDataPendataan = {
   nisn: "0054819283",
-  nama: "Naysilla Salsa Ardiyati",
+  nama: "NAYSILLA SALSA ARDIYATI",
+  kelas: "",
+  nomorWa: "",
+  jenisKampus: "",
+  pilihanKe: "",
+  lembagaPenyalur: "",
+  jalurLainnya: "",
+  pelamarKipk: "",
+  beasiswa: "",
+  beasiswaLainnya: "",
   angkatan: "Alumni 2024",
   tahunLulus: 2024,
-  kampus: "Universitas Brawijaya",
+  kampus: "UNIVERSITAS BRAWIJAYA",
   kampusKode: "UB",
-  jurusan: "Teknik Informatika",
+  jurusan: "TEKNIK INFORMATIKA",
   jenjang: "S1",
   jalur: "SNBP",
   statusPenerimaan: "Lolos / Diterima",
@@ -47,6 +62,30 @@ export default function AdminFormSection({
   const [formState, setFormState] = useState<FormDataPendataan>(DEFAULT_B3_FORM);
   const [toastSuccess, setToastSuccess] = useState(false);
 
+  const { currentUser } = useUser();
+  const storageKey = pendataanStorageKey(currentUser.id);
+  const [formError, setFormError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsReady(false);
+      setToastSuccess(false);
+      setFormError("");
+      try {
+        const saved = localStorage.getItem(storageKey);
+        const parsed = saved ? JSON.parse(saved) : null;
+        setFormState(normalizePendataan({ ...DEFAULT_B3_FORM, ...parsed }));
+      } catch {
+        setFormState(DEFAULT_B3_FORM);
+        setFormError("Data lokal tidak dapat dimuat. Periksa izin penyimpanan browser.");
+      }
+      setIsReady(true);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [storageKey]);
+
   // Jika bukan role alumni atau admin, jangan tampilkan formulir
   if (role !== "alumni" && role !== "admin") {
     return (
@@ -64,19 +103,32 @@ export default function AdminFormSection({
   ) => {
     setFormState((prev) => ({
       ...prev,
-      [field]: val,
+      [field]: typeof val === "string" && ["nama", "kampus", "jurusan"].includes(field) ? val.toUpperCase() : val,
+      ...(field === "jenisKampus" && val !== "Luar Negeri" ? { lembagaPenyalur: "" } : {}),
+      ...(field === "jalur" && val !== "Lainnya" ? { jalurLainnya: "" } : {}),
+      ...(field === "beasiswa" && val !== "Lainnya" ? { beasiswaLainnya: "" } : {}),
     }));
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (onSaveSuccess) {
-      onSaveSuccess(formState);
+    setToastSuccess(false);
+    const payload = normalizePendataan(formState);
+    const error = validatePendataan(payload);
+    if (error) { setFormError(error); return; }
+    setIsSaving(true);
+    setFormError("");
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(payload));
+      if (onSaveSuccess) await onSaveSuccess(payload);
+      setFormState(payload);
+      setToastSuccess(true);
+      setTimeout(() => setToastSuccess(false), 3000);
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : "Data gagal disimpan. Silakan coba lagi.");
+    } finally {
+      setIsSaving(false);
     }
-    setToastSuccess(true);
-    setTimeout(() => {
-      setToastSuccess(false);
-    }, 3000);
   };
 
   return (
@@ -103,10 +155,12 @@ export default function AdminFormSection({
         <div className="p-4 rounded-2xl bg-purple-700 text-white flex items-center justify-between shadow-lg animate-in fade-in">
           <div className="flex items-center gap-2.5 text-xs font-bold">
             <CheckCircle2 className="w-4 h-4 text-amber-300" />
-            <span>Data pendataan alumni berhasil disimpan!</span>
+            <span>Data pendataan alumni berhasil disimpan di browser ini!</span>
           </div>
         </div>
       )}
+
+      {formError && <p role="alert" className="text-xs text-slate-500">{formError}</p>}
 
       {/* ================= FORM BODY ================= */}
       <form onSubmit={handleFormSubmit} className="space-y-6">
@@ -124,6 +178,7 @@ export default function AdminFormSection({
               </label>
               <input
                 type="text"
+                required
                 value={formState.nisn}
                 onChange={(e) => handleFieldChange("nisn", e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-purple-600 focus:ring-2 focus:ring-purple-600/15"
@@ -136,6 +191,7 @@ export default function AdminFormSection({
               </label>
               <input
                 type="text"
+                required
                 value={formState.nama}
                 onChange={(e) => handleFieldChange("nama", e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-purple-600 focus:ring-2 focus:ring-purple-600/15"
@@ -162,6 +218,31 @@ export default function AdminFormSection({
                 <option value="Alumni 2021">Alumni 2021</option>
               </select>
             </div>
+            <div>
+              <label htmlFor="b3-kelas" className="block text-xs font-bold text-slate-700 mb-1.5">Kelas</label>
+              <select id="b3-kelas"
+                value={formState.kelas || ""}
+                onChange={(e) => handleFieldChange("kelas", e.target.value)}
+                required
+                className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-purple-600 focus:ring-2 focus:ring-purple-600/15">
+                <option value="">Pilih Kelas</option>
+                {KELAS_OPTIONS.map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="b3-nomorWa" className="block text-xs font-bold text-slate-700 mb-1.5">Nomor WhatsApp Aktif</label>
+              <input id="b3-nomorWa"
+                value={formState.nomorWa || ""}
+                onChange={(e) => handleFieldChange("nomorWa", e.target.value)}
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                required
+                pattern={WHATSAPP_PATTERN}
+                placeholder="08xxx atau +628xxx"
+                title="Gunakan 08 atau +628 diikuti 8-11 digit, tanpa spasi atau tanda hubung."
+                className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-purple-600 focus:ring-2 focus:ring-purple-600/15" />
+            </div>
           </div>
         </div>
 
@@ -175,10 +256,12 @@ export default function AdminFormSection({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="sm:col-span-2">
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Nama Perguruan Tinggi (PTN / PTS)
+                Nama Perguruan Tinggi (Nama Lengkap)
               </label>
               <input
                 type="text"
+                required
+                placeholder="Nama lengkap, contoh: UNIVERSITAS BRAWIJAYA"
                 value={formState.kampus}
                 onChange={(e) => handleFieldChange("kampus", e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-purple-600 focus:ring-2 focus:ring-purple-600/15"
@@ -214,10 +297,12 @@ export default function AdminFormSection({
 
             <div className="sm:col-span-2">
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Program Studi / Jurusan
+                Program Studi / Jurusan (Nama Lengkap)
               </label>
               <input
                 type="text"
+                required
+                placeholder="Nama lengkap, contoh: TEKNIK INFORMATIKA"
                 value={formState.jurusan}
                 onChange={(e) => handleFieldChange("jurusan", e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-purple-600 focus:ring-2 focus:ring-purple-600/15"
@@ -230,12 +315,10 @@ export default function AdminFormSection({
               </label>
               <select
                 value={formState.jalur}
-                onChange={(e) => handleFieldChange("jalur", e.target.value as "SNBP" | "SNBT" | "Mandiri")}
+                onChange={(e) => handleFieldChange("jalur", e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-purple-600 focus:ring-2 focus:ring-purple-600/15"
               >
-                <option value="SNBP">SNBP (Jalur Prestasi)</option>
-                <option value="SNBT">SNBT (Jalur Tes UTBK)</option>
-                <option value="Mandiri">Mandiri / Kedinasan</option>
+                {JALUR_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
               </select>
             </div>
 
@@ -250,6 +333,49 @@ export default function AdminFormSection({
                 className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-purple-600 focus:ring-2 focus:ring-purple-600/15"
               />
             </div>
+            <div>
+              <label htmlFor="b3-jenisKampus" className="block text-xs font-bold text-slate-700 mb-1.5">Jenis Perguruan Tinggi</label>
+              <select id="b3-jenisKampus"
+                value={formState.jenisKampus || ""}
+                onChange={(e) => handleFieldChange("jenisKampus", e.target.value)}
+                required
+                className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-purple-600 focus:ring-2 focus:ring-purple-600/15">
+                <option value="">Pilih Jenis Perguruan Tinggi</option>
+                {JENIS_KAMPUS_OPTIONS.map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="b3-pilihanKe" className="block text-xs font-bold text-slate-700 mb-1.5">Pilihan Ke</label>
+              <select id="b3-pilihanKe"
+                value={formState.pilihanKe || ""}
+                onChange={(e) => handleFieldChange("pilihanKe", e.target.value)}
+                required
+                className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-purple-600 focus:ring-2 focus:ring-purple-600/15">
+                <option value="">Pilih Pilihan Ke</option>
+                {PILIHAN_OPTIONS.map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+            </div>
+            {formState.jalur === "Lainnya" && (
+              <div>
+              <label htmlFor="b3-jalurLainnya" className="block text-xs font-bold text-slate-700 mb-1.5">Nama Jalur Masuk Lainnya</label>
+              <input id="b3-jalurLainnya"
+                value={formState.jalurLainnya || ""}
+                onChange={(e) => handleFieldChange("jalurLainnya", e.target.value)}
+                type="text"
+                required
+                className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-purple-600 focus:ring-2 focus:ring-purple-600/15" />
+            </div>
+            )}
+            {formState.jenisKampus === "Luar Negeri" && (
+              <div>
+              <label htmlFor="b3-lembagaPenyalur" className="block text-xs font-bold text-slate-700 mb-1.5">Lembaga Penyalur</label>
+              <input id="b3-lembagaPenyalur"
+                value={formState.lembagaPenyalur || ""}
+                onChange={(e) => handleFieldChange("lembagaPenyalur", e.target.value)}
+                type="text"
+                className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-purple-600 focus:ring-2 focus:ring-purple-600/15" />
+            </div>
+            )}
           </div>
         </div>
 
@@ -305,6 +431,38 @@ export default function AdminFormSection({
                 <option value="tidak">Tidak</option>
               </select>
             </div>
+            <div>
+              <label htmlFor="b3-pelamarKipk" className="block text-xs font-bold text-slate-700 mb-1.5">Pelamar Bantuan KIP-K</label>
+              <select id="b3-pelamarKipk"
+                value={formState.pelamarKipk || ""}
+                onChange={(e) => handleFieldChange("pelamarKipk", e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-purple-600 focus:ring-2 focus:ring-purple-600/15">
+                <option value="">Pilih Pelamar Bantuan KIP-K</option>
+                {["YA", "TIDAK"].map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="b3-beasiswa" className="block text-xs font-bold text-slate-700 mb-1.5">Beasiswa</label>
+              <select id="b3-beasiswa"
+                value={formState.beasiswa || ""}
+                onChange={(e) => handleFieldChange("beasiswa", e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-purple-600 focus:ring-2 focus:ring-purple-600/15">
+                <option value="">Pilih Beasiswa</option>
+                {BEASISWA_OPTIONS.map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+            </div>
+            {formState.beasiswa === "Lainnya" && (
+              <div>
+              <label htmlFor="b3-beasiswaLainnya" className="block text-xs font-bold text-slate-700 mb-1.5">Nama Beasiswa Lainnya</label>
+              <input id="b3-beasiswaLainnya"
+                value={formState.beasiswaLainnya || ""}
+                onChange={(e) => handleFieldChange("beasiswaLainnya", e.target.value)}
+                type="text"
+                required
+                className="w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all bg-white text-slate-900 border-slate-300 focus:border-purple-600 focus:ring-2 focus:ring-purple-600/15" />
+            </div>
+            )}
+            <p className="text-xs text-slate-500">Beasiswa hanya mencatat bantuan yang sudah diterima, bukan yang baru didaftarkan.</p>
           </div>
         </div>
 
@@ -333,6 +491,7 @@ export default function AdminFormSection({
         <div className="pt-4 border-t border-slate-100 flex items-center justify-end">
           <button
             type="submit"
+            disabled={isSaving || !isReady}
             className="px-6 py-2.5 rounded-xl font-bold text-xs bg-[#5F089E] hover:bg-[#4d0680] text-white transition-all shadow-md shadow-purple-950/15 flex items-center gap-2 cursor-pointer"
           >
             <Save className="w-4 h-4" />

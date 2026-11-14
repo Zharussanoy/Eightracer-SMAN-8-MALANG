@@ -16,7 +16,7 @@ export default function AdminHero({ onNavigateTab }: AdminHeroProps) {
         <div className="absolute -bottom-10 -right-10 w-96 h-96 bg-purple-400/10 rounded-full blur-2xl pointer-events-none" />
 
         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-          <div className="lg:col-span-8 space-y-4">
+          <div className="lg:col-span-7 space-y-4">
 
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight">
               Pusat Manajemen Kelulusan &amp; Direktori Alumni
@@ -49,20 +49,31 @@ export default function AdminHero({ onNavigateTab }: AdminHeroProps) {
             </div>
           </div>
 
-          <div className="lg:col-span-4 flex justify-center lg:justify-end">
-            <div className="relative w-48 h-48 sm:w-56 sm:h-56 lg:w-64 lg:h-64 flex items-center justify-center">
-              <Image
-                src="/images/students-illustration.svg"
-                alt="Hero Banner Siswa Smarihasta"
-                width={256}
-                height={256}
-                className="w-full h-full object-contain filter drop-shadow-xl"
-                priority
-              />
+          <div className="lg:col-span-5 flex justify-center lg:justify-end items-center">
+              {/* Gambar bintang.svg di sebelah kiri student.svg */}
+              <div className="relative w-20 sm:w-28 lg:w-36 aspect-[170/244] -mr-5 sm:-mr-8 lg:-mr-10 translate-x-4 z-10 shrink-0 pointer-events-none">
+                <Image
+                  src="/images/bintang.svg"
+                  alt="Dekorasi Bintang"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+
+              {/* Aset Utama: student.svg */}
+              <div className="relative w-64 sm:w-72 md:w-80 lg:w-96 aspect-[397/258] z-20 shrink-0">
+                <Image
+                  src="/images/student.svg"
+                  alt="Hero Banner Siswa Smarihasta"
+                  fill
+                  className="object-contain filter drop-shadow-xl"
+                  priority
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
     </section>
   );
 }

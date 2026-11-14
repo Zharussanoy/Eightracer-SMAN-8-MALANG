@@ -18,11 +18,29 @@ import {
   AlumniItem,
 } from "@/components/admin/direktori-alumni/types";
 import { INITIAL_ALUMNI } from "@/components/admin/direktori-alumni/mockData";
+import { apiFetch } from "@/lib/api";
+import { ApiAlumni, mapApiAlumniToItem } from "@/lib/alumni";
+import { FormDataPendataan } from "@/types/user";
+import { mapPendataanToItem, normalizePendataan, pendataanStorageKey, validatePendataan } from "@/lib/pendataan";
 import { useUser } from "@/context/UserContext";
+
+// B3 records remain local until a backend write contract is available.
+function withSavedPendataan(items: AlumniItem[], userId: string): AlumniItem[] {
+  try {
+    const saved = localStorage.getItem(pendataanStorageKey(userId));
+    if (!saved) return items;
+    const data = normalizePendataan(JSON.parse(saved) as FormDataPendataan);
+    if (validatePendataan(data)) return items;
+    const item = mapPendataanToItem(data, `pendataan:${userId}`);
+    return [item, ...items.filter((entry) => entry.id !== item.id && entry.nisn !== item.nisn)];
+  } catch {
+    return items;
+  }
+}
 
 function AlumniPageContent() {
   const searchParams = useSearchParams();
-  const { getDisplayRole } = useUser();
+  const { getDisplayRole, currentUser } = useUser();
   const displayRole = getDisplayRole();
 
   // Role ditentukan secara dinamis dari context (atau URL override bila ada)
@@ -40,7 +58,33 @@ function AlumniPageContent() {
   }, [roleParam, displayRole.roleType]);
 
   const [activeTab, setActiveTab] = useState<AdminTab>("Direktori Alumni");
-  const [alumniList, setAlumniList] = useState<AlumniItem[]>(INITIAL_ALUMNI);
+  const [alumniList, setAlumniList] = useState<AlumniItem[]>([]);
+  const [isLoadingAlumni, setIsLoadingAlumni] = useState(true);
+
+  useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_API_URL) {
+      const timer = setTimeout(() => {
+        setAlumniList(withSavedPendataan(INITIAL_ALUMNI, currentUser.id));
+        setIsLoadingAlumni(false);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+
+    let cancelled = false;
+    apiFetch<{ data: ApiAlumni[] }>("/alumni?per_page=250")
+      .then((res) => {
+        if (!cancelled) setAlumniList(withSavedPendataan(res.data.map(mapApiAlumniToItem), currentUser.id));
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.warn("Gagal fetch alumni dari API, menggunakan mock data:", err);
+        setAlumniList(withSavedPendataan(INITIAL_ALUMNI, currentUser.id));
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingAlumni(false);
+      });
+    return () => { cancelled = true; };
+  }, [currentUser.id]);
   const [selectedIds, setSelectedIds] = useState<string[]>(["alm-1", "alm-2"]);
 
   // Modal State
@@ -117,6 +161,22 @@ function AlumniPageContent() {
     alumniData: Omit<AlumniItem, "id">,
     editId?: string | null
   ) => {
+    if (editId === `pendataan:${currentUser.id}`) {
+      const saved = localStorage.getItem(pendataanStorageKey(currentUser.id));
+      if (!saved) throw new Error("Data pendataan lokal tidak ditemukan.");
+      const previous: FormDataPendataan = JSON.parse(saved);
+      const updated = normalizePendataan({
+        ...previous,
+        ...alumniData,
+        kelas: alumniData.kelas || "",
+        nomorWa: alumniData.nomorWa || "",
+        jenisKampus: alumniData.jenisKampus || "",
+        nilaiRapor: alumniData.nilai,
+      });
+      const error = validatePendataan(updated);
+      if (error) throw new Error(error);
+      localStorage.setItem(pendataanStorageKey(currentUser.id), JSON.stringify(updated));
+    }
     if (editId) {
       setAlumniList((prev) =>
         prev.map((item) =>
@@ -132,9 +192,20 @@ function AlumniPageContent() {
     }
     setShowFormModal(false);
   };
+  const handleImportComplete = () => {
+    apiFetch<{ data: ApiAlumni[] }>("/alumni?per_page=250")
+      .then((res) => setAlumniList(res.data.map(mapApiAlumniToItem)))
+      .catch((err) => console.error("Gagal refresh alumni:", err));
+  };
 
-  const handleImportComplete = (newRows: AlumniItem[]) => {
-    setAlumniList((prev) => [...newRows, ...prev]);
+  const refreshAlumni = () => {
+    apiFetch<{ data: ApiAlumni[] }>("/alumni?per_page=250")
+      .then((res) => {
+        setAlumniList(withSavedPendataan(res.data.map(mapApiAlumniToItem), currentUser.id));
+      })
+      .catch((err) => {
+        console.error("Gagal refresh alumni:", err);
+      });
   };
 
   return (
@@ -178,7 +249,14 @@ function AlumniPageContent() {
 
         {/* Konten Tab 4: Formulir Pendataan Mandiri (Khusus Alumni & Admin) */}
         {activeTab === "Formulir Pendataan" && (
-          <AdminFormSection role={currentRole} />
+          <AdminFormSection
+            key={currentUser.id}
+            role={currentRole}
+            onSaveSuccess={(data) => {
+              const item = mapPendataanToItem(data, `pendataan:${currentUser.id}`);
+              setAlumniList((previous) => [item, ...previous.filter((entry) => entry.id !== item.id && entry.nisn !== item.nisn)]);
+            }}
+          />
         )}
       </main>
 
@@ -197,13 +275,6 @@ function AlumniPageContent() {
         onImportComplete={handleImportComplete}
       />
 
-      {/* Footer Khusus Fitur Tim B3 */}
-      <footer className="mt-auto py-6 border-t border-slate-200 bg-white text-center text-xs text-slate-400">
-        <p>
-          &copy; {new Date().getFullYear()} Eightracer SMAN 8 Malang &bull; Tim B3.
-          Sistem Informasi Kelulusan &amp; Direktori Alumni Terpadu.
-        </p>
-      </footer>
     </div>
   );
 }
