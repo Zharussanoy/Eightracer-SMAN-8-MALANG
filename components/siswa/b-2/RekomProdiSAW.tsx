@@ -1003,7 +1003,7 @@ export default function RekomProdiSAW() {
               type="button"
               onClick={handleHitung}
               disabled={loading}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#6305B0] text-white text-xs sm:text-sm font-bold hover:bg-[#520492] transition-all shadow-sm hover:shadow-md disabled:opacity-60 cursor-pointer"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#6305B0] text-white text-xs sm:text-sm font-bold hover:bg-[#520492] hover:scale-[1.01] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-60 cursor-pointer"
             >
               {loading ? (
                 <>
@@ -1143,10 +1143,10 @@ export default function RekomProdiSAW() {
                   return (
                     <div
                       key={item.id}
-                      className={`rounded-[18px] bg-white p-4 sm:p-5 border transition-all duration-200 ${
+                      className={`rounded-[18px] bg-white p-4 sm:p-5 border transition-all duration-200 hover:-translate-y-1 ${
                         isRank1
-                          ? "border-[#6305B0] shadow-md ring-2 ring-[#6305B0]/20"
-                          : "border-slate-200 shadow-2xs hover:shadow-sm"
+                          ? "border-[#6305B0] shadow-md ring-2 ring-[#6305B0]/20 hover:shadow-lg"
+                          : "border-slate-200 shadow-2xs hover:shadow-md hover:border-purple-200"
                       }`}
                     >
                       <div className="flex items-start gap-3.5">

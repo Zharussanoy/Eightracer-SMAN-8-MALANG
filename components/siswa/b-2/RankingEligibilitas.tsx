@@ -531,7 +531,7 @@ export default function RankingEligibilitas() {
             <button
               type="button"
               onClick={handlePrintBuktiEligibilitas}
-              className="px-3 py-1.5 rounded-lg bg-white text-[#6305B0] hover:bg-purple-50 text-[11px] font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              className="px-3 py-1.5 rounded-lg bg-white text-[#6305B0] hover:bg-purple-50 hover:shadow-md active:scale-95 text-[11px] font-bold flex items-center gap-1.5 shadow-sm transition-all duration-200 cursor-pointer"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Cetak Bukti Kelulusan (PDF)</span>
@@ -539,7 +539,7 @@ export default function RankingEligibilitas() {
             <button
               type="button"
               onClick={fetchEligibilitas}
-              className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+              className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-white text-[11px] font-semibold flex items-center gap-1.5 transition-all duration-200 cursor-pointer"
             >
               <RotateCcw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
               <span>Sinkronkan Skor</span>
@@ -571,10 +571,10 @@ export default function RankingEligibilitas() {
         <button
           type="button"
           onClick={() => setActiveTab("detail")}
-          className={`px-4 py-2 rounded-lg text-[13px] font-bold transition-all cursor-pointer flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-lg text-[13px] font-bold transition-all duration-200 transform hover:scale-[1.02] active:scale-95 cursor-pointer flex items-center gap-2 ${
             activeTab === "detail"
               ? "bg-[#6305B0] text-white shadow-xs"
-              : "bg-white text-slate-600 hover:text-[#6305B0] border border-slate-200"
+              : "bg-white text-slate-600 hover:text-[#6305B0] border border-slate-200 hover:border-purple-300"
           }`}
         >
           <Award className="w-4 h-4" />
@@ -584,10 +584,10 @@ export default function RankingEligibilitas() {
         <button
           type="button"
           onClick={() => setActiveTab("leaderboard")}
-          className={`px-4 py-2 rounded-lg text-[13px] font-bold transition-all cursor-pointer flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-lg text-[13px] font-bold transition-all duration-200 transform hover:scale-[1.02] active:scale-95 cursor-pointer flex items-center gap-2 ${
             activeTab === "leaderboard"
               ? "bg-[#6305B0] text-white shadow-xs"
-              : "bg-white text-slate-600 hover:text-[#6305B0] border border-slate-200"
+              : "bg-white text-slate-600 hover:text-[#6305B0] border border-slate-200 hover:border-purple-300"
           }`}
         >
           <Users className="w-4 h-4" />
@@ -600,7 +600,7 @@ export default function RankingEligibilitas() {
           {/* ──────────────────────────────────────────────────────────
               RINCIAN 6 KOMPONEN PEMBOBOTAN ELIGIBILITAS (SPMK)
              ────────────────────────────────────────────────────────── */}
-          <div className="bg-white rounded-[14px] p-5 border border-purple-100 shadow-2xs space-y-4">
+          <div className="bg-white rounded-[14px] p-5 border border-purple-100 shadow-2xs space-y-4 transition-all duration-300 hover:shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div>
                 <h3 className="font-bold text-[14px] sm:text-[15px] text-[#1A1721] flex items-center gap-2">
@@ -625,7 +625,7 @@ export default function RankingEligibilitas() {
                 { label: "Karakter (10%)", raw: liveData?.rincian_komponen?.karakter?.raw ?? 0.0, norm: liveData?.rincian_komponen?.karakter?.normalisasi ?? 0.0, color: "text-amber-600", bg: "bg-amber-50" },
                 { label: "Organisasi (5%)", raw: liveData?.rincian_komponen?.organisasi?.raw ?? 0.0, norm: liveData?.rincian_komponen?.organisasi?.normalisasi ?? 0.0, color: "text-indigo-600", bg: "bg-indigo-50" },
               ].map((item, idx) => (
-                <div key={idx} className={`p-3 rounded-xl border border-slate-100 ${item.bg} flex flex-col justify-between`}>
+                <div key={idx} className={`p-3 rounded-xl border border-slate-100 ${item.bg} flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 hover:shadow-xs cursor-default`}>
                   <span className="text-[10px] font-bold text-slate-600 block mb-1">{item.label}</span>
                   <div>
                     <span className={`text-[16px] sm:text-[18px] font-black ${item.color}`}>

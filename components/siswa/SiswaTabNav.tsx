@@ -39,11 +39,11 @@ export default function SiswaTabNav({
             id={`tab-siswa-${tab.toLowerCase().replace(/\s+/g, "-")}`}
             onClick={() => onTabChange(tab)}
             className={`
-              shrink-0 cursor-pointer text-[15px] sm:text-base transition-all pb-1.5
+              shrink-0 cursor-pointer text-[15px] sm:text-base transition-all duration-200 ease-out pb-1.5 transform hover:scale-[1.03] active:scale-95
               ${
                 isActive
-                  ? "border-b-2 border-[#410070] text-[#410070] font-semibold"
-                  : "text-[#4C4452] hover:text-[#101828] font-medium border-b-2 border-transparent"
+                  ? "border-b-2 border-[#410070] text-[#410070] font-semibold drop-shadow-xs"
+                  : "text-[#4C4452] hover:text-[#410070] hover:border-b-2 hover:border-[#410070]/30 font-medium border-b-2 border-transparent"
               }
             `}
             style={{ fontFamily: "Montserrat, sans-serif" }}

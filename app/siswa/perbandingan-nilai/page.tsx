@@ -41,7 +41,7 @@ export default function PerbandinganNilaiPage() {
             activeTab="Perbandingan Nilai"
             onTabChange={(tab) => {
               if (tab === "Perbandingan Nilai") return;
-              router.push("/siswa");
+              router.push("/siswa/b2");
             }}
           />
         </div>

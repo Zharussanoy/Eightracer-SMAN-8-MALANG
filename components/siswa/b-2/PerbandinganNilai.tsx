@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { Search, Download, Filter, ChevronDown, Loader2, RotateCcw, AlertCircle, CheckCircle2, X } from "lucide-react";
-import { benchmarkService, alumniAdminService } from "@/services/b2";
 import { useUser } from "@/context/UserContext";
+import { alumniAdminService, benchmarkService } from "@/services/b2";
+import { AlertCircle, CheckCircle2, ChevronDown, Download, Filter, Loader2, RotateCcw, Search, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
-// ── 1. Data Profil Siswa Default (Fallback) ──
+
 const PROFIL_SISWA = {
   nama: "Ahmad B2 Pratama",
   kelas: "Kelas XII IPA 1",
@@ -13,7 +13,7 @@ const PROFIL_SISWA = {
   rataRataNilai: 88.4,
 };
 
-// ── 2. Data KPI Hasil Perbandingan Default ──
+
 const KPI_DATA = [
   {
     label: "ALUMNI YANG MIRIP",
@@ -32,7 +32,7 @@ const KPI_DATA = [
   },
 ];
 
-// ── 3. Data Grafik Perbandingan per Mata Pelajaran (Fallback) ──
+
 interface MataPelajaranBar {
   nama: string;
   nilaiku: number;
@@ -41,13 +41,13 @@ interface MataPelajaranBar {
 }
 
 const DATA_GRAFIK: MataPelajaranBar[] = [
-  { nama: "Matematika",       nilaiku: 88, nilaiAlumni: 82, maxNilai: 100 },
+  { nama: "Matematika", nilaiku: 88, nilaiAlumni: 82, maxNilai: 100 },
   { nama: "Bahasa Indonesia", nilaiku: 91, nilaiAlumni: 87, maxNilai: 100 },
-  { nama: "Bahasa Inggris",   nilaiku: 84, nilaiAlumni: 86, maxNilai: 100 },
-  { nama: "Produktif TKJ",    nilaiku: 93, nilaiAlumni: 89, maxNilai: 100 },
+  { nama: "Bahasa Inggris", nilaiku: 84, nilaiAlumni: 86, maxNilai: 100 },
+  { nama: "Produktif TKJ", nilaiku: 93, nilaiAlumni: 89, maxNilai: 100 },
 ];
 
-// ── 4. Data Tabel Alumni dengan Nilai Serupa ──
+
 export interface AlumniRow {
   rank: number;
   nama: string;
@@ -60,11 +60,11 @@ export interface AlumniRow {
 }
 
 const DATA_ALUMNI_FALLBACK: AlumniRow[] = [
-  { rank: 1, nama: "Nadia Putri Ramadhani",  nisn: "0061284731", nilaiRataRata: 94.20, skor: 98.4, programStudi: "Teknik Informatika", ptn: "Universitas Brawijaya", angkatan: 2024 },
-  { rank: 2, nama: "Rizky Aditya Pratama",   nisn: "0061284718", nilaiRataRata: 93.85, skor: 97.9, programStudi: "Teknik Informatika", ptn: "Institut Teknologi Sepuluh Nopember", angkatan: 2024 },
-  { rank: 3, nama: "Salsabila Nur Aini",     nisn: "0061284792", nilaiRataRata: 92.70, skor: 96.8, programStudi: "Teknik Komputer",    ptn: "Universitas Airlangga", angkatan: 2024 },
-  { rank: 4, nama: "Muhammad Farhan",        nisn: "0061284706", nilaiRataRata: 91.45, skor: 95.2, programStudi: "Teknik Komputer",    ptn: "Universitas Gadjah Mada", angkatan: 2024 },
-  { rank: 5, nama: "Alya Safitri",           nisn: "0061284765", nilaiRataRata: 90.80, skor: 93.7, programStudi: "Sistem Informasi",   ptn: "Universitas Brawijaya", angkatan: 2024 },
+  { rank: 1, nama: "Nadia Putri Ramadhani", nisn: "0061284731", nilaiRataRata: 94.20, skor: 98.4, programStudi: "Teknik Informatika", ptn: "Universitas Brawijaya", angkatan: 2024 },
+  { rank: 2, nama: "Rizky Aditya Pratama", nisn: "0061284718", nilaiRataRata: 93.85, skor: 97.9, programStudi: "Teknik Informatika", ptn: "Institut Teknologi Sepuluh Nopember", angkatan: 2024 },
+  { rank: 3, nama: "Salsabila Nur Aini", nisn: "0061284792", nilaiRataRata: 92.70, skor: 96.8, programStudi: "Teknik Komputer", ptn: "Universitas Airlangga", angkatan: 2024 },
+  { rank: 4, nama: "Muhammad Farhan", nisn: "0061284706", nilaiRataRata: 91.45, skor: 95.2, programStudi: "Teknik Komputer", ptn: "Universitas Gadjah Mada", angkatan: 2024 },
+  { rank: 5, nama: "Alya Safitri", nisn: "0061284765", nilaiRataRata: 90.80, skor: 93.7, programStudi: "Sistem Informasi", ptn: "Universitas Brawijaya", angkatan: 2024 },
 ];
 
 const DEFAULT_PTN_LIST = [
@@ -88,7 +88,7 @@ const DEFAULT_PRODI_LIST = [
   "Manajemen",
 ];
 
-// ── Warna medali ──
+
 function MedalColor(rank: number): string {
   if (rank === 1) return "#F2B32E";
   if (rank === 2) return "#C4CFDE";
@@ -96,7 +96,7 @@ function MedalColor(rank: number): string {
   return "transparent";
 }
 
-// ── Komponen Utama ──
+
 export default function PerbandinganNilai() {
   const { currentUser } = useUser();
   const [angkatan, setAngkatan] = useState("Semua angkatan");
@@ -106,7 +106,7 @@ export default function PerbandinganNilai() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Live Backend State
+
   const [benchmarkData, setBenchmarkData] = useState<any>(null);
   const [alumniList, setAlumniList] = useState<AlumniRow[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -119,13 +119,12 @@ export default function PerbandinganNilai() {
     message: string;
   } | null>(null);
 
-  // ── Ambil Live Benchmark Siswa vs Alumni (/v1/siswa/benchmark-alumni) ──
+
   const fetchBenchmark = async (prodi?: string, ptn?: string) => {
     try {
       setIsLoading(true);
       setNotification(null);
 
-      // Jika user sedang login sebagai admin/guru, otomatis ambil siswa_id pertama agar tidak 404
       const siswaIdParam = currentUser?.role === "admin" || currentUser?.role === "guru" ? 1 : undefined;
 
       const res = await benchmarkService.compareWithAlumni({
@@ -155,7 +154,7 @@ export default function PerbandinganNilai() {
     }
   };
 
-  // ── Ambil Live Data Alumni Pembanding (/v1/admin/alumni atau /alumni) ──
+
   const fetchAlumniList = async () => {
     setIsLoadingAlumni(true);
     try {
@@ -371,13 +370,13 @@ export default function PerbandinganNilai() {
   // ── Data Grafik Rincian Mata Pelajaran ──
   const grafikItems: MataPelajaranBar[] =
     benchmarkData?.gap_analisis?.rincian_per_mapel &&
-    benchmarkData.gap_analisis.rincian_per_mapel.length > 0
+      benchmarkData.gap_analisis.rincian_per_mapel.length > 0
       ? benchmarkData.gap_analisis.rincian_per_mapel.map((m: any) => ({
-          nama: m.nama_mapel,
-          nilaiku: Number(m.nilai_siswa) || 0,
-          nilaiAlumni: Number(m.rata_rata_alumni) || 0,
-          maxNilai: 100,
-        }))
+        nama: m.nama_mapel,
+        nilaiku: Number(m.nilai_siswa) || 0,
+        nilaiAlumni: Number(m.rata_rata_alumni) || 0,
+        maxNilai: 100,
+      }))
       : DATA_GRAFIK;
 
   return (
@@ -387,11 +386,10 @@ export default function PerbandinganNilai() {
     >
       {notification && (
         <div
-          className={`p-4 rounded-xl flex items-center justify-between gap-3 text-[13px] border animate-in fade-in duration-200 ${
-            notification.type === "success"
+          className={`p-4 rounded-xl flex items-center justify-between gap-3 text-[13px] border animate-in fade-in duration-200 ${notification.type === "success"
               ? "bg-[#DCFCE7] border-[#86EFAC] text-[#148557]"
               : "bg-[#FEE4E2] border-[#FECDCA] text-[#D92D20]"
-          }`}
+            }`}
         >
           <div className="flex items-center gap-2">
             {notification.type === "success" ? (
@@ -471,7 +469,7 @@ export default function PerbandinganNilai() {
             <button
               type="button"
               onClick={handleResetFilters}
-              className="text-[11px] font-semibold text-[#6200A8] hover:underline flex items-center gap-1 cursor-pointer"
+              className="text-[11px] font-semibold text-[#6200A8] hover:underline hover:scale-105 active:scale-95 transition-all duration-150 flex items-center gap-1 cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               Reset Filter
@@ -590,7 +588,7 @@ export default function PerbandinganNilai() {
                 type="button"
                 disabled={isLoading}
                 onClick={() => fetchBenchmark(programStudi, ptnTarget)}
-                className="h-10 px-5 rounded-[7px] font-semibold text-[12px] text-white shrink-0 transition-opacity hover:opacity-90 active:opacity-80 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                className="h-10 px-5 rounded-[7px] font-semibold text-[12px] text-white shrink-0 transition-all duration-200 hover:scale-[1.02] active:scale-95 hover:shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                 style={{ background: "#6200A8" }}
               >
                 {isLoading ? (

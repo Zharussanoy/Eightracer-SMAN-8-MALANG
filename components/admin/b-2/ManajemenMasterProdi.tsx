@@ -1,14 +1,20 @@
 "use client";
 
 import {
+  eligibilitasService,
+  KlasterProdiItem,
+  KlasterProdiPayload,
+  PerguruanTinggiItem,
+  prodiAdminService,
+  ptnService,
+} from "@/services/b2";
+import {
   AlertCircle,
   ArrowLeft,
   BookOpen,
   Building2,
   CheckCircle2,
-  ChevronDown,
   ChevronRight,
-  Compass,
   Edit2,
   GraduationCap,
   Layers,
@@ -20,20 +26,12 @@ import {
   Search,
   Sparkles,
   Trash2,
-  X,
+  X
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import {
-  eligibilitasService,
-  KlasterProdiItem,
-  KlasterProdiPayload,
-  prodiAdminService,
-  ptnService,
-  PerguruanTinggiItem,
-} from "@/services/b2";
 
-// Curated PTN Favorit Siswa SMARIHASTA (SMAN 8 Malang)
+
 const TOP_PTN_SMARIHASTA = [
   {
     id: "ub",
@@ -138,13 +136,13 @@ const OPSI_KECERDASAN = [
   "Eksistensial",
 ];
 
-// Opsi Kelompok Rumpun
+
 const OPSI_RUMPUN = ["SAINTEK", "SOSHUM", "CAMPURAN"];
 
 export default function ManajemenMasterProdi() {
   const [activeTab, setActiveTab] = useState<"prodi" | "ptn">("prodi");
 
-  // State List Prodi & Klaster
+
   const [prodiList, setProdiList] = useState<KlasterProdiItem[]>([]);
   const [isLoadingProdi, setIsLoadingProdi] = useState(true);
   const [searchProdi, setSearchProdi] = useState("");
@@ -157,12 +155,12 @@ export default function ManajemenMasterProdi() {
     lastPage: 1,
   });
 
-  // State List PTN
+
   const [ptnList, setPtnList] = useState<PerguruanTinggiItem[]>([]);
   const [isLoadingPtn, setIsLoadingPtn] = useState(false);
   const [searchPtn, setSearchPtn] = useState("");
 
-  // State Modal Tambah / Edit Prodi
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProdi, setEditingProdi] = useState<KlasterProdiItem | null>(null);
   const [formNamaProdi, setFormNamaProdi] = useState("");
@@ -173,20 +171,18 @@ export default function ManajemenMasterProdi() {
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // State Modal Konfirmasi Hapus
   const [deletingProdi, setDeletingProdi] = useState<KlasterProdiItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Notification Toast
+
   const [notification, setNotification] = useState<{
     type: "success" | "error";
     message: string;
   } | null>(null);
 
-  // State Sinkronisasi Kuota
+
   const [isSyncingKuota, setIsSyncingKuota] = useState(false);
 
-  // Muat data master prodi dari Backend Laravel
   const fetchProdiList = async (page = 1) => {
     try {
       setIsLoadingProdi(true);
@@ -212,7 +208,7 @@ export default function ManajemenMasterProdi() {
     }
   };
 
-  // Muat data Perguruan Tinggi dari Backend
+
   const fetchPtnList = async () => {
     try {
       setIsLoadingPtn(true);
@@ -375,7 +371,7 @@ export default function ManajemenMasterProdi() {
       <div className="mb-6 flex items-center justify-between">
         <Link
           href="/admin/b2"
-          className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#6941C6] hover:text-[#53389E] transition-colors"
+          className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#6941C6] hover:text-[#53389E] hover:-translate-x-0.5 transition-all duration-200"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Kembali ke Dashboard Admin B2</span>
@@ -408,7 +404,7 @@ export default function ManajemenMasterProdi() {
             type="button"
             disabled={isSyncingKuota}
             onClick={handleSyncKuota}
-            className="px-3.5 py-2.5 rounded-lg border border-[#D0D5DD] bg-white text-[12px] font-semibold text-[#344054] hover:border-[#7F56D9] hover:text-[#6941C6] transition-colors flex items-center gap-2 shadow-2xs cursor-pointer disabled:opacity-60"
+            className="px-3.5 py-2.5 rounded-lg border border-[#D0D5DD] bg-white text-[12px] font-semibold text-[#344054] hover:border-[#7F56D9] hover:text-[#6941C6] hover:scale-[1.02] active:scale-95 hover:shadow-xs transition-all duration-150 flex items-center gap-2 shadow-2xs cursor-pointer disabled:opacity-60"
           >
             <RefreshCw
               className={`w-3.5 h-3.5 text-[#7F56D9] ${isSyncingKuota ? "animate-spin" : ""}`}
@@ -418,7 +414,7 @@ export default function ManajemenMasterProdi() {
           <button
             type="button"
             onClick={handleOpenAddModal}
-            className="px-4 py-2.5 rounded-lg bg-[#7F56D9] hover:bg-[#6941C6] active:bg-[#53389E] text-white text-[12px] font-semibold transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
+            className="px-4 py-2.5 rounded-lg bg-[#7F56D9] hover:bg-[#6941C6] active:bg-[#53389E] hover:scale-[1.02] active:scale-95 hover:shadow-md text-white text-[12px] font-semibold transition-all duration-150 flex items-center gap-1.5 shadow-xs cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>+ Tambah Program Studi</span>
@@ -429,11 +425,10 @@ export default function ManajemenMasterProdi() {
       {/* Alert Notifikasi */}
       {notification && (
         <div
-          className={`mb-6 p-4 rounded-xl flex items-start gap-3 border shadow-2xs animate-in fade-in duration-200 ${
-            notification.type === "success"
+          className={`mb-6 p-4 rounded-xl flex items-start gap-3 border shadow-2xs animate-in fade-in duration-200 ${notification.type === "success"
               ? "bg-[#DCFCE7] border-[#86EFAC] text-[#148557]"
               : "bg-[#FEE4E2] border-[#FECDCA] text-[#D92D20]"
-          }`}
+            }`}
         >
           {notification.type === "success" ? (
             <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 text-[#148557]" />
@@ -455,7 +450,7 @@ export default function ManajemenMasterProdi() {
 
       {/* Statistik Kuota SNBP & Ringkasan Kapasitas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-xl p-5 border border-[#EAECF0] shadow-xs flex items-center justify-between">
+        <div className="bg-white rounded-xl p-5 border border-[#EAECF0] shadow-xs flex items-center justify-between hover:shadow-md hover:-translate-y-1 hover:border-purple-200 transition-all duration-200 group">
           <div>
             <p className="text-[11px] font-semibold text-[#6E6678] uppercase tracking-wider">
               Total Kuota Eligible SNBP
@@ -465,12 +460,12 @@ export default function ManajemenMasterProdi() {
               40% Kuota Akreditasi A (dari 420 siswa)
             </p>
           </div>
-          <div className="w-11 h-11 rounded-full bg-[#F4EBFF] text-[#7F56D9] flex items-center justify-center shrink-0">
+          <div className="w-11 h-11 rounded-full bg-[#F4EBFF] text-[#7F56D9] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200">
             <GraduationCap className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-5 border border-[#EAECF0] shadow-xs flex items-center justify-between">
+        <div className="bg-white rounded-xl p-5 border border-[#EAECF0] shadow-xs flex items-center justify-between hover:shadow-md hover:-translate-y-1 hover:border-blue-200 transition-all duration-200 group">
           <div>
             <p className="text-[11px] font-semibold text-[#6E6678] uppercase tracking-wider">
               Alokasi Kuota MIPA
@@ -480,12 +475,12 @@ export default function ManajemenMasterProdi() {
               57.1% Porsi Jurusan MIPA
             </p>
           </div>
-          <div className="w-11 h-11 rounded-full bg-[#EFF8FF] text-[#175CD3] flex items-center justify-center shrink-0">
+          <div className="w-11 h-11 rounded-full bg-[#EFF8FF] text-[#175CD3] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200">
             <Layers className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-5 border border-[#EAECF0] shadow-xs flex items-center justify-between">
+        <div className="bg-white rounded-xl p-5 border border-[#EAECF0] shadow-xs flex items-center justify-between hover:shadow-md hover:-translate-y-1 hover:border-red-200 transition-all duration-200 group">
           <div>
             <p className="text-[11px] font-semibold text-[#6E6678] uppercase tracking-wider">
               Alokasi Kuota IPS
@@ -495,12 +490,12 @@ export default function ManajemenMasterProdi() {
               42.9% Porsi Jurusan IPS
             </p>
           </div>
-          <div className="w-11 h-11 rounded-full bg-[#FEF3F2] text-[#B42318] flex items-center justify-center shrink-0">
+          <div className="w-11 h-11 rounded-full bg-[#FEF3F2] text-[#B42318] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200">
             <BookOpen className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-5 border border-[#EAECF0] shadow-xs flex items-center justify-between">
+        <div className="bg-white rounded-xl p-5 border border-[#EAECF0] shadow-xs flex items-center justify-between hover:shadow-md hover:-translate-y-1 hover:border-emerald-200 transition-all duration-200 group">
           <div>
             <p className="text-[11px] font-semibold text-[#6E6678] uppercase tracking-wider">
               Master Klaster Terdata
@@ -512,7 +507,7 @@ export default function ManajemenMasterProdi() {
               Terhubung ke Rekomendasi SAW
             </p>
           </div>
-          <div className="w-11 h-11 rounded-full bg-[#ECFDF3] text-[#027A48] flex items-center justify-center shrink-0">
+          <div className="w-11 h-11 rounded-full bg-[#ECFDF3] text-[#027A48] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200">
             <Sparkles className="w-5 h-5" />
           </div>
         </div>
@@ -524,11 +519,10 @@ export default function ManajemenMasterProdi() {
           <button
             type="button"
             onClick={() => setActiveTab("prodi")}
-            className={`pb-3.5 px-4 text-[13px] font-semibold transition-all relative cursor-pointer flex items-center gap-2 ${
-              activeTab === "prodi"
+            className={`pb-3.5 px-4 text-[13px] font-semibold transition-all duration-150 relative cursor-pointer flex items-center gap-2 hover:scale-[1.02] active:scale-95 ${activeTab === "prodi"
                 ? "text-[#6941C6] border-b-2 border-[#7F56D9]"
                 : "text-[#6E6678] hover:text-[#1F1729]"
-            }`}
+              }`}
           >
             <Layers className="w-4 h-4" />
             <span>Master Program Studi &amp; Klaster Keilmuan</span>
@@ -540,11 +534,10 @@ export default function ManajemenMasterProdi() {
           <button
             type="button"
             onClick={() => setActiveTab("ptn")}
-            className={`pb-3.5 px-4 text-[13px] font-semibold transition-all relative cursor-pointer flex items-center gap-2 ${
-              activeTab === "ptn"
+            className={`pb-3.5 px-4 text-[13px] font-semibold transition-all duration-150 relative cursor-pointer flex items-center gap-2 hover:scale-[1.02] active:scale-95 ${activeTab === "ptn"
                 ? "text-[#6941C6] border-b-2 border-[#7F56D9]"
                 : "text-[#6E6678] hover:text-[#1F1729]"
-            }`}
+              }`}
           >
             <Building2 className="w-4 h-4" />
             <span>Katalog PTN &amp; Referensi Daya Tampung</span>
@@ -657,9 +650,8 @@ export default function ManajemenMasterProdi() {
                         return (
                           <tr
                             key={prodi.id}
-                            className={`hover:bg-[#FCFAFF] transition-colors ${
-                              idx % 2 === 1 ? "bg-[#FAF9FE]/40" : "bg-white"
-                            }`}
+                            className={`hover:bg-[#FCFAFF] transition-colors ${idx % 2 === 1 ? "bg-[#FAF9FE]/40" : "bg-white"
+                              }`}
                           >
                             <td className="px-5 py-3.5 font-bold text-[#6E6678]">
                               {(currentPage - 1) * paginationMeta.perPage + idx + 1}
@@ -714,7 +706,7 @@ export default function ManajemenMasterProdi() {
                                 <button
                                   type="button"
                                   onClick={() => handleOpenEditModal(prodi)}
-                                  className="p-1.5 rounded-lg border border-[#D0D5DD] hover:bg-[#F4EBFF] hover:border-[#7F56D9] text-[#344054] hover:text-[#6941C6] transition-colors cursor-pointer"
+                                  className="p-1.5 rounded-lg border border-[#D0D5DD] hover:bg-[#F4EBFF] hover:border-[#7F56D9] text-[#344054] hover:text-[#6941C6] hover:scale-110 active:scale-95 transition-all duration-150 cursor-pointer"
                                   title="Edit Program Studi"
                                 >
                                   <Edit2 className="w-3.5 h-3.5" />
@@ -722,7 +714,7 @@ export default function ManajemenMasterProdi() {
                                 <button
                                   type="button"
                                   onClick={() => setDeletingProdi(prodi)}
-                                  className="p-1.5 rounded-lg border border-[#FECDCA] hover:bg-[#FEE4E2] text-[#D92D20] transition-colors cursor-pointer"
+                                  className="p-1.5 rounded-lg border border-[#FECDCA] hover:bg-[#FEE4E2] text-[#D92D20] hover:scale-110 active:scale-95 transition-all duration-150 cursor-pointer"
                                   title="Hapus Program Studi"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />

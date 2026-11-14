@@ -24,7 +24,7 @@ export default function SiswaProfileCard({
     <div className="flex flex-col gap-4">
 
       <div
-        className="rounded-[20px] border-2 border-[#5F089E] bg-[#EFE6F5] p-6 flex flex-col items-center gap-3"
+        className="rounded-[20px] border-2 border-[#5F089E] bg-[#EFE6F5] p-6 flex flex-col items-center gap-3 transition-all duration-300 hover:shadow-lg hover:shadow-purple-900/10 hover:-translate-y-1 group"
         style={{ minHeight: 378 }}
       >
 

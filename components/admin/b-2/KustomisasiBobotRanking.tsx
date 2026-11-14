@@ -338,7 +338,7 @@ export default function KustomisasiBobotRanking() {
       <div className="mb-6">
         <Link
           href="/admin/b2"
-          className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#6941C6] hover:text-[#53389E] transition-colors"
+          className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#6941C6] hover:text-[#53389E] hover:-translate-x-0.5 transition-all duration-200"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Kembali ke Dashboard Admin B2</span>
@@ -395,10 +395,10 @@ export default function KustomisasiBobotRanking() {
             return (
               <div
                 key={item.id}
-                className="grid grid-cols-[1fr_130px_90px] items-center gap-3 py-4.5 px-2 hover:bg-[#F9F5FF] rounded-xl transition-colors"
+                className="grid grid-cols-[1fr_130px_90px] items-center gap-3 py-4.5 px-2 hover:bg-[#F9F5FF] hover:shadow-xs rounded-xl transition-all duration-200 group"
               >
                 <div className="flex items-start gap-3.5 pr-2">
-                  <div className="w-9 h-9 rounded-lg bg-[#F4EBFF] text-[#6941C6] border border-[#E9D7FE] flex items-center justify-center font-bold text-[12px] shrink-0 mt-0.5">
+                  <div className="w-9 h-9 rounded-lg bg-[#F4EBFF] text-[#6941C6] border border-[#E9D7FE] flex items-center justify-center font-bold text-[12px] shrink-0 mt-0.5 group-hover:scale-105 group-hover:bg-[#EDE1FE] transition-all duration-200">
                     {formattedIndex}
                   </div>
                   <div>
@@ -420,7 +420,7 @@ export default function KustomisasiBobotRanking() {
                       value={item.bobot === 0 ? "" : item.bobot}
                       placeholder="0"
                       onChange={(e) => handleBobotChange(item.id, e.target.value)}
-                      className="w-full h-10 px-3 pr-7 rounded-lg border border-[#D0D5DD] bg-white text-center text-[14px] font-semibold text-[#1F1729] outline-none focus:border-[#7F56D9] focus:ring-2 focus:ring-[#7F56D9]/15 transition-all"
+                      className="w-full h-10 px-3 pr-7 rounded-lg border border-[#D0D5DD] bg-white text-center text-[14px] font-semibold text-[#1F1729] outline-none focus:border-[#7F56D9] focus:ring-2 focus:ring-[#7F56D9]/15 hover:border-[#7F56D9]/50 transition-all"
                     />
                     <span className="absolute right-3 text-[13px] font-semibold text-[#6E6678] pointer-events-none">
                       %
@@ -433,7 +433,7 @@ export default function KustomisasiBobotRanking() {
                     type="button"
                     onClick={() => setEditingItem(item)}
                     title="Edit Variabel"
-                    className="p-1.5 rounded-md text-[#6941C6] hover:bg-[#F4EBFF] transition-colors cursor-pointer"
+                    className="p-1.5 rounded-md text-[#6941C6] hover:bg-[#F4EBFF] hover:scale-110 active:scale-95 transition-all cursor-pointer"
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
@@ -441,7 +441,7 @@ export default function KustomisasiBobotRanking() {
                     type="button"
                     onClick={() => handleDeleteItem(item.id)}
                     title="Hapus Variabel"
-                    className="p-1.5 rounded-md text-[#D92D20] hover:bg-red-50 transition-colors cursor-pointer"
+                    className="p-1.5 rounded-md text-[#D92D20] hover:bg-red-50 hover:scale-110 active:scale-95 transition-all cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -478,7 +478,7 @@ export default function KustomisasiBobotRanking() {
           <button
             type="button"
             onClick={handleOpenAddModal}
-            className="w-full sm:w-auto px-5 py-2.5 rounded-lg border border-[#D0D5DD] hover:border-[#7F56D9] text-[#6941C6] text-[13px] font-semibold hover:bg-[#F9F5FF] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-lg border border-[#D0D5DD] hover:border-[#7F56D9] text-[#6941C6] text-[13px] font-semibold hover:bg-[#F9F5FF] hover:scale-[1.02] active:scale-95 transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
           >
             <Plus className="w-4 h-4 text-[#7F56D9]" />
             <span>Tambah variabel baru</span>
@@ -488,9 +488,9 @@ export default function KustomisasiBobotRanking() {
             type="button"
             disabled={!isValidTotal || isSaving}
             onClick={handleSimpanDanHitung}
-            className={`w-full sm:w-auto px-6 py-2.5 rounded-lg text-white text-[13px] font-semibold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer ${
+            className={`w-full sm:w-auto px-6 py-2.5 rounded-lg text-white text-[13px] font-semibold transition-all duration-150 flex items-center justify-center gap-2 shadow-xs cursor-pointer ${
               isValidTotal && !isSaving
-                ? "bg-[#7F56D9] hover:bg-[#6941C6] active:bg-[#53389E]"
+                ? "bg-[#7F56D9] hover:bg-[#6941C6] active:bg-[#53389E] hover:scale-[1.02] active:scale-95 hover:shadow-md"
                 : "bg-[#7F56D9]/50 hover:bg-[#7F56D9]/60 cursor-not-allowed"
             }`}
           >

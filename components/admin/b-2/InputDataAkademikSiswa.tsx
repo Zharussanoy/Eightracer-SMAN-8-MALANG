@@ -650,7 +650,7 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
           <div className="flex items-center gap-3">
             <Link
               href="/admin/b2"
-              className="p-2 rounded-lg text-[#6941C6] hover:bg-[#F4EBFF] transition-colors"
+              className="p-2 rounded-lg text-[#6941C6] hover:bg-[#F4EBFF] hover:scale-105 active:scale-95 transition-all duration-200"
               title="Kembali ke Manajemen Data"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -666,7 +666,7 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
           </div>
           <div className="flex items-center gap-3">
             {isSaved && (
-              <span className="flex items-center gap-1.5 text-[13px] font-medium text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
+              <span className="flex items-center gap-1.5 text-[13px] font-medium text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 animate-in fade-in duration-200">
                 <CheckCircle2 className="w-4 h-4" /> Data tersimpan!
               </span>
             )}
@@ -674,7 +674,7 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
               type="button"
               onClick={handleSimpan}
               disabled={isSaving}
-              className="flex items-center gap-2 px-5 py-2 rounded-xl bg-[#6305B0] hover:bg-[#530494] text-white text-[13px] font-medium shadow-sm transition-all cursor-pointer disabled:opacity-60"
+              className="flex items-center gap-2 px-5 py-2 rounded-xl bg-[#6305B0] hover:bg-[#530494] text-white text-[13px] font-medium shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all duration-150 cursor-pointer disabled:opacity-60"
             >
               {isSaving ? "Menyimpan..." : "Simpan Data"}
             </button>
@@ -767,7 +767,7 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
             <button
               type="button"
               onClick={() => handleOpenImportModal("Nilai Rapor Akademik")}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#6305B0] hover:bg-[#530494] text-white text-[12px] font-medium shrink-0 cursor-pointer self-start sm:self-auto"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#6305B0] hover:bg-[#530494] text-white text-[12px] font-medium shrink-0 cursor-pointer self-start sm:self-auto hover:scale-[1.02] active:scale-95 hover:shadow-xs transition-all duration-150"
             >
               <Upload className="w-3.5 h-3.5" />
               Import (PDF/Excel)
@@ -830,7 +830,7 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
                           onClick={() => {
                             setNilaiRaporList(nilaiRaporList.filter((_, i) => i !== idx));
                           }}
-                          className="text-[#9CA3AF] hover:text-red-500 p-1 cursor-pointer"
+                          className="text-[#9CA3AF] hover:text-red-500 hover:scale-125 active:scale-90 p-1 cursor-pointer transition-all duration-150"
                           title="Hapus mata pelajaran"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -846,7 +846,7 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
           <button
             type="button"
             onClick={handleAddMapelRapor}
-            className="flex items-center gap-1.5 text-[12px] font-semibold text-[#6305B0] hover:text-[#530494] pt-1 cursor-pointer"
+            className="flex items-center gap-1.5 text-[12px] font-semibold text-[#6305B0] hover:text-[#530494] hover:translate-x-0.5 active:scale-95 pt-1 cursor-pointer transition-all duration-150"
           >
             <Plus className="w-4 h-4" /> Tambah Mata Pelajaran
           </button>
@@ -1600,7 +1600,7 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
           <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
             <Link
               href="/admin/b2"
-              className="px-5 py-2.5 rounded-xl border border-[#D6BBFB] text-[#6941C6] hover:bg-[#F4EBFF] text-[13px] font-medium transition-colors cursor-pointer"
+              className="px-5 py-2.5 rounded-xl border border-[#D6BBFB] text-[#6941C6] hover:bg-[#F4EBFF] hover:scale-105 active:scale-95 text-[13px] font-medium transition-all duration-150 cursor-pointer"
             >
               Batal
             </Link>
@@ -1608,7 +1608,7 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
               type="button"
               onClick={handleSimpan}
               disabled={isSaving}
-              className="px-6 py-2.5 rounded-xl bg-[#6305B0] hover:bg-[#530494] text-white text-[13px] font-semibold shadow-sm transition-all cursor-pointer disabled:opacity-60"
+              className="px-6 py-2.5 rounded-xl bg-[#6305B0] hover:bg-[#530494] text-white text-[13px] font-semibold shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all duration-150 cursor-pointer disabled:opacity-60"
             >
               {isSaving ? "Menyimpan Data..." : "Simpan Data"}
             </button>

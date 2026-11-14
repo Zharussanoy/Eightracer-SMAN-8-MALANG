@@ -705,7 +705,7 @@ export default function AdminB2Dashboard() {
           <button
             type="button"
             onClick={() => scrollToSection("section-ranking-eligibilitas", "ranking")}
-            className={`pb-3 text-[14px] font-semibold transition-all relative cursor-pointer ${activeTab === "ranking"
+            className={`pb-3 text-[14px] font-semibold transition-all duration-200 relative cursor-pointer hover:scale-[1.02] active:scale-95 ${activeTab === "ranking"
                 ? "text-[#6941C6] border-b-2 border-[#7F56D9]"
                 : "text-[#6E6678] hover:text-[#1F1729]"
               }`}
@@ -715,7 +715,7 @@ export default function AdminB2Dashboard() {
           <button
             type="button"
             onClick={() => scrollToSection("section-manajemen-data", "manajemen")}
-            className={`pb-3 text-[14px] font-semibold transition-all relative cursor-pointer ${activeTab === "manajemen"
+            className={`pb-3 text-[14px] font-semibold transition-all duration-200 relative cursor-pointer hover:scale-[1.02] active:scale-95 ${activeTab === "manajemen"
                 ? "text-[#6941C6] border-b-2 border-[#7F56D9]"
                 : "text-[#6E6678] hover:text-[#1F1729]"
               }`}
@@ -724,7 +724,7 @@ export default function AdminB2Dashboard() {
           </button>
           <Link
             href="/admin/b2/master-prodi"
-            className="pb-3 text-[14px] font-semibold text-[#6E6678] hover:text-[#6941C6] transition-all flex items-center gap-1.5"
+            className="pb-3 text-[14px] font-semibold text-[#6E6678] hover:text-[#6941C6] hover:scale-[1.02] active:scale-95 transition-all duration-200 flex items-center gap-1.5"
           >
             <GraduationCap className="w-4 h-4 text-[#7F56D9]" />
             <span>Master Prodi &amp; Kuota SNBP</span>
@@ -738,7 +738,7 @@ export default function AdminB2Dashboard() {
           return (
             <div
               key={kpi.id}
-              className="bg-white rounded-xl p-5 border border-[#EAECF0] shadow-xs flex items-center justify-between"
+              className="bg-white rounded-xl p-5 border border-[#EAECF0] shadow-xs flex items-center justify-between transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-purple-200 cursor-default group"
             >
               <div>
                 <p className="text-[11px] font-semibold text-[#6E6678] mb-1">
@@ -758,7 +758,7 @@ export default function AdminB2Dashboard() {
               </div>
 
               <div
-                className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 ${kpi.colorTheme === "blue"
+                className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-110 ${kpi.colorTheme === "blue"
                     ? "bg-[#EEF4FF] text-[#226CE0]"
                     : kpi.colorTheme === "purple"
                       ? "bg-[#F4EBFF] text-[#7F56D9]"
@@ -1657,14 +1657,14 @@ export default function AdminB2Dashboard() {
                               setIsDetailModalOpen(true);
                             }}
                             title="Lihat Detail Siswa"
-                            className="p-1.5 rounded-md hover:bg-[#F4EBFF] hover:text-[#6941C6] transition-colors cursor-pointer"
+                            className="p-1.5 rounded-md hover:bg-[#F4EBFF] hover:text-[#6941C6] hover:scale-110 active:scale-90 transition-all duration-150 cursor-pointer"
                           >
                             <Eye className="w-3.5 h-3.5" />
                           </button>
                           <Link
                             href={`/admin/b2/edit-siswa/${siswa.id}`}
                             title="Edit Data Siswa"
-                            className="p-1.5 rounded-md hover:bg-[#F4EBFF] hover:text-[#6941C6] transition-colors cursor-pointer inline-flex items-center justify-center"
+                            className="p-1.5 rounded-md hover:bg-[#F4EBFF] hover:text-[#6941C6] hover:scale-110 active:scale-90 transition-all duration-150 cursor-pointer inline-flex items-center justify-center"
                           >
                             <Pencil className="w-3.5 h-3.5" />
                           </Link>
@@ -1672,7 +1672,7 @@ export default function AdminB2Dashboard() {
                             type="button"
                             onClick={() => handleDeleteSiswa(siswa.id, siswa.nama)}
                             title="Hapus Siswa"
-                            className="p-1.5 rounded-md hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-md hover:bg-red-50 hover:text-red-600 hover:scale-110 active:scale-90 transition-all duration-150 cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>

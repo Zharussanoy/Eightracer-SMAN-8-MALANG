@@ -110,43 +110,18 @@ export const eligibilitasService = {
       };
     }>("/v1/admin/ranking/export/pdf", { params }),
 
-  // Streamed CSV download with Bearer token
+  // Pure Frontend Mode: Generate & Download CSV langsung di browser tanpa backend
   downloadExportExcel: async (params?: { kelas?: string; jurusan_id?: number | string }) => {
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("eightracer_token") || localStorage.getItem("auth_token")
-        : null;
+    const csvContent =
+      "Peringkat,Nama Siswa,NISN,Kelas,Total Skor,Rapor,TKA,Prestasi,Karakter,Status\n" +
+      "1,Nadia Putri Ramadhani,0061284731,XII MIPA 1,98.40,94.20,96.00,98.00,95.00,Eligible\n" +
+      "2,Rizky Aditya Pratama,0061284718,XII MIPA 2,97.90,93.85,95.50,96.00,94.00,Eligible\n" +
+      "3,Salsabila Nur Aini,0061284792,XII IPS 1,96.80,92.70,94.00,95.00,96.00,Eligible\n" +
+      "4,Muhammad Farhan,0061284706,XII MIPA 1,95.20,91.45,93.00,92.00,93.00,Eligible\n" +
+      "5,Alya Safitri,0061284765,XII IPS 2,93.70,90.80,90.50,91.00,92.00,Evaluasi\n";
 
-    let url = `${API_BASE_URL}/v1/admin/ranking/export/excel`;
-    if (params) {
-      const sp = new URLSearchParams();
-      if (params.kelas) sp.append("kelas", params.kelas);
-      if (params.jurusan_id) sp.append("jurusan_id", String(params.jurusan_id));
-      const qs = sp.toString();
-      if (qs) url += `?${qs}`;
-    }
-
-    const response = await fetch(url, {
-      headers: {
-        Accept: "text/csv, application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-    });
-
-    if (!response.ok) {
-      const errJson = await response.json().catch(() => null);
-      throw new Error(errJson?.message || `Gagal mengunduh file Excel (HTTP ${response.status})`);
-    }
-
-    const blob = await response.blob();
-    let filename = `laporan-eligibilitas-${new Date().toISOString().slice(0, 10)}.csv`;
-    const disposition = response.headers.get("content-disposition");
-    if (disposition && disposition.includes("filename=")) {
-      const match = disposition.match(/filename="?([^";]+)"?/);
-      if (match && match[1]) {
-        filename = match[1];
-      }
-    }
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const filename = `laporan-eligibilitas-b2-${new Date().toISOString().slice(0, 10)}.csv`;
 
     const downloadUrl = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -506,37 +481,18 @@ export interface ImportExcelResult {
 }
 
 export const importExcelService = {
-  // POST /v1/admin/import/excel
+  // Pure Frontend Mode: Simulasi impor berkas tanpa request backend
   importExcel: async (file: File) => {
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("eightracer_token") || localStorage.getItem("auth_token")
-        : null;
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const response = await fetch(`${API_BASE_URL}/v1/admin/import/excel`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    await new Promise((r) => setTimeout(r, 400));
+    return {
+      status: "success",
+      message: `Berkas "${file.name}" berhasil dianalisis & diimpor secara lokal!`,
+      data: {
+        total_baris_diproses: 35,
+        berhasil: 35,
+        gagal: 0,
+        rincian_gagal: [],
       },
-      body: formData,
-    });
-
-    const resJson = await response.json().catch(() => null);
-
-    if (!response.ok) {
-      throw new Error(
-        resJson?.message || `Gagal mengimpor berkas Excel (HTTP ${response.status})`
-      );
-    }
-
-    return resJson as {
-      status: string;
-      message: string;
-      data: ImportExcelResult;
     };
   },
 

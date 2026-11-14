@@ -58,7 +58,7 @@ export default function LoginPage() {
       } else if (preset === 'siswa_alumni') {
         router.push('/alumni');
       } else {
-        router.push('/siswa');
+        router.push('/siswa/b2');
       }
     } catch (err: any) {
       setErrorMessage(
