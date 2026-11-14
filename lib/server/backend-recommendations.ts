@@ -6,6 +6,7 @@ class RecommendationThrottleError extends AuthError {
   constructor(public retryAfter:number){super(429, "Pesan dikirim terlalu cepat. Coba lagi dalam "+retryAfter+" detik; pertanyaanmu tetap tersimpan.");}
 }
 const allowedMessages = new Set([
+  "Rekomendasi beasiswa hanya tersedia untuk siswa aktif SMA 8. Periksa status kelulusan dan riwayat kelas.",
   "Akun belum terhubung dengan data siswa.",
   "Jenjang siswa belum diketahui. Lengkapi riwayat kelas aktif SMA.",
   "Belum ada beasiswa aktif yang sesuai jenjang.",

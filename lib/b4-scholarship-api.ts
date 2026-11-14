@@ -28,6 +28,7 @@ export async function getScholarships(options: { search: string; level: Scholars
 export async function saveScholarship(input: ScholarshipInput, id?: number) {
   return mutateScholarship(id ? `/${id}` : "", id ? "PUT" : "POST", input);
 }
+export async function activateScholarship(id: number) { return mutateScholarship(`/${id}/activate`, "POST", {}); }
 export async function archiveScholarship(id: number) { return mutateScholarship(`/${id}`, "DELETE", {}); }
 
 async function mutateScholarship(path: string, method: string, body: unknown) {

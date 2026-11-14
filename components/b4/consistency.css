@@ -87,3 +87,5 @@
 .b4-page .bc4-chatText li { margin: 6px 0; }
 .b4-page .bc4-chatText strong { font-weight: 700; }
 .b4-page .bc4-chatText > :last-child { margin-bottom: 0; }
+
+.b4-page .bc4-topRecommendation { display:inline-flex; align-items:center; gap:7px; padding:6px 10px; margin-bottom:12px; border:1px solid #d6a62d; border-radius:999px; background:#fff3cc; color:#704500; font-size:13px; font-weight:700; line-height:1.4; }
