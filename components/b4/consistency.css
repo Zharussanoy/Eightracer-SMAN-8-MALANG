@@ -89,3 +89,29 @@
 .b4-page .bc4-chatText > :last-child { margin-bottom: 0; }
 
 .b4-page .bc4-topRecommendation { display:inline-flex; align-items:center; gap:7px; padding:6px 10px; margin-bottom:12px; border:1px solid #d6a62d; border-radius:999px; background:#fff3cc; color:#704500; font-size:13px; font-weight:700; line-height:1.4; }
+
+/* Recommendation cards share admin labels and a compact text hierarchy. */
+.b4-page .bc4-recommendationCards { align-items:stretch; gap:18px; margin-bottom:24px; }
+.b4-page .bc4-recommendationCards .bc4-scholarCard { padding:20px; border-radius:20px; min-width:0; }
+.b4-page .bc4-recommendationCards .bc4-cardHighlight { min-height:28px; display:flex; align-items:flex-start; margin-bottom:8px; }
+.b4-page .bc4-recommendationCards .bc4-topRecommendation { margin:0; font-size:12px; font-weight:600; padding:4px 9px; }
+.b4-page .bc4-recommendationCards .bc4-scholarCard > h3 { align-items:flex-start; font-size:20px; font-weight:700; line-height:1.35; min-height:54px; margin:0 0 12px; padding-bottom:10px; text-wrap:pretty; }
+.b4-page .bc4-recommendationCards .bc4-scholarCard > h3 svg { width:23px; height:23px; flex-shrink:0; margin-top:2px; color:#5f089e; }
+.b4-page .bc4-recommendationCards .bc4-cardFacts { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 14px; align-items:start; margin:0; padding:14px; border-radius:14px; background:#f2ebfa; }
+.b4-page .bc4-recommendationCards .bc4-cardFacts > div { display:block; text-align:left; padding:0; border:0; }
+.b4-page .bc4-recommendationCards .bc4-cardFacts dt { font-size:12px; font-weight:400; color:#665771; line-height:1.4; margin-bottom:4px; }
+.b4-page .bc4-recommendationCards .bc4-cardFacts dd { display:block; min-height:0; padding:0; border:0; border-radius:0; background:transparent; font-size:14px; font-weight:500; line-height:1.5; color:#282032; overflow-wrap:anywhere; }
+.b4-page .bc4-recommendationCards .bc4-cardFacts > .bc4-cardPeriod { grid-column:1/-1; border-top:1px solid #ddd0ec; padding-top:10px; }
+.b4-page .bc4-recommendationCards .bc4-reason { font-size:14px; font-weight:400; line-height:1.6; min-height:0; padding:12px 14px; margin:12px 0 16px; border-radius:14px; }
+.b4-page .bc4-recommendationCards .bc4-reason h4 { margin:0 0 6px; font-size:13px; font-weight:600; line-height:1.5; color:#51425f; }
+.b4-page .bc4-recommendationCards .bc4-reason p { margin:0; font-size:14px; font-weight:400; line-height:1.6; }
+.b4-page .bc4-recommendationCards .bc4-cardDetail { margin-top:auto; width:100%; justify-content:center; min-height:44px; padding:10px 14px; border:1px solid #7b00dc; border-radius:999px; color:#6500b0; background:white; font-size:14px; font-weight:600; line-height:1.5; text-align:center; }
+.b4-page .bc4-recommendationCards .bc4-cardDetail:hover { background:#f5efff; }
+.b4-page .bc4-recommendationCards .bc4-cardDetail:focus-visible { outline:3px solid #caa5ee; outline-offset:3px; }
+.b4-page .bc4-recommendation .bc4-recBody { gap:24px; padding:20px; }
+.b4-page .bc4-recommendation .bc4-recBody h4 { margin:0 0 8px; font-size:14px; font-weight:600; }
+.b4-page .bc4-recommendation .bc4-recBody p { margin:0 0 12px; font-size:14px; font-weight:400; line-height:1.6; }
+.b4-page .bc4-recommendation .bc4-pair .bc4-yellowCard { padding:14px; }
+.b4-page .bc4-recommendation .bc4-pair .bc4-yellowCard p { margin:0 0 4px; font-size:12px; color:#665771; }
+.b4-page .bc4-recommendation .bc4-pair .bc4-yellowCard strong { font-size:14px; font-weight:500; line-height:1.5; }
+@media(max-width:640px){ .b4-page .bc4-recommendationCards .bc4-scholarCard{padding:18px;} .b4-page .bc4-recommendationCards .bc4-scholarCard > h3{min-height:0;} .b4-page .bc4-recommendationCards .bc4-cardHighlight:empty{display:none;} .b4-page .bc4-recommendation .bc4-recBody{gap:16px;padding:18px;} }
