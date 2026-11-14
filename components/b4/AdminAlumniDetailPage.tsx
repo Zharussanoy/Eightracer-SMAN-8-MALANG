@@ -3,10 +3,10 @@
 import { scholarshipEvidenceLabel, kipEvidenceLabel, kipStatusLabel } from "@/lib/b4-scholarship-evidence";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { Pencil, Trash2, Upload, X } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { ApiError } from "@/lib/eightracer-api";
-import { archiveAlumniProgress, commitAlumniProgress, downloadProgressTemplate, getAlumniDetail, previewAlumniProgress, saveAlumniProgress, type ImportPreview } from "@/lib/b4-alumni-api";
+import { archiveAlumniProgress, getAlumniDetail, saveAlumniProgress } from "@/lib/b4-alumni-api";
 import type { AlumniDetail, AlumniProgressRow } from "@/lib/b4-alumni";
 import { blankProgress, newProgressForAlumni, progressScholarshipOptions, educationStatusLabels, formFromProgress, progressPayload, type ProgressForm } from "@/lib/b4-progress";
 import B4Shell, { Avatar } from "./B4Shell";
@@ -23,12 +23,8 @@ export default function AdminAlumniDetailPage({ id }: { id?: string }) {
   const [result, setResult] = useState<Result | null>(null), [retry, setRetry] = useState(0);
   const [form, setForm] = useState<ProgressForm>(blankProgress), [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(""), [formError, setFormError] = useState("");
-  const [file, setFile] = useState<File | null>(null), [format, setFormat] = useState("canonical");
-  const [batch, setBatch] = useState<ImportPreview | null>(null), [importError, setImportError] = useState("");
-  const [importPhase, setImportPhase] = useState<"preview" | "commit" | null>(null);
   const [deleting, setDeleting] = useState<AlumniProgressRow | null>(null);
-  const upload = useRef<HTMLDialogElement>(null), confirm = useRef<HTMLDialogElement>(null), editor = useRef<HTMLFormElement>(null);
-  const fileInput = useRef<HTMLInputElement>(null), uploadController = useRef<AbortController | null>(null), uploadVersion = useRef(0);
+  const confirm = useRef<HTMLDialogElement>(null), editor = useRef<HTMLFormElement>(null);
   const current = allowed && result?.id === id ? result : null, alumni = current?.data;
   const validId = typeof id === "string" && /^[1-9]\d*$/.test(id) && Number.isSafeInteger(Number(id));
 
@@ -44,7 +40,6 @@ export default function AdminAlumniDetailPage({ id }: { id?: string }) {
     });
     return () => controller.abort();
   }, [allowed, validId, id, retry, refreshSession]);
-  useEffect(() => () => { uploadVersion.current++; uploadController.current?.abort(); }, [id]);
   const field = <K extends keyof ProgressForm>(key: K, value: ProgressForm[K]) => setForm((previous) => ({ ...previous, [key]: value }));
   const refresh = () => setRetry((value) => value + 1);
   function failure(error: unknown) { if (error instanceof ApiError && error.status === 401) void refreshSession(); return explain(error); }
@@ -59,33 +54,6 @@ export default function AdminAlumniDetailPage({ id }: { id?: string }) {
       setMessage(form.id ? "Koreksi progres tersimpan di database; versi sebelumnya tetap dicatat." : "Progres tersimpan di database.");
       refresh();
     } catch (error) { setFormError(failure(error)); } finally { setSaving(false); }
-  }
-  function closeUpload() {
-    if (importPhase === "commit") return;
-    uploadVersion.current++; uploadController.current?.abort(); setImportPhase(null); upload.current?.close();
-  }
-  function openUpload() {
-    uploadVersion.current++; uploadController.current?.abort(); setFile(null); setBatch(null); setImportError(""); setImportPhase(null);
-    if (fileInput.current) fileInput.current.value = "";
-    upload.current?.showModal();
-  }
-  async function preview() {
-    if (!id || !file || importPhase) return;
-    const version = ++uploadVersion.current, controller = new AbortController(); uploadController.current = controller;
-    setBatch(null); setImportError(""); setImportPhase("preview");
-    try { const { data } = await previewAlumniProgress(id, file, format, controller.signal); if (version === uploadVersion.current) setBatch(data); }
-    catch (error) { if (!controller.signal.aborted && version === uploadVersion.current) setImportError(failure(error)); }
-    finally { if (version === uploadVersion.current) setImportPhase(null); }
-  }
-  async function commit() {
-    if (!id || !batch || batch.status !== "validated" || importPhase) return;
-    setImportPhase("commit"); setImportError("");
-    try {
-      const { data } = await commitAlumniProgress(id, batch);
-      if (data.status !== "completed") throw new Error("Impor belum selesai. Periksa ulang data dan pratinjau.");
-      setMessage(`Batch selesai: ${data.receipt?.processed ?? 0} baris progres diproses di database.`);
-      upload.current?.close(); setBatch(null); refresh();
-    } catch (error) { setImportError(failure(error)); } finally { setImportPhase(null); }
   }
   async function archive() {
     if (!id || !deleting || saving) return;
@@ -135,7 +103,7 @@ export default function AdminAlumniDetailPage({ id }: { id?: string }) {
               </div>)}
             </div>
             {formError && <p className="bc4-status" role="alert">{formError}</p>}
-            <div className="bc4-actions" style={{ marginTop: 20 }}><button disabled={saving} className="bc4-button" type="button" onClick={openUpload}><Upload size={17} />Sinkronkan Data</button><button disabled={saving} className="bc4-button bc4-primary" type="submit">{saving ? "Menyimpan…" : "Simpan"}</button>{form.id && <button type="button" className="bc4-button" onClick={() => { setForm(newProgressForAlumni(alumni)); setFormError(""); }}>Batal Edit</button>}</div>
+            <div className="bc4-actions" style={{ marginTop: 20 }}><button disabled={saving} className="bc4-button bc4-primary" type="submit">{saving ? "Menyimpan…" : "Simpan"}</button>{form.id && <button type="button" className="bc4-button" onClick={() => { setForm(newProgressForAlumni(alumni)); setFormError(""); }}>Batal Edit</button>}</div>
           </form>
         </section>
       </div>
@@ -148,22 +116,6 @@ export default function AdminAlumniDetailPage({ id }: { id?: string }) {
         </tr>)}</tbody></table>{!records.length && <p className="bc4-empty">-</p>}</div>
       </section>
     </div>
-    <dialog className="bc4-dialog" ref={upload} onCancel={(event) => { event.preventDefault(); closeUpload(); }}>
-      <div className="bc4-dialogTitle"><h2>Sinkronkan Data Progres Kuliah</h2><button disabled={importPhase === "commit"} type="button" aria-label="Tutup unggah" onClick={closeUpload}><X /></button></div>
-      <div className="bc4-dialogBody"><p>Unggah data untuk <strong>{displayTitle(alumni.name)}</strong> pada penerimaan <strong>{displayTitle(alumni.university)} · {displayTitle(alumni.studyProgram)}</strong>. Periode yang sama dikoreksi dengan jejak versi; data belum disimpan sebelum kamu menekan Simpan.</p>
-        <p>Kolom wajib: periode, semester, status_pendidikan, tanggal_update. IPK, KIP-K, UKT, IPI, dan beasiswa boleh kosong. IPI hanya untuk jalur Mandiri.</p>
-        <label className="bc4-dropzone"><Upload size={50} /><strong>Pilih File Spreadsheet</strong><span>XLSX / CSV · maksimal 5 MB, 40 baris</span><input ref={fileInput} disabled={!!importPhase} aria-label="File spreadsheet progres" type="file" accept=".xlsx,.csv" onChange={(event) => { setFile(event.target.files?.[0] ?? null); setBatch(null); setImportError(""); }} /></label>
-        <label className="bc4-field">Format Angka<select disabled={!!importPhase} value={format} onChange={(event) => { setFormat(event.target.value); setBatch(null); }}><option value="canonical">Standar: 3500000 dan 3.75</option><option value="id">Indonesia: 3.500.000 dan 3,75</option></select></label>
-        <button disabled={!!importPhase} type="button" className="bc4-button" onClick={() => void downloadProgressTemplate(String(alumni.id)).catch((error) => setImportError(failure(error)))}>Unduh Template Excel (CSV)</button>
-        {file && <p>{file.name}</p>}{importPhase && <p role="status">{importPhase === "preview" ? "Memeriksa dan memindai file…" : "Menyimpan progres…"}</p>}
-        {importError && <p className="bc4-status" role="alert">{importError}</p>}
-        {batch && <div className="bc4-importPreview"><h3>{batch.summary.valid} Baris Valid · {batch.summary.invalid} Baris Bermasalah</h3>
-          {batch.summary.errors.map((row, index) => <p key={index} role="alert">{row.sheet} baris {row.row}: {Object.values(row.errors).flat().join(" ")}</p>)}
-          {batch.sample.map((row) => <p key={`${row.sheet}-${row.row}`}>{row.sheet} baris {row.row} · {row.operation === "koreksi" ? "Koreksi" : "Tambah"} · {String(row.data.periode ?? missing)} · Semester {String(row.data.semester ?? missing)} · {educationStatusLabels[String(row.data.status_pendidikan)] ?? missing} · IPK {String(row.data.ipk_terkini ?? missing)} · UKT {row.data.nominal_ukt == null ? missing : money(Number(row.data.nominal_ukt))}</p>)}
-        </div>}
-        <div className="bc4-actions" style={{ marginTop: 20 }}><button disabled={importPhase === "commit"} type="button" className="bc4-button" onClick={closeUpload}>Batal</button><button disabled={!file || !!importPhase} type="button" className="bc4-button" onClick={() => void preview()}>Pratinjau</button><button disabled={batch?.status !== "validated" || !!importPhase} type="button" className="bc4-button bc4-primary" onClick={() => void commit()}>Simpan</button></div>
-      </div>
-    </dialog>
     <dialog ref={confirm} className="bc4-dialog"><div className="bc4-dialogTitle"><h2>Arsipkan Riwayat {deleting?.period}?</h2></div><div className="bc4-dialogBody"><p>Riwayat tidak ditampilkan sebagai progres aktif; jejak datanya tetap disimpan.</p><div className="bc4-actions"><button disabled={saving} type="button" className="bc4-button" onClick={() => confirm.current?.close()}>Batal</button><button disabled={saving} type="button" className="bc4-button bc4-primary" onClick={() => void archive()}>Arsipkan</button></div></div></dialog>
   </B4Shell>;
 }
