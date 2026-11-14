@@ -7,7 +7,7 @@ import Navbar from "@/components/shared/Navbar";
 import DevRoleSwitcher from "@/components/shared/DevRoleSwitcher";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-sans",
+  variable: "--font-eightracer",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
 });

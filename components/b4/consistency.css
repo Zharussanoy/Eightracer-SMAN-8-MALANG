@@ -1,0 +1,81 @@
+/* Shared B4 presentation tokens. Existing purple, lilac and warm cream identity is retained. */
+.b4-page {
+  --b4-purple: #6500ad;
+  --b4-ink: #24212b;
+  --b4-muted: #625b6c;
+  --b4-surface: #ffffff;
+  --b4-card: #fffaf0;
+  --b4-stroke: #dac8e9;
+  --b4-success: #166534;
+  --b4-warning: #92400e;
+  --b4-danger: #b42318;
+  --b4-radius: 14px;
+  --b4-control-height: 46px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--b4-ink);
+}
+.b4-page :is(button,input,select,textarea) { font-family: inherit; }
+.b4-page :is(button,a) { -webkit-tap-highlight-color: transparent; }
+.b4-page :is(h1,h2,h3,h4) { text-wrap: balance; }
+.b4-page .b4-hero h1 { font-size: clamp(28px,3vw,40px); font-weight: 700; line-height: 1.25; }
+.b4-page .b4-hero p { font-size: 16px; line-height: 1.65; }
+.b4-page .b4-breadcrumb { font-size: 13px; font-weight: 500; }
+.b4-page .b4-tabs > :is(a,button) { font-size: 15px; line-height: 1.5; font-weight: 600; }
+.b4-page :is(.bc4-sectionHeading,.b4-timelineCardTitle) { font-size: 20px; font-weight: 700; line-height: 1.4; }
+.b4-page :is(.bc4-panel,.b4-detailPanel,.b4-analyticsCard) > :is(h2,h3),
+.b4-page .bc4-dialogTitle h2 { font-size: 20px; font-weight: 700; line-height: 1.4; }
+.b4-page :is(.bc4-yellowCard,.bc4-recommendationHeader) h3 { font-size: 18px; line-height: 1.45; font-weight: 600; }
+.b4-page .bc4-profile h2 { font-size: clamp(22px,2.2vw,30px); line-height: 1.35; font-weight: 700; }
+.b4-page :is(.bc4-recBody h4,.bc4-note h3) { font-size: 16px; font-weight: 600; line-height: 1.5; }
+.b4-page :is(.bc4-yellowCard p,.bc4-field,.bc4-progressFields .bc4-field,.bc4-infoList,.bc4-facts) { font-size: 14px; line-height: 1.65; }
+.b4-page :is(.bc4-yellowCard p,.bc4-facts dt,.bc4-infoList dt,.b4-statusLabels) { color: var(--b4-muted); }
+.b4-page :is(.bc4-badge,.bc4-tag,.bc4-field small,.bc4-status,.b4-historyStats article>small,.bc4-semesterTimeline p,.bc4-semesterTimeline small) { font-size: 12px; line-height: 1.6; }
+.b4-page :is(.bc4-panel,.bc4-yellowCard,.bc4-recommendation,.b4-analyticsCard,.b4-detailPanel) { border-radius: var(--b4-radius); }
+.b4-page :is(.bc4-panel,.bc4-recommendation,.b4-analyticsCard,.b4-detailPanel) { border-color: var(--b4-stroke); }
+.b4-page :is(.bc4-grid2,.bc4-grid3,.bc4-detailRecGrid,.bc4-profileRow) { gap: 24px; align-items: stretch; }
+.b4-page :is(.bc4-grid2,.bc4-grid3)>:is(.bc4-yellowCard,.bc4-panel) { height: 100%; min-width: 0; }
+.b4-page .bc4-grid3>.bc4-yellowCard { min-height: 156px; }
+.b4-page :is(.b4-analyticsStats,.b4-historyStats,.bc4-detailMetrics) { gap: 20px; align-items: stretch; }
+.b4-page .b4-analyticsStats article,
+.b4-page .bc4-analyticsLive .b4-analyticsStats article,
+.b4-page .b4-historyStats article,
+.b4-page .bc4-detailMetrics>.bc4-yellowCard { min-height: 160px; padding: 24px; border-width: 1px; border-radius: var(--b4-radius); }
+.b4-page :is(.b4-analyticsStats,.b4-historyStats) article>strong,
+.b4-page .bc4-detailMetrics>.bc4-yellowCard>strong { font-size: clamp(24px,2.4vw,32px); font-weight: 700; line-height: 1.3; font-variant-numeric: tabular-nums; white-space: normal; overflow-wrap: anywhere; }
+.b4-page :is(.b4-analyticsStats,.b4-historyStats) article>span { font-size: 14px; font-weight: 500; color: var(--b4-muted); }
+.b4-page :is(.bc4-button,.b4-scholarshipActions button) { min-height: 42px; border-radius: 10px; font-weight: 600; }
+.b4-page .bc4-button>svg { width: 18px; height: 18px; flex-shrink: 0; stroke-width: 1.8; }
+.b4-page :is(.bc4-field input,.bc4-field select,.bc4-field textarea,.bc4-progressFields input,.bc4-progressFields select,.b4-searchField input,.b4-selectField select) { min-height: var(--b4-control-height); font-size: 14px; line-height: 1.5; border-radius: 10px; }
+.b4-page input::placeholder,.b4-page textarea::placeholder { color: #736a7d; opacity: 1; }
+.b4-page .bc4-evaluation { gap: 12px; padding: 14px 16px; border-radius: 10px; font-size: 14px; }
+.b4-page .bc4-evaluation>svg { width: 22px; height: 22px; color: var(--b4-success); }
+.b4-page .bc4-evaluation.bc4-pending>svg { color: var(--b4-warning); }
+.b4-page .bc4-badge { color: var(--b4-success); background: #e7f4eb; font-weight: 500; }
+.b4-page .bc4-badgeWarning { color: var(--b4-warning); background: #fff0d4; }
+.b4-page .bc4-danger { color: var(--b4-danger); }
+.b4-page .bc4-recommendationHidden { opacity: 1; border-style: dashed; background: #faf8fc; }
+.b4-page .bc4-score { min-width: 150px; }
+.b4-page .bc4-score strong { font-size: 24px; font-weight: 700; line-height: 1.35; }
+.b4-page .bc4-score span { color: var(--b4-muted); font-size: 13px; }
+.b4-page .bc4-bubble { font-size: 15px; line-height: 1.75; }
+.b4-page :is(.bc4-empty,.bc4-status) { font-size: 14px; line-height: 1.7; }
+.b4-page :is(a,button,input,select,textarea,summary):focus-visible { outline: 3px solid #6500ad; outline-offset: 3px; }
+.b4-page .b4-searchField { display: flex; align-items: center; gap: 12px; min-height: var(--b4-control-height); padding: 0 16px; border-radius: 10px; background: #fff; }
+.b4-page .b4-searchField>svg { position: static; width: 20px; height: 20px; flex: 0 0 20px; color: var(--b4-muted); pointer-events: none; }
+.b4-page .b4-searchField input { flex: 1; width: 100%; min-width: 0; height: auto; min-height: 44px; margin: 0; padding: 10px 0; border: 0; border-radius: 0; background: transparent; color: var(--b4-ink); box-shadow: none; }
+.b4-page .b4-searchField:focus-within { border-color: var(--b4-purple); outline: 2px solid #6500ad; outline-offset: 2px; box-shadow: none; }
+.b4-page .b4-searchField input:focus,
+.b4-page .b4-searchField input:focus-visible { outline: none; box-shadow: none; }
+.b4-page .b4-selectField:focus-within { border-color: var(--b4-purple); }
+.b4-page button:disabled { opacity: .65; cursor: not-allowed; }
+@media(max-width:700px) {
+  .b4-page :is(.bc4-grid2,.bc4-grid3,.bc4-detailRecGrid,.bc4-profileRow) { grid-template-columns: minmax(0,1fr); gap: 16px; }
+  .b4-page .b4-tabs { gap: 24px; }
+  .b4-page :is(.bc4-sectionHeading,.bc4-sectionBody,.bc4-panel,.bc4-dialogBody,.bc4-recBody,.bc4-recommendationHeader) { padding: 20px; }
+  .b4-page .bc4-recommendationHeader { flex-wrap: wrap; }
+  .b4-page .bc4-score { min-width: 0; text-align: left; }
+  .b4-page .bc4-grid3>.bc4-yellowCard { min-height: 132px; }
+}
+@media(prefers-reduced-motion:reduce) { .b4-page *, .b4-page *::before, .b4-page *::after { scroll-behavior: auto; transition: none; animation: none; } }
