@@ -64,19 +64,19 @@ export function scholarshipQuery(search: string, level: string, page: number) {
 }
 
 function object(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Respons katalog belum sesuai kontrak.");
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Data beasiswa belum dapat dibaca. Silakan coba lagi.");
   return value as Record<string, unknown>;
 }
 
 function integer(value: unknown, minimum: number): number {
-  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < minimum) throw new Error("Paginasi katalog belum sesuai kontrak.");
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < minimum) throw new Error("Data beasiswa belum dapat dibaca. Silakan coba lagi.");
   return value;
 }
 
 function date(value: unknown): string | null {
   if (value === null || value === undefined) return null;
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}(?:T.*)?$/.test(value) || !Number.isFinite(Date.parse(value))) {
-    throw new Error("Tanggal katalog belum sesuai kontrak.");
+    throw new Error("Data beasiswa belum dapat dibaca. Silakan coba lagi.");
   }
   return value.slice(0, 10);
 }
@@ -86,13 +86,13 @@ function date(value: unknown): string | null {
 export function parseScholarshipPage(payload: unknown): ScholarshipPage {
   const root = object(payload);
   const pagination = root.meta === undefined ? root : object(root.meta);
-  if (!Array.isArray(root.data)) throw new Error("Daftar katalog belum sesuai kontrak.");
+  if (!Array.isArray(root.data)) throw new Error("Data beasiswa belum dapat dibaca. Silakan coba lagi.");
   const result: ScholarshipPage = {
     data: root.data.map(parseScholarshipRow),
     currentPage: integer(pagination.current_page, 1), lastPage: integer(pagination.last_page, 1),
     perPage: integer(pagination.per_page, 1), total: integer(pagination.total, 0),
   };
-  if (result.data.length > result.perPage || result.data.length > result.total) throw new Error("Jumlah katalog belum sesuai kontrak.");
+  if (result.data.length > result.perPage || result.data.length > result.total) throw new Error("Data beasiswa belum dapat dibaca. Silakan coba lagi.");
   return result;
 }
 
@@ -100,12 +100,14 @@ export function parseScholarshipRow(value: unknown): ScholarshipRow {
   const row = object(value);
   if (typeof row.nama_beasiswa !== "string" || !row.nama_beasiswa.trim()
     || !["SMA", "Kuliah", "Keduanya"].includes(String(row.jenjang)) || typeof row.is_active !== "boolean") {
-    throw new Error("Data katalog belum sesuai kontrak.");
+    throw new Error("Data beasiswa belum dapat dibaca. Silakan coba lagi.");
   }
+  if (row.status_pendaftaran != null && (typeof row.status_pendaftaran !== 'string' || !Object.hasOwn(REGISTRATION_STATUS_LABELS, row.status_pendaftaran))) throw new Error('Data beasiswa belum dapat dibaca. Silakan coba lagi.');
+  if (row.periode_apply != null && (typeof row.periode_apply !== 'string' || row.periode_apply.length > 255)) throw new Error('Data beasiswa belum dapat dibaca. Silakan coba lagi.');
   const nullableText = (value: unknown) => typeof value === "string" ? value : null;
   const durationValue = typeof row.durasi === "number" ? row.durasi
-    : typeof row.durasi === "string" && /^\d+$/.test(row.durasi) ? Number(row.durasi) : null;
-  const duration = durationValue !== null && Number.isSafeInteger(durationValue) && durationValue > 0 ? durationValue : null;
+    : typeof row.durasi === "string" && /^\d+(?:\.\d+)?$/.test(row.durasi) ? Number(row.durasi) : null;
+  const duration = durationValue !== null && Number.isFinite(durationValue) && durationValue > 0 ? durationValue : null;
   const result: ScholarshipRow = { id: integer(row.id, 1), name: row.nama_beasiswa,
     level: row.jenjang as ScholarshipLevel, active: row.is_active,
     programStatus: row.status_program === "aktif" || row.status_program === "diarsipkan"
@@ -118,7 +120,7 @@ export function parseScholarshipRow(value: unknown): ScholarshipRow {
     const criteria = row.kriteria.map((value) => {
       const criterion = object(value);
       if (!["nama_kriteria", "tipe_kriteria", "operator", "nilai_kriteria"].every((field) => typeof criterion[field] === "string")) {
-        throw new Error("Kriteria katalog belum sesuai kontrak.");
+        throw new Error("Data beasiswa belum dapat dibaca. Silakan coba lagi.");
       }
       const weight = typeof criterion.bobot === "number" ? criterion.bobot
         : typeof criterion.bobot === "string" && /^\d+(?:\.\d+)?$/.test(criterion.bobot) ? Number(criterion.bobot) : undefined;
@@ -154,8 +156,11 @@ export function scholarshipPeriod(row: ScholarshipRow) {
   const format = (value: string) => new Intl.DateTimeFormat("id-ID", {
     day: "numeric", month: "short", year: "numeric", timeZone: "UTC",
   }).format(new Date(`${value}T00:00:00Z`));
-  if (!row.opens && !row.closes) return "Belum tercatat";
+  if (!row.opens && !row.closes) return row.applyPeriod ? `${row.applyPeriod} (tanggal belum ditentukan)` : "Belum tercatat";
   if (!row.opens) return `Sampai ${format(row.closes!)}`;
   if (!row.closes) return `Mulai ${format(row.opens)}`;
   return `${format(row.opens)} – ${format(row.closes)}`;
 }
+
+// Compatibility for the existing status tests and earlier clients.
+export const registrationStatusLabels = REGISTRATION_STATUS_LABELS;

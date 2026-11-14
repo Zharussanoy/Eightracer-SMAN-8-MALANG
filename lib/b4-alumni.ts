@@ -1,131 +1,97 @@
-// Proyeksi baca admin. Tidak meneruskan kontak, NISN, lampiran atau pivot BE.
-export interface AlumniAdmission {
-  id: number;
-  studentId: number;
-  name: string;
-  university: string | null;
-  universityId: number | null;
-  program: string | null;
-  admission: string | null;
-  status: string | null;
-  entryYear: string | null;
+import { parseScholarshipEvidence, type ScholarshipEvidence } from "./b4-scholarship-evidence";
+export interface AlumniRow {
+  id: number; studentId: number; name: string; graduationYear: number | null;
+  university: string; universityId: number; universityKind: string | null;
+  studyProgram: string; admissionPath: string | null; admissionStatus: string;
+  latestStatus: string | null;
+}
+export interface AlumniFilters {
+  universities: { value: string; label: string }[]; studyPrograms: string[]; admissionPaths: string[];
 }
 export interface AlumniPage {
-  data: AlumniAdmission[];
-  currentPage: number;
-  lastPage: number;
-  total: number;
-  perPage: number;
+  data: AlumniRow[]; currentPage: number; lastPage: number; perPage: number; total: number; filters: AlumniFilters;
 }
-export type AlumniProfile = Omit<AlumniAdmission, "id"> & { id: number | null };
-export function parseAlumniProfile(payload: unknown, studentId: number, admissionId?: number): AlumniProfile {
-  const outer = record(payload), source = record(outer.data ?? outer);
-  if (admissionId !== undefined) {
-    const admission = parseAlumniPage({ data: [source], current_page: 1, last_page: 1, per_page: 1, total: 1 }).data[0];
-    if (admission.id !== admissionId || admission.studentId !== studentId) throw new Error("Profil penerimaan tidak sesuai alumni yang dipilih.");
-    return admission;
-  }
-  if (id(source.id) !== studentId || !text(source.nama_lengkap)) throw new Error("Profil alumni belum sesuai kontrak.");
-  return { id: null, studentId, name: text(source.nama_lengkap)!, university: null, universityId: null, program: null, admission: null, status: null, entryYear: null };
+export interface AlumniProgressRow {
+  id: number; semester: number | null; period: string | null; status: string | null;
+  gpa: number | null; kipk: boolean | null; ukt: number | null; ipi: number | null;
+  revision: number | null; updatedAt: string | null; published: boolean; publishFinancials: boolean;
+  scholarships: { id: number; name: string | null; status: string; amount: number | null }[];
 }
-export interface AlumniEvent {
-  id: string;
-  kind: string;
-  date: string | null;
-  year: string | null;
-  semester: number | null;
-  period: string | null;
-  status: string | null;
-  ipk: number | null;
-  ukt: number | null;
-  ipi: number | null;
-  kipk: boolean | null;
-  scholarships: { name: string; status: string | null }[];
-  university: string | null;
-  program: string | null;
-  current: boolean | null;
+export interface AlumniDetail extends AlumniRow {
+  scholarshipEvidence: ScholarshipEvidence; hasNisn: boolean; classroom: string | null; degree: string | null; admissionSubpath: string | null;
+  choice: number | null; admissionYear: number | null; reportScore: number | null;
+  utbkScore: number | null; progress: AlumniProgressRow[]; catalogOptions: { id: number; name: string }[];
 }
-export interface AlumniTimeline { name: string | null; events: AlumniEvent[] }
-type Obj = Record<string, unknown>;
-export function record(value: unknown): Obj {
-  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Struktur respons alumni belum sesuai kontrak.");
-  return value as Obj;
+function obj(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
+  return value as Record<string, unknown>;
 }
-function relation(value: unknown): Obj { return value && typeof value === "object" && !Array.isArray(value) ? value as Obj : {}; }
-function text(value: unknown): string | null { return typeof value === "string" && value.trim() ? value : null; }
-function number(value: unknown): number | null {
-  if (typeof value !== "number" && !(typeof value === "string" && /^\d+(?:\.\d+)?$/.test(value))) return null;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
+function text(value: unknown): string {
+  if (typeof value !== "string" || !value.trim() || value.length > 2000) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
+  return value;
 }
-function id(value: unknown): number {
-  const parsed = number(value);
-  if (parsed === null || !Number.isSafeInteger(parsed) || parsed < 1) throw new Error("ID alumni belum sesuai kontrak.");
-  return parsed;
+function maybeText(value: unknown): string | null { return value == null ? null : text(value); }
+function integer(value: unknown, min = 1): number {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < min) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
+  return value;
 }
-function calendar(value: unknown): string | null { return typeof value === "string" && /^\d{4}-\d{2}-\d{2}(?:T.*)?$/.test(value) ? value.slice(0, 10) : null; }
-function year(value: unknown): string | null { return /^\d{4}$/.test(String(value)) ? String(value) : null; }
-function university(row: Obj): string | null {
-  const campus = relation(row.perguruan_tinggi);
-  return text(campus.nama_pt) ?? text(campus.nama_perguruan_tinggi) ?? text(campus.nama) ?? text(row.nama_perguruan_tinggi);
+function maybeInteger(value: unknown): number | null { return value == null ? null : integer(value); }
+function decimal(value: unknown): number | null {
+  if (value == null) return null;
+  if ((typeof value !== "number" && typeof value !== "string") || (typeof value === "string" && value.trim() === "") || !Number.isFinite(Number(value)) || Number(value) < 0) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
+  return Number(value);
+}
+function row(payload: unknown): AlumniRow {
+  const data = obj(payload), university = obj(data.perguruan_tinggi);
+  return {
+    id: integer(data.id), studentId: integer(data.siswa_id), name: text(data.nama_lengkap),
+    graduationYear: maybeInteger(data.tahun_lulus), university: text(university.nama_pt),
+    universityId: integer(university.id), universityKind: maybeText(university.jenis_pt),
+    studyProgram: text(data.program_studi), admissionPath: maybeText(data.jalur_masuk),
+    admissionStatus: text(data.status_penerimaan), latestStatus: maybeText(data.status_terakhir),
+  };
 }
 export function parseAlumniPage(payload: unknown): AlumniPage {
-  const outer = record(payload);
-  const root = Array.isArray(outer.data) ? outer : record(outer.data);
-  const meta = root.meta === undefined ? root : record(root.meta);
-  if (!Array.isArray(root.data)) throw new Error("Daftar alumni belum sesuai kontrak.");
-  const data = root.data.map((value): AlumniAdmission => {
-    const row = record(value), student = relation(row.siswa);
-    const name = text(student.nama_lengkap) ?? text(row.nama_lengkap);
-    if (!name) throw new Error("Nama alumni belum dikirim oleh BE.");
-    return { id: id(row.id), studentId: id(row.siswa_id ?? student.id), name,
-      university: university(row), universityId: number(row.perguruan_tinggi_id ?? relation(row.perguruan_tinggi).id), program: text(row.program_studi), admission: text(row.jalur_masuk),
-      status: text(row.status_penerimaan), entryYear: year(row.tahun_masuk_pt) };
-  });
-  const total = number(meta.total);
-  if (total === null || !Number.isSafeInteger(total) || total < data.length) throw new Error("Jumlah alumni belum sesuai kontrak.");
-  return { data, currentPage: id(meta.current_page), lastPage: id(meta.last_page), perPage: id(meta.per_page), total };
+  const data = obj(payload), filters = obj(data.filters);
+  if (!Array.isArray(data.data) || !Array.isArray(filters.universities) || !Array.isArray(filters.study_programs) || !Array.isArray(filters.admission_paths)) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
+  const page: AlumniPage = {
+    data: data.data.map(row), currentPage: integer(data.current_page), lastPage: integer(data.last_page),
+    perPage: integer(data.per_page), total: integer(data.total, 0),
+    filters: {
+      universities: filters.universities.map((value) => { const item = obj(value); return { value: String(integer(item.id)), label: text(item.nama_pt) }; }),
+      studyPrograms: filters.study_programs.map(text), admissionPaths: filters.admission_paths.map(text),
+    },
+  };
+  if (page.data.length > page.perPage || page.data.length > page.total) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
+  return page;
 }
-export function parseAlumniTimeline(payload: unknown): AlumniTimeline {
-  const outer = record(payload);
-  const source = outer.data ?? outer;
-  const root = relation(source);
-  const collection = Array.isArray(source) ? source : root.timeline ?? root.progress ?? root.progres ?? root.riwayat_progress;
-  if (!Array.isArray(collection)) throw new Error("Struktur timeline perlu dicocokkan dengan respons BE; data contoh tidak digunakan.");
-  // Respons BE asli mengelompokkan kejadian per penerimaan PT:
-  // data: [{ study_tracer_id, events: [{ type, date, year, label, ... }] }].
-  const rows = collection.flatMap((value) => {
-    const group = record(value);
-    if ("events" in group) {
-      if (!Array.isArray(group.events)) throw new Error("Kejadian timeline belum sesuai kontrak.");
-      return group.events.map((event) => ({ event: record(event), admission: group.study_tracer_id }));
-    }
-    return [{ event: group, admission: group.study_tracer_id }];
-  });
-  const student = relation(root.siswa ?? root.alumni);
-  const events = rows.map(({ event, admission }, index): AlumniEvent => {
-    const detail = relation(event.data);
-    const row = { ...event, ...detail };
-    if (!["type", "jenis", "title", "label", "semester", "tanggal_update", "date", "tanggal", "year", "tahun"].some((key) => row[key] !== undefined)) {
-      throw new Error("Kejadian timeline belum sesuai kontrak.");
-    }
-    const rawScholarships = row.beasiswa;
-    const scholarships = Array.isArray(rawScholarships) ? rawScholarships.map((value) => {
-      const item = relation(value), catalog = relation(item.beasiswa);
-      return { name: text(item.nama_beasiswa) ?? text(catalog.nama_beasiswa), status: text(item.status_beasiswa) };
-    }).filter((item): item is { name: string; status: string | null } => item.name !== null) : [];
-    const semester = number(row.semester), ipk = number(row.ipk_terkini);
-    return { id: `${admission ?? "timeline"}:${text(event.type) ?? text(event.jenis) ?? "event"}:${row.id ?? index}:${index}`,
-      kind: text(event.label) ?? text(event.title) ?? text(event.type) ?? text(event.jenis) ?? (semester !== null ? "Progres perkuliahan" : "Riwayat pendidikan"),
-      date: event.granularity === "year" ? null : calendar(row.tanggal_update ?? event.tanggal ?? event.date),
-      year: year(row.tahun_masuk_pt ?? row.tahun_lulus ?? event.year ?? event.tahun),
-      semester: semester !== null && Number.isInteger(semester) && semester > 0 ? semester : null,
-      period: text(row.periode), status: text(row.status_pendidikan) ?? text(row.status_penerimaan),
-      ipk: ipk !== null && ipk >= 0 && ipk <= 4 ? ipk : null,
-      ukt: number(row.nominal_ukt), ipi: number(row.nominal_ipi),
-      kipk: typeof row.penerima_kipk === "boolean" ? row.penerima_kipk : null,
-      scholarships, university: university(row), program: text(row.program_studi),
-      current: typeof row.is_current === "boolean" ? row.is_current : null };
-  });
-  return { name: text(student.nama_lengkap) ?? text(root.nama_lengkap), events };
+export function parseAlumniDetail(payload: unknown): AlumniDetail {
+  const data = obj(obj(payload).data);
+  if (typeof data.has_nisn !== "boolean" || !Array.isArray(data.progress)) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
+  return { ...row(data), scholarshipEvidence: parseScholarshipEvidence(data.scholarship_summary), hasNisn: data.has_nisn, classroom: maybeText(data.kelas_terakhir), degree: maybeText(data.strata_pendidikan),
+    admissionSubpath: maybeText(data.sub_jalur_mandiri), choice: maybeInteger(data.pilihan_ke),
+    admissionYear: maybeInteger(data.tahun_masuk_pt), reportScore: decimal(data.nilai_rapor_pendaftaran),
+    utbkScore: decimal(data.skor_utbk),
+    catalogOptions: (Array.isArray(data.catalog_options) ? data.catalog_options : []).map((value) => { const item = obj(value); return { id: integer(item.id), name: text(item.nama_beasiswa) }; }),
+    progress: data.progress.map((value) => {
+      const item = obj(value);
+      if ((item.penerima_kipk !== null && typeof item.penerima_kipk !== "boolean") || !Array.isArray(item.beasiswa)) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
+      const gpa = decimal(item.ipk_terkini);
+      if (gpa !== null && gpa > 4) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
+      return { id: integer(item.id), revision: maybeInteger(item.revision), updatedAt: maybeText(item.tanggal_update),
+        published: item.is_published === true, publishFinancials: item.publish_financials === true, semester: maybeInteger(item.semester), period: maybeText(item.periode),
+        status: maybeText(item.status_pendidikan), gpa, kipk: item.penerima_kipk,
+        ukt: decimal(item.nominal_ukt), ipi: decimal(item.nominal_ipi),
+        scholarships: item.beasiswa.map((value) => { const scholarship = obj(value); return { id: integer(scholarship.beasiswa_id), name: maybeText(scholarship.nama_beasiswa), status: text(scholarship.status), amount: decimal(scholarship.nominal_beasiswa) }; }),
+      };
+    }),
+  };
+}
+export function alumniQuery(search: string, university: string, program: string, admission: string, page: number) {
+  const query = new URLSearchParams({ page: String(page) });
+  if (search.trim()) query.set("search", search.trim());
+  if (university) query.set("perguruan_tinggi_id", university);
+  if (program) query.set("program_studi", program);
+  if (admission) query.set("jalur_masuk", admission);
+  return query.toString();
 }

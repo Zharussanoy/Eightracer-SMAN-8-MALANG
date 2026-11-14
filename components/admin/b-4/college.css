@@ -58,7 +58,7 @@
 .b4-tableFrame { border: 1px solid var(--b4-border); border-radius: 11px; overflow: hidden; }
 .b4-tableScroll { overflow-x: auto; }
 .b4-table { width: 100%; min-width: 1060px; border-collapse: collapse; text-align: center; }
-.b4-table th { background: var(--b4-lilac); text-transform: uppercase; font-size: 16px; font-weight: 700; height: 60px; padding: 12px 18px; white-space: nowrap; }
+.b4-table th { background: var(--b4-lilac); text-transform: none; font-size: 16px; font-weight: 700; height: 60px; padding: 12px 18px; white-space: nowrap; }
 .b4-table td { border-top: 1px solid #bdbdbd; height: 60px; padding: 10px 18px; line-height: 1.5; }
 .b4-table th:first-child { width: 19%; }
 .b4-table th:nth-child(2) { width: 20%; }
@@ -195,7 +195,7 @@
 .b4-historyPanel > h2 { margin-bottom: 25px; }
 .b4-historyTableWrap { overflow-x: auto; border: 1px solid #c9a9dc; border-radius: 10px; }
 .b4-historyTable { width: 100%; min-width: 850px; border-collapse: collapse; text-align: center; }
-.b4-historyTable th { height: 40px; padding: 8px 13px; color: #171717; background: #e7d9ef; font-size: 14px; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+.b4-historyTable th { height: 40px; padding: 8px 13px; color: #171717; background: #e7d9ef; font-size: 14px; font-weight: 700; text-transform: none; white-space: nowrap; }
 .b4-historyTable td { height: 63px; padding: 10px 13px; border-top: 1px solid #bdbdbd; font-size: 14px; }
 .b4-historyTable th:first-child, .b4-historyTable td:first-child { text-align: left; padding-left: 28px; }
 .b4-historyActions { text-align: center; white-space: nowrap; }

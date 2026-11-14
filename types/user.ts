@@ -10,6 +10,7 @@ export interface UserProfile {
   role: "siswa" | "guru" | "admin" | "alumni";
   backendRole?: "administrator" | "siswa" | "guru";
   emailVerified?: boolean;
+  accountActive?: boolean;
   schoolStaff?: boolean;
   schoolRole?: string | null;
   statusSiswa?: "aktif" | "lulus";

@@ -30,7 +30,7 @@ export function scholarshipDraftErrors(draft: ScholarshipDraft): Record<string, 
   if (!draft.criteria.length) errors.criteria = "Tambahkan minimal satu kriteria pada draf.";
   draft.criteria.forEach((criterion, index) => {
     if (!criterion.name.trim()) errors[`criteria.${index}.name`] = "Isi nama kriteria atau hapus baris yang tidak digunakan.";
-    if (criterion.weight.trim() && (!Number.isFinite(Number(criterion.weight)) || Number(criterion.weight) < 0)) errors[`criteria.${index}.weight`] = "Isi bobot draf berupa angka nol atau positif. Batas resmi masih menunggu BE.";
+    if (criterion.weight.trim() && (!Number.isFinite(Number(criterion.weight)) || Number(criterion.weight) < 0)) errors[`criteria.${index}.weight`] = "Isi bobot berupa angka nol atau positif.";
   });
   return errors;
 }

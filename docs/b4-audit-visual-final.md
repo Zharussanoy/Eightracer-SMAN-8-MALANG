@@ -34,3 +34,9 @@ Screenshot lokal sintetis disimpan di `.next/b4-final/` (diabaikan Git). Build b
 Tidak ada data siswa/alumni atau konfigurasi BE yang diubah. Setelah audit, pengguna mengizinkan push revisi FE ke branch b4.
 
 Penggabungan timeline ke detail diuji ulang lewat daftar alumni: halaman detail memuat perjalanan SMA, semester kuliah dan detail semester; hanya satu kartu profil, tanpa tombol ke halaman timeline terpisah. Build, lint dan 32 tes integrasi ulang lulus.
+
+## Sinkronisasi rekan sebelum push
+
+Push pertama ditolak karena origin/b4 telah diperbarui sampai 1dba6ac. Pembaruan itu digabung tanpa force push. Bagian batas BE di atas merekam keadaan sebelum sinkronisasi, bukan status implementasi terbaru: rekan telah menambahkan Simpan/Generate rekomendasi, hasil otomatis siswa, kontrol progres serta pratinjau/commit impor progres.
+
+Timeline dipasang pula pada AdminAlumniDetailPage terbaru memakai proyeksi timeline berizin, dan tab global Timeline dihapus. Pertanyaan lanjutan chat diterapkan pada ScholarshipChatApi yang sekarang aktif. Build gabungan dan 122 tes lokal lulus. Belum melakukan uji operasi tulis atau provider di BE sekolah; keberhasilan kode/tes lokal bukan bukti layanan tersebut sudah lulus di server tujuan.

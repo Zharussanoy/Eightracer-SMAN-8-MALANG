@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@/context/UserContext";
-import type { AlumniProfile, AlumniPage, AlumniTimeline } from "@/lib/b4-alumni";
+import type { AlumniProfile, AlumniPage, AlumniTimeline } from "@/lib/b4-alumni-legacy";
 import B4Shell from "./B4Shell";
 import NumberPagination from "./NumberPagination";
 import FigmaIcon from "./FigmaIcon";
@@ -85,7 +85,7 @@ function Directory({ timeline }: { timeline: boolean }) {
       </> : <div className="b4-tableFrame">
         <div className="b4-tableScroll" role="region" aria-label="Daftar alumni" tabIndex={0}><table className="b4-table">
           <thead><tr><th>Nama Alumni</th><th>Perguruan Tinggi</th><th>Program Studi</th><th>Jalur Masuk</th><th>Status Penerimaan</th><th><span className="b4-srOnly">Aksi</span></th></tr></thead>
-          <tbody>{data.data.map((row) => <tr key={row.id}><td>{row.name}</td><td>{row.university ?? "Belum tercatat"}</td><td>{row.program ?? "Belum tercatat"}</td><td>{row.admission ?? "Belum tercatat"}</td><td>{row.status ?? "Belum tercatat"}</td><td><Link className="b4-detailButton" aria-label={`Lihat detail ${row.name}`} href={`/admin/alumni-perguruan-tinggi/informasi-detail?id=${row.studentId}&penerimaan_id=${row.id}`}>Lihat Detail</Link></td></tr>)}
+          <tbody>{data.data.map((row) => <tr key={row.id}><td>{row.name}</td><td>{row.university ?? "Belum tercatat"}</td><td>{row.program ?? "Belum tercatat"}</td><td>{row.admission ?? "Belum tercatat"}</td><td>{row.status ?? "Belum tercatat"}</td><td><Link className="b4-detailButton" aria-label={`Lihat detail ${row.name}`} href={`/admin/alumni-perguruan-tinggi/informasi-detail?id=${row.id}`}>Lihat Detail</Link></td></tr>)}
             {!data.data.length && <tr><td colSpan={6}>Tidak ada alumni yang sesuai dengan pencarian dan filter.</td></tr>}</tbody>
         </table></div>
         <div className="b4-tableFooter"><p>Menampilkan {data.data.length ? (data.currentPage - 1) * data.perPage + 1 : 0}–{data.data.length ? (data.currentPage - 1) * data.perPage + data.data.length : 0} dari {data.total} penerimaan PT</p><NumberPagination current={data.currentPage} last={data.lastPage} onChange={setPage} /></div>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { displayTitle } from "@/lib/display-copy";
 import FigmaIcon from "@/components/b4/FigmaIcon";
 
 const tabs = [
@@ -35,10 +36,10 @@ export default function B4Tabs({ active, query }: { query?: string; active: "Alu
     <nav ref={navRef} className="b4-tabs" aria-label="Layanan Alumni dan Beasiswa">
       {tabs.map((tab) => tab.href ? (
         <Link key={tab.label} href={`${tab.href}${query && ["Analitik Beasiswa", "Ringkasan Pola"].includes(tab.label) ? `?${query}` : ""}`} className={active === tab.label ? "b4-activeTab" : undefined}
-          aria-current={active === tab.label ? "page" : undefined}>{tab.label}{tab.label === "Rekomendasi Beasiswa" && <FigmaIcon name="sparkle" size={20} />}</Link>
+          aria-current={active === tab.label ? "page" : undefined}>{displayTitle(tab.label)}{tab.label === "Rekomendasi Beasiswa" && <FigmaIcon name="sparkle" size={20} />}</Link>
       ) : (
         <button key={tab.label} type="button" disabled title="Halaman ini belum tersedia">
-          {tab.label}<span className="b4-srOnly"> (belum tersedia)</span>
+          {displayTitle(tab.label)}<span className="b4-srOnly"> (belum tersedia)</span>
         </button>
       ))}
     </nav>

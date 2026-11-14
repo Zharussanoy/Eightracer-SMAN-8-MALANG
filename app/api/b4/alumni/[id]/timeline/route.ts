@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { parseAlumniTimeline } from "@/lib/b4-alumni";
+import { parseAlumniTimeline } from "@/lib/b4-alumni-legacy";
 import { AuthError, authResponse } from "@/lib/server/backend-auth";
 import { alumniFailure, readBackendAlumni } from "@/lib/server/backend-alumni";
 

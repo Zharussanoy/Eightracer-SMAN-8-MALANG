@@ -2,7 +2,7 @@
 
 import AdminTimelineView from "./AdminTimelineView";
 import { UserRound } from "lucide-react";
-import type { AlumniProfile, AlumniTimeline } from "@/lib/b4-alumni";
+import type { AlumniProfile, AlumniTimeline } from "@/lib/b4-alumni-legacy";
 const known = (value: string | number | null | undefined) => value ?? "Belum tercatat";
 const money = (value: number | null) => value === null ? "Belum tercatat" : `Rp${value.toLocaleString("id-ID")}`;
 export default function AdminAlumniInformationView({ profile, data }: { profile?: AlumniProfile; data: AlumniTimeline }) {

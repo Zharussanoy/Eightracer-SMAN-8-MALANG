@@ -3,12 +3,14 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import ts from "typescript";
 
-const compiled = ts.transpileModule(await readFile(new URL("../lib/b4-student-alumni.ts", import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
+const evidenceCode = ts.transpileModule(await readFile(new URL("../lib/b4-scholarship-evidence.ts", import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
+const evidenceUrl = `data:text/javascript;base64,${Buffer.from(evidenceCode).toString("base64")}`;
+const compiled = ts.transpileModule(await readFile(new URL("../lib/b4-student-alumni.ts", import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText.replace('"./b4-scholarship-evidence"', JSON.stringify(evidenceUrl));
 const api = await import(`data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}`);
 const published = () => ({ id: 31, nama_lengkap: "Alumni Sintetis", tahun_lulus: 2024, masuk_pt: { perguruan_tinggi: { nama_pt: "Kampus Sintetis" }, program_studi: "Psikologi", jalur_masuk: "SNBP", tahun_masuk_pt: 2024, prestasi: [{ id: 1, nama_kompetisi: "Kompetisi Sintetis", tingkat: "Provinsi", tahun: 2023, siswa_id: 71, url_bukti: "rahasia", pivot: { bobot: 50 } }] }, nisn: "rahasia", no_wa: "rahasia" });
 
 test("paginator kosong siswa tetap kosong, tanpa mengambil data staff atau contoh", () => {
-  assert.deepEqual(api.parseStudentAlumniPage({ current_page: 1, last_page: 1, per_page: 20, total: 0, data: [] }), { currentPage: 1, lastPage: 1, perPage: 20, total: 0, data: [] });
+  assert.deepEqual(api.parseStudentAlumniPage({ current_page: 1, last_page: 1, per_page: 20, total: 0, data: [] }), { currentPage: 1, lastPage: 1, perPage: 20, total: 0, data: [], preview: false });
   assert.throws(() => api.parseStudentAlumniPage({ data: [], current_page: 1 }));
 });
 test("proyeksi prestasi dan identitas hanya memakai field publik yang ditentukan", () => {

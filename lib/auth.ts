@@ -3,7 +3,10 @@ import type { UserProfile } from "@/types/user";
 export interface ApiUser {
   id: number | string;
   full_name: string;
-  email: string;
+  email: string | null;
+  account_active?: boolean;
+  school_provisioned?: boolean;
+  password_change_recommended?: boolean;
   role: "administrator" | "siswa" | "guru";
   email_verified: boolean;
   school_staff?: boolean;
@@ -35,7 +38,10 @@ export function isApiUser(value: unknown): value is ApiUser {
   const user = value as Record<string, unknown>;
   return (typeof user.id === "number" || typeof user.id === "string")
     && typeof user.full_name === "string" && user.full_name.trim().length > 0
-    && typeof user.email === "string"
+    && (typeof user.email === "string" || user.email === null)
+    && (user.account_active === undefined || typeof user.account_active === "boolean")
+    && (user.school_provisioned === undefined || typeof user.school_provisioned === "boolean")
+    && (user.password_change_recommended === undefined || typeof user.password_change_recommended === "boolean")
     && ["administrator", "siswa", "guru"].includes(String(user.role))
     && typeof user.email_verified === "boolean"
     && (user.school_staff === undefined || typeof user.school_staff === "boolean")
@@ -44,18 +50,19 @@ export function isApiUser(value: unknown): value is ApiUser {
 
 export function toUserProfile(user: ApiUser): UserProfile {
   return {
-    id: String(user.id), name: user.full_name, email: user.email,
+    id: String(user.id), name: user.full_name, email: user.email ?? "",
     avatar: "/images/avatar-placeholder.svg",
     role: user.role === "administrator" ? "admin" : user.role,
     backendRole: user.role,
     emailVerified: user.email_verified,
+    accountActive: user.account_active ?? user.email_verified,
     schoolStaff: user.email_verified && (user.role === "administrator" || (user.role === "guru" && user.school_staff === true)),
     schoolRole: user.school_role ?? null,
   };
 }
 
 export function loginDestination(user: UserProfile) {
-  if (!user.emailVerified) return "/profile";
+  if (!user.emailVerified && !user.accountActive) return "/profile";
   if (user.schoolStaff) return "/admin/alumni-perguruan-tinggi";
   if (user.role === "siswa") return "/siswa/jejak-alumni";
   return "/profile";

@@ -201,12 +201,6 @@ export default function Navbar() {
               >
                 Masuk
               </Link>
-              <Link
-                href="/register"
-                className="text-sm font-semibold text-white bg-[#5F089E] hover:bg-[#4d0680] active:bg-[#3d0566] px-6 py-2.5 rounded-full shadow-md shadow-purple-900/25 hover:shadow-lg transition-all transform hover:-translate-y-0.5"
-              >
-                Daftar
-              </Link>
             </div>
           )}
 
@@ -332,13 +326,6 @@ export default function Navbar() {
                 className="w-full text-center py-2.5 rounded-full font-semibold text-[#5F089E] border border-[#5F089E]/30 hover:bg-purple-50 transition-colors"
               >
                 Masuk
-              </Link>
-              <Link
-                href="/register"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center py-2.5 rounded-full font-semibold text-white bg-[#5F089E] hover:bg-[#4d0680] transition-colors shadow-md shadow-purple-900/20"
-              >
-                Daftar Sekarang
               </Link>
             </div>
           )}

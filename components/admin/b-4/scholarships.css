@@ -4,7 +4,7 @@
 .b4-addScholarship:hover { background: #51008e; }
 .b4-scholarshipsFrame { overflow: hidden; border: 1px solid var(--b4-border); border-radius: 11px; }
 .b4-scholarshipsTable { width: 100%; min-width: 1080px; border-collapse: collapse; text-align: center; }
-.b4-scholarshipsTable th { height: 60px; padding: 12px 16px; background: #e9dff2; font-size: 16px; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+.b4-scholarshipsTable th { height: 60px; padding: 12px 16px; background: #e9dff2; font-size: 16px; font-weight: 700; text-transform: none; white-space: nowrap; }
 .b4-scholarshipsTable th:first-child { width: 23%; }
 .b4-scholarshipsTable th:nth-child(2) { width: 12%; }
 .b4-scholarshipsTable th:nth-child(3) { width: 13%; }

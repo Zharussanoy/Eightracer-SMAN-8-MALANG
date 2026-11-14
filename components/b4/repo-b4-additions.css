@@ -1,0 +1,83 @@
+/* Rules from the FE b4 branch for the connected components. */
+.bc4-studentAlumniLive { overflow-wrap: anywhere; }
+.bc4-adminTimelineLive { margin-top: 24px; overflow-wrap: anywhere; }
+.bc4-adminTimelineLive .bc4-schoolTimeline { grid-template-columns: repeat(auto-fit,minmax(170px,1fr)); }
+.bc4-adminTimelineLive .bc4-note { margin-top: 20px; }
+.bc4-studentAlumniLive .bc4-infoList { grid-template-columns: minmax(0,1fr); }
+.bc4-studentAlumniLive .bc4-alumniCard .bc4-avatar { width: 60px; height: 60px; flex-basis: 60px; }
+.bc4-studentAlumniFooter { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px 12px; margin-top: 24px; border-radius: 0 0 10px 10px; background: linear-gradient(110deg,#f5eaff,#d1c9ef); }
+.bc4-studentAlumniLive .bc4-schoolTimeline { grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); }
+.bc4-studentAlumniLive .bc4-semesterTimeline { min-width: 0; grid-template-columns: repeat(auto-fit,minmax(125px,1fr)); }
+.bc4-extraInformation > summary, .bc4-criterionSettings > summary { cursor:pointer; color:var(--b4-purple); font-size:12px; }
+.bc4-extraInformation[open] > summary, .bc4-criterionSettings[open] > summary { margin-bottom:14px; }
+.bc4-criterionSettings { padding:10px 8px 0; }
+.bc4-criterionSettings > summary { display:flex; align-items:center; gap:6px; }
+.bc4-criterionSettings > .bc4-fields { padding:14px; border:1px solid #e3d6ec; border-radius:10px; }
+.bc4-button:disabled, .b4-scholarshipActions button:disabled { opacity:.55; cursor:wait; }
+.bc4-liveChart { overflow-x: auto; margin-top: 24px; }
+.bc4-liveBars { display: flex; align-items: flex-end; gap: 24px; min-height: 235px; padding: 12px 8px; list-style: none; }
+.bc4-liveBars li { flex: 1 0 70px; text-align: center; font-size: 13px; }
+.bc4-liveBarArea { min-height: 185px; display: flex; align-items: center; justify-content: flex-end; flex-direction: column; border-bottom: 1px solid #ddd; margin-bottom: 8px; }
+.bc4-liveBarArea strong { color: var(--b4-purple); font-size: 13px; margin-bottom: 8px; }
+.bc4-liveBarArea > span { width: 48px; max-width: 80%; background: var(--b4-purple); border-radius: 7px 7px 0 0; }
+.bc4-analyticsLive { padding-top: 8px; }
+.bc4-analyticsLive .b4-analyticsFilters { grid-template-columns: repeat(4,minmax(0,1fr)); align-items: start; gap: 12px; }
+.bc4-analyticsLive .b4-analyticsFilters > * { min-width: 0; grid-column: auto; }
+.bc4-analyticsLive .b4-analyticsStats { margin-top: 20px; }
+.bc4-analyticsLive .b4-analyticsStats article { min-width: 0; justify-content: flex-start; gap: 16px; }
+.bc4-analyticsLive .b4-analyticsStats article > strong { display: flex; min-height: 46px; align-items: center; }
+.bc4-analyticsLive .b4-analyticsStats article > small { margin-top: auto; line-height: 1.5; }
+.bc4-analyticsLive .b4-analyticsStats article strong.bc4-metricMissing { font-size: clamp(20px,2vw,26px); line-height: 1.4; }
+.bc4-analyticsLive .b4-analyticsCard > .bc4-empty { display: grid; flex: 1; min-height: 220px; place-content: center; margin: 18px 0 0; padding: 24px 18px; border: 0; border-radius: 0; background: white; font-size: 14px; }
+.bc4-scholarshipFilter { position: relative; min-width: 0; color: #666; }
+.bc4-scholarshipFilter > summary { display: flex; height: 47px; align-items: center; justify-content: space-between; gap: 12px; padding: 0 20px; border: 1px solid var(--b4-border); border-radius: 11px; background: white; cursor: pointer; list-style: none; font-size: 14px; }
+.bc4-scholarshipFilter > summary::-webkit-details-marker { display: none; }
+.bc4-scholarshipFilter > summary > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bc4-scholarshipFilter > summary svg { flex-shrink: 0; }
+.bc4-scholarshipFilter[open] > summary { box-shadow: 0 0 0 2px #b57ce250; }
+.bc4-scholarshipOptions { position: absolute; z-index: 30; top: calc(100% + 8px); right: 0; width: max(100%,280px); max-width: calc(100vw - 48px); padding: 12px; border: 1px solid #d9c9e7; border-radius: 12px; background: white; box-shadow: 0 10px 28px #23103024; }
+.bc4-scholarshipChoices { max-height: 245px; overflow-y: auto; margin-top: 8px; }
+.bc4-scholarshipChoices > button { display: block; width: 100%; padding: 10px 12px; border: 0; border-radius: 7px; background: white; color: #27202d; text-align: left; font-size: 14px; }
+.bc4-scholarshipChoices > button:hover,.bc4-scholarshipChoices > button[aria-pressed="true"] { color: var(--b4-purple); background: #f1e9f9; }
+.bc4-scholarshipOptions > p { margin: 10px 3px 2px; color: #777; font-size: 12px; }
+@media(max-width:850px) { .bc4-analyticsLive .b4-analyticsFilters { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+.bc4-paginationItem { display: inline-flex; align-items: center; gap: 10px; }
+.bc4-paginationEllipsis { color: #141414; font-size: 16px; font-weight: 600; }
+.bc4-catalogActions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.bc4-catalogActions > .bc4-button { min-height: 47px; white-space: nowrap; }
+
+/* Use the existing progress form layout with native, readable controls. */
+.bc4-progressAwards { display:grid; gap:10px; max-height:180px; overflow-y:auto; padding:14px; border:1px solid var(--b4-border); border-radius:12px; background:white; }
+.bc4-progressAwards > label { display:flex; align-items:center; gap:10px; cursor:pointer; font-size:14px; }
+.bc4-progressAwards input[type=checkbox] { width:17px!important; min-width:17px; min-height:17px; height:17px; margin:0; padding:0; accent-color:var(--b4-purple); }
+.bc4-moneyField { display:flex; align-items:center; overflow:hidden; border:1px solid var(--b4-border); border-radius:12px; background:white; }
+.bc4-moneyField > span { position:static; display:flex; align-items:center; padding:0 0 0 16px; color:#655a70; flex:0 0 auto; }
+.bc4-moneyField > input { min-width:0; flex:1; width:100%; border:0; border-radius:0; padding-left:12px; }
+.bc4-moneyField:focus-within { outline:2px solid #b57ce2; outline-offset:2px; }
+.bc4-moneyField:has(input:disabled) { background:#f3f0f6; }
+
+
+.bc4-timelinePagination { display:flex; justify-content:flex-end; margin-top:24px; }
+.bc4-profileRow .bc4-profile h2 { font-size:clamp(22px,2vw,30px); overflow-wrap:anywhere; }
+.bc4-profileRow .bc4-profile p { overflow-wrap:anywhere; }
+
+.bc4-sampleValue{overflow-wrap:anywhere}
+.bc4-sampleBlock{width:100%;min-width:0}
+
+.bc4-previewSemesters{grid-template-columns:repeat(3,minmax(180px,1fr));min-width:600px;padding:28px 24px 32px}
+.bc4-previewSemesters h3{font-size:16px;line-height:1.5;margin:0 0 4px}
+.bc4-previewSemesters p,.bc4-previewSemesters small{font-size:13px;line-height:1.6}
+.bc4-previewMetrics{padding:0 24px 28px;gap:18px}
+.bc4-previewMetrics .bc4-yellowCard{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:140px;padding:22px 16px}
+.bc4-previewMetrics .bc4-yellowCard>span{font-size:14px;line-height:1.5}
+.bc4-previewMetrics .bc4-yellowCard>strong{font-size:clamp(19px,1.8vw,28px);line-height:1.35;overflow-wrap:normal;word-break:normal;margin:0}
+.bc4-previewMetrics .bc4-yellowCard>small{font-size:12px;color:#756c80;line-height:1.5}
+@media(max-width:700px){.bc4-previewMetrics{grid-template-columns:repeat(2,minmax(0,1fr));padding:0 14px 20px;gap:12px}}
+
+.bc4-referenceAlumni .bc4-profile{align-items:center;gap:20px}
+.bc4-referenceAlumni .bc4-avatar{flex:0 0 80px;width:80px;height:80px;border-radius:18px}
+.bc4-referenceAlumni .bc4-profile>div{min-width:0}
+.bc4-referenceAlumni .bc4-profile h2{font-size:22px;line-height:1.4;margin:0 0 6px;overflow-wrap:anywhere}
+.bc4-referenceAlumni .bc4-profile p{font-size:14px;line-height:1.65;margin:3px 0;overflow-wrap:anywhere}
+.bc4-referenceAlumni .bc4-tag{font-size:12px;line-height:1.5;white-space:normal;margin:8px 8px 0 0}
+@media(max-width:520px){.bc4-referenceAlumni .bc4-profile{align-items:flex-start;gap:14px}.bc4-referenceAlumni .bc4-avatar{flex-basis:60px;width:60px;height:60px}.bc4-referenceAlumni .bc4-profile h2{font-size:19px}}

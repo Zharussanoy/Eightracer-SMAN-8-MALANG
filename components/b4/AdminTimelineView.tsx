@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { UserRound } from "lucide-react";
+import type { AlumniProfile, AlumniEvent, AlumniTimeline } from "@/lib/b4-alumni-legacy";
 import FigmaIcon from "./FigmaIcon";
-import type { AlumniProfile, AlumniEvent, AlumniTimeline } from "@/lib/b4-alumni";
 
 const known = (value: string | number | null | undefined) => value ?? "Belum tercatat";
 const money = (value: number | null | undefined) => value == null ? "Belum tercatat" : `Rp${value.toLocaleString("id-ID")}`;

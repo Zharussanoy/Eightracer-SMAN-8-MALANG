@@ -44,22 +44,24 @@ export function checkMutation(request: NextRequest) {
 }
 
 export function userFromBackend(payload: unknown): ApiUser {
-  if (!isApiUser(payload)) throw new AuthError(502, "Respons akun dari backend belum sesuai kontrak. Hubungi tim BE.");
+  if (!isApiUser(payload)) throw new AuthError(502, "Informasi akun belum dapat dimuat. Silakan coba lagi.");
   // Hanya proyeksi akun yang diperlukan UI; jangan teruskan token atau data tambahan.
   return {
     id: payload.id, full_name: payload.full_name, email: payload.email,
     role: payload.role, email_verified: payload.email_verified,
     school_staff: payload.school_staff, school_role: payload.school_role,
+    account_active: payload.account_active, school_provisioned: payload.school_provisioned,
+    password_change_recommended: payload.password_change_recommended,
   };
 }
 
 export async function backendAuth(path: "/login" | "/me" | "/logout", options: { body?: unknown; token?: string } = {}) {
   const configured = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL;
-  if (!configured) throw new AuthError(503, "Alamat API backend belum dikonfigurasi.");
+  if (!configured) throw new AuthError(503, "Layanan belum tersedia. Silakan coba beberapa saat lagi.");
   let base: URL;
-  try { base = new URL(configured); } catch { throw new AuthError(503, "Alamat API backend tidak valid."); }
+  try { base = new URL(configured); } catch { throw new AuthError(503, "Layanan belum tersedia. Silakan coba beberapa saat lagi."); }
   if (!["http:", "https:"].includes(base.protocol) || base.username || base.password || base.search || base.hash) {
-    throw new AuthError(503, "Alamat API backend tidak valid.");
+    throw new AuthError(503, "Layanan belum tersedia. Silakan coba beberapa saat lagi.");
   }
   const headers = new Headers({ Accept: "application/json" });
   if (options.token) headers.set("Authorization", `Bearer ${options.token}`);
@@ -72,7 +74,7 @@ export async function backendAuth(path: "/login" | "/me" | "/logout", options: {
       cache: "no-store", redirect: "error", signal: AbortSignal.timeout(15_000),
     });
   } catch {
-    throw new AuthError(503, "Backend belum dapat dihubungi. Periksa Tailscale dan pastikan server BE menyala.");
+    throw new AuthError(503, "Layanan belum dapat dihubungi. Silakan coba beberapa saat lagi.");
   }
   const payload: unknown = await response.json().catch(() => null);
   if (response.ok && (payload === null || typeof payload !== "object" || Array.isArray(payload))) {

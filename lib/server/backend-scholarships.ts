@@ -5,15 +5,15 @@ import { AuthError, authResponse, clearSession } from "./backend-auth";
 export async function backendScholarships(path: string, token: string, method = "GET", body?: unknown) {
   const configured = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL;
   let base: URL;
-  try { base = new URL(configured ?? ""); } catch { throw new AuthError(503, "Alamat API backend belum valid."); }
-  if (!["http:", "https:"].includes(base.protocol) || base.username || base.password || base.search || base.hash) throw new AuthError(503, "Alamat API backend belum valid.");
+  try { base = new URL(configured ?? ""); } catch { throw new AuthError(503, "Layanan katalog belum tersedia. Silakan coba beberapa saat lagi."); }
+  if (!["http:", "https:"].includes(base.protocol) || base.username || base.password || base.search || base.hash) throw new AuthError(503, "Layanan katalog belum tersedia. Silakan coba beberapa saat lagi.");
   let response: Response;
   try {
     response = await fetch(`${base.href.replace(/\/+$/, "")}/beasiswa${path}`, {
       method, headers: { Accept: "application/json", Authorization: `Bearer ${token}`, ...(body === undefined ? {} : { "Content-Type": "application/json" }) },
       body: body === undefined ? undefined : JSON.stringify(body), cache: "no-store", redirect: "error", signal: AbortSignal.timeout(15_000),
     });
-  } catch { throw new AuthError(503, method === "GET" ? "Katalog belum dapat dihubungi. Periksa Tailscale dan server BE." : "Respons penyimpanan belum diterima. Periksa katalog sebelum mencoba lagi agar tidak membuat data ganda."); }
+  } catch { throw new AuthError(503, method === "GET" ? "Katalog belum dapat dimuat. Silakan coba beberapa saat lagi." : "Respons penyimpanan belum diterima. Periksa katalog sebelum mencoba lagi agar tidak membuat data ganda."); }
   const payload: unknown = response.status === 204 ? null : await response.json().catch(() => null);
   if (!response.ok) {
     const data = payload && typeof payload === "object" ? payload as Record<string, unknown> : {};

@@ -25,6 +25,8 @@ Dasar: catatan revisi yang terlihat dalam rekaman 3 menit 7 detik. Tidak memuat 
 
 ## Belum selesai / perlu keputusan dan dukungan BE
 
+Catatan berikut adalah status sebelum sinkronisasi origin/b4 1dba6ac. Pembaruan rekan telah membawa alur rekomendasi otomatis siswa, Simpan/Generate staf dan impor progres. Lihat bagian sinkronisasi di b4-audit-visual-final.md dan B4_AUTOMATIC_RECOMMENDATIONS.md; pengujian BE asli tetap terpisah.
+
 1. Selesai: dua route terpisah /admin/ringkasan-pola (kartu kuning dan pola per periode) serta /admin/analitik-beasiswa (grafik ungu, distribusi, UKT/IPK). Filter diteruskan saat berpindah tab; PDF tetap laporan agregat sekolah dengan filter yang sama. Akses tanpa sesi tidak menampilkan angka contoh.
 2. Selesai di FE: seluruh halaman katalog sesuai pencarian/jenjang dibaca, lalu diurutkan Aktif A–Z dan Diarsipkan A–Z sebelum pagination tampilan. Setelah arsip/aktivasi berhasil, katalog dimuat ulang dari halaman pertama. Pembacaan dibatasi 1.000 record/50 halaman; katalog yang lebih besar perlu pengurutan server. Pembacaan gagal, duplikat atau pagination berubah menampilkan kesalahan, bukan daftar sebagian. Tidak menambahkan parameter API yang belum didukung.
 3. Simpan lalu rekomendasi tampil kepada siswa: arah revisi sudah diminta pengguna. Kontrak saat ini tetap membutuhkan generate draft dan PATCH review disetujui; perlu penyelarasan BE. Tidak menghapus pemeriksaan izin/review atau mengklaim publikasi berhasil tanpa respons server. Operasi tulis rekomendasi belum diaktifkan.
