@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Building2, GraduationCap, School, UserRound } from "lucide-react";
 import type { AlumniProfile, AlumniEvent, AlumniTimeline } from "@/lib/b4-alumni-legacy";
+import FigmaIcon from "./FigmaIcon";
 
 const known = (value: string | number | null | undefined) => value ?? "Belum tercatat";
 const money = (value: number | null | undefined) => value == null ? "Belum tercatat" : `Rp${value.toLocaleString("id-ID")}`;
@@ -26,8 +27,8 @@ export default function AdminTimelineView({ data, profile }: { data: AlumniTimel
     <div className="bc4-profileRow"><div className="bc4-profile"><span className="bc4-avatar" aria-label={`Profil ${name}`}><UserRound size={48} aria-hidden="true" /></span><div><h2>{name}</h2><p>{known(campus)} · {known(program)}</p>{profile?.admission && <span className="bc4-tag">{profile.admission}</span>}</div></div>
       <div className="bc4-current"><h3>Progres Terakhir Tercatat</h3><dl className="bc4-metrics">{[["Semester", latest?.semester], ["IPK", latest?.ipk], ["Beasiswa", scholarships(latest)], ["Status KIP-K", kipk(latest?.kipk)], ["UKT/Semester", money(latest?.ukt)]].map(([label, value]) => <div key={String(label)}><dt>{label}</dt><dd>{known(value)}</dd></div>)}</dl></div></div>
     <section className="bc4-section"><h2 className="bc4-sectionHeading">Perjalanan Pendidikan SMA</h2>{school.length ? <ol className="bc4-schoolTimeline">{school.map((item) => {
-      const Icon = /masuk.*sma/i.test(item.kind) ? School : /perguruan|masuk.*pt/i.test(item.kind) ? Building2 : GraduationCap;
-      return <li key={item.id}><span className="bc4-stageIcon"><Icon size={39} aria-hidden="true" /></span><h3>{item.kind.replaceAll("_", " ")}</h3><strong>{item.date ?? item.year ?? "Waktu belum tercatat"}</strong>{item.university && <p>{item.university}</p>}</li>;
+      const icon = /masuk.*sma/i.test(item.kind) ? "school" : /perguruan|masuk.*pt/i.test(item.kind) ? "university" : "graduate";
+      return <li key={item.id}><span className="bc4-stageIcon"><FigmaIcon name={icon} size={36} /></span><h3>{item.kind.replaceAll("_", " ")}</h3><strong>{item.date ?? item.year ?? "Waktu belum tercatat"}</strong>{item.university && <p>{item.university}</p>}</li>;
     })}</ol> : <p className="bc4-empty">Belum ada riwayat sekolah yang dikirim BE.</p>}</section>
     <section className="bc4-section"><h2 className="bc4-sectionHeading">Perjalanan Pendidikan Perguruan Tinggi</h2><div className="bc4-semesterScroll"><ol className="bc4-semesterTimeline">{semesters.map((semester) => {
       const records = progress.filter((item) => item.semester === semester);

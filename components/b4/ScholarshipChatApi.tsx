@@ -12,7 +12,7 @@ import { displayTitle } from "@/lib/display-copy";
 
 type Message={role:"user"|"bot";text:string;recommendationId?:string};
 const suggestions=["Beasiswa apa yang cocok buat aku?","Kenapa beasiswa ini direkomendasikan?","Apa saja persyaratannya?","Apa yang perlu aku persiapkan?"];
-export default function ScholarshipChatApi({recommendationId}:{recommendationId?:string}){
+export default function ScholarshipChatApi({recommendationId,targetLevel}:{recommendationId?:string;targetLevel?:string}){
  const {currentUser}=useUser();
  const selected=recommendationId&&/^[1-9]\d*$/.test(recommendationId)&&Number.isSafeInteger(Number(recommendationId))?Number(recommendationId):undefined;
  const [messages,setMessages]=useState<Message[]>([]),[input,setInput]=useState(""),[busy,setBusy]=useState(false);
@@ -30,7 +30,7 @@ export default function ScholarshipChatApi({recommendationId}:{recommendationId?
    const overview=/beasiswa\s+apa|apa\s+.*beasiswa|(?:aku|saya)\s+cocok|yang\s+cocok|rekomendasikan\s+beasiswa|rekomendasi\s+beasiswa\s+untuk/iu.test(question);
    const remembered=conversation.current.userId===String(currentUser.id)?conversation.current.scholarshipId:undefined;
    const programId=overview?undefined:(remembered??selected);
-   const reply=await recommendationRequest<ScholarshipChatReply>("/api/b4/recommendations/chat",{method:"POST",body:{message:question.trim(),...(programId?{beasiswa_id:programId}:{})}});
+   const reply=await recommendationRequest<ScholarshipChatReply>("/api/b4/recommendations/chat",{method:"POST",body:{message:question.trim(),...(targetLevel?{target_jenjang:targetLevel}:{}),...(programId?{beasiswa_id:programId}:{})}});
    conversation.current={userId:String(currentUser.id),scholarshipId:reply.scholarshipId??undefined};
    const choices=reply.suggestions.length?"\n\n**Program yang bisa kamu bahas:**\n"+reply.suggestions.map(v=>"- "+v.name).join("\n")+"\n\nKetik nama program yang ingin kamu pelajari, ya.":"";
    const linked=recommendations.find(item=>item.scholarshipId===reply.scholarshipId);

@@ -1,0 +1,348 @@
+/* Figma: capstone baru, 984:12798. Kept within B4 so other teams retain their UI. */
+.b4-page.b4-page {
+  --b4-purple: #5f089e;
+  --b4-border: #e7daf0;
+  --b4-lilac: #e7daf0;
+  --b4-yellow: #feeec9;
+  --b4-gold: #fcc850;
+  --b4-gradient: linear-gradient(110deg, #f5edff 0%, #cfc5ed 100%);
+  --b4-card-shadow: 0 4px 8px -2px #0000001a, 0 2px 4px -2px #0000000f;
+  font-family: var(--font-b4), sans-serif;
+  font-size: 14px;
+  color: #0b0b0b;
+}
+.b4-page :is(button, input, select, textarea) { font-family: inherit; }
+.b4-page :is(button, a, summary, input, select, textarea) { -webkit-tap-highlight-color: transparent; }
+.b4-page :is(button, a, summary) { touch-action: manipulation; }
+.b4-page :is(a, button, input, select, textarea, summary):focus-visible { outline: 3px solid #bb90da; outline-offset: 3px; }
+.b4-page :is(button, a, summary) { transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease, box-shadow 150ms ease; }
+.b4-page button:disabled { opacity: .5; cursor: not-allowed; }
+.b4-page :is(button, a)[aria-busy="true"] { cursor: progress; }
+.b4-page .b4-container { max-width: 1280px; width: calc(100% - 80px); }
+.b4-page .b4-hero { padding: 18px 0 23px; min-height: 145px; background: #fff; color: #0b0b0b; box-shadow: 0 4px 4px #0000001a, 0 2px 2px #0000000f; }
+.b4-page .b4-breadcrumb { min-height: 24px; margin-bottom: 9px; gap: 7px; font-size: 12px; line-height: 1.5; flex-wrap: wrap; }
+.b4-page .b4-breadcrumb > :last-child { color: var(--b4-purple); font-weight: 400; }
+.b4-page .b4-hero h1 { margin-bottom: 9px; font-size: 24px; font-weight: 700; line-height: 1.2; letter-spacing: 0; }
+.b4-page .b4-hero p { font-size: 12px; line-height: 1.5; }
+.b4-page .b4-tabs { padding-top: 26px; gap: 38px; min-height: 76px; align-items: start; scrollbar-width: thin; }
+.b4-page .b4-tabs > a { display: inline-flex; align-items: center; gap: 2px; padding-bottom: 10px; font-size: 16px; font-weight: 600; line-height: 1.2; }
+.b4-page .b4-tabs > a:hover { color: var(--b4-purple); border-bottom-color: #c5a7db; }
+.b4-page .b4-tabs > a[aria-current="page"] { color: #56078e; border-bottom-color: #56078e; }
+.b4-page .bc4-content { padding-top: 6px; padding-bottom: 28px; }
+.b4-page .bc4-content > .b4-directory, .b4-page .bc4-analyticsLive { padding-top: 0; }
+.b4-page > main > .b4-container > .b4-directory, .b4-page > main > .b4-container > .b4-analyticsPage { padding-top: 6px; }
+.b4-page :is(.b4-searchField, .b4-selectField, .bc4-scholarshipFilter > summary) { height: 47px; border: 1px solid #e6e6e6; border-radius: 20px; background: #fff; }
+.b4-page :is(.b4-searchField, .b4-selectField):focus-within { border-color: var(--b4-purple); box-shadow: 0 0 0 3px #e7daf080; }
+.b4-page :is(.b4-searchField input, .b4-selectField select) { font-size: 14px; font-weight: 400; }
+.b4-page .b4-searchField { padding-inline: 20px; }
+.b4-page .bc4-scholarshipFilter[open] > summary { border-color: var(--b4-purple); box-shadow: 0 0 0 3px #e7daf080; }
+.b4-page .bc4-scholarshipFilter > summary svg { transition: transform 150ms ease; }
+.b4-page .bc4-scholarshipFilter[open] > summary svg { transform: rotate(180deg); }
+.b4-page :is(.bc4-scholarshipOptions, .bc4-scholarshipChoices > button) { border-radius: 20px; }
+.b4-page :is(.bc4-button, .b4-detailButton, .b4-addScholarship, .b4-scholarshipActions button, .b4-scholarshipActions a, .b4-analyticsToggle button) { border-color: var(--b4-purple); border-radius: 20px; font-weight: 600; }
+.b4-page .bc4-button { min-height: 35px; padding: 7px 18px; font-size: 14px !important; }
+.b4-page :is(.bc4-button, .b4-detailButton, .b4-scholarshipActions button, .b4-scholarshipActions a):hover:not(:disabled) { color: white; background: var(--b4-purple); }
+.b4-page :is(.bc4-primary, .b4-addScholarship, .b4-toggleActive):hover:not(:disabled) { background: #56078e; }
+.b4-page :is(.bc4-button, .b4-detailButton, .b4-addScholarship):active:not(:disabled) { color: #fff; background: #4c067e; }
+.b4-page .bc4-danger { border: 1px solid #e5484d; border-radius: 20px; padding: 6px 17px; }
+.b4-page .bc4-danger:hover:not(:disabled) { color: #fff; background: #b42318; }
+.b4-page :is(.b4-tableFrame, .b4-scholarshipsFrame) { border: 1px solid var(--b4-border); border-radius: 30px; box-shadow: var(--b4-card-shadow); }
+.b4-page :is(.b4-table, .b4-scholarshipsTable) { font-size: 16px; }
+.b4-page :is(.b4-table, .b4-scholarshipsTable) thead { background: var(--b4-gradient); }
+.b4-page :is(.b4-table, .b4-scholarshipsTable) th { height: 66px; font-size: 16px; font-weight: 600; background: transparent; }
+.b4-page :is(.b4-table, .b4-scholarshipsTable) td { border-top-color: #eeeeee; font-size: 14px; }
+.b4-page :is(.b4-table, .b4-scholarshipsTable) tbody tr { transition: background-color 150ms ease; }
+.b4-page :is(.b4-table, .b4-scholarshipsTable) tbody tr:is(:hover, :focus-within) { background: #fff; }
+.b4-page .b4-scholarshipsTable .b4-scholarshipArchived:is(:hover, :focus-within) { background: #e7e7e7; }
+.b4-page .b4-detailButton { min-height: 35px; padding: 4px 13px; font-size: 14px; font-weight: 500 !important; }
+.b4-page .b4-tableFooter { min-height: 88px; padding: 20px; background: #fff; border-top: 1px solid #f4f0f7; }
+.b4-page .b4-tableFooter p { font-size: 14px; }
+.b4-page .b4-pagination { gap: 10px; }
+.b4-page .bc4-timelinePagination { display: flex; justify-content: center; min-height: 70px; padding: 15px; }
+.b4-page .bc4-timelinePagination .b4-pagination { position: static; transform: none; }
+.b4-page .b4-pagination button { min-width: 35px; height: 35px; border: 1px solid #e6e6e6; border-radius: 20px; font-size: 14px; font-weight: 500; }
+.b4-page .b4-pagination button[aria-current="page"] { color: #1e1e1e; background: #e7daf0; border-color: #e7daf0; }
+.b4-page .b4-pagination button:hover:not(:disabled) { background: #e7daf0; border-color: #c5a7db; }
+.b4-page .b4-pagination button:disabled { opacity: .4; }
+.b4-page :is(.bc4-section, .b4-analyticsSection) { margin-bottom: 30px; border: 1px solid var(--b4-border); border-radius: 30px; box-shadow: var(--b4-card-shadow); }
+.b4-page :is(.bc4-sectionHeading, .b4-analyticsSection > h2, .b4-analyticsSectionHeading) { min-height: 64px; padding: 18px 29px; border-bottom: 0; background: var(--b4-gradient); font-size: 20px; font-weight: 700; }
+.b4-page :is(.bc4-panel, .b4-analyticsCard) { border: 1px solid var(--b4-border); border-radius: 30px; box-shadow: var(--b4-card-shadow); }
+.b4-page :is(.bc4-panel > h2, .bc4-panel > h3, .b4-analyticsCard > h3) { font-size: 20px; font-weight: 700; }
+.b4-page .bc4-sectionBody { padding: 29px; }
+.b4-page .bc4-panel { padding: 24px 29px; }
+.b4-page .bc4-note { padding: 22px 26px; background: #fff; border: 1px solid var(--b4-border); border-radius: 20px; box-shadow: var(--b4-card-shadow); }
+.b4-page .bc4-note strong { color: var(--b4-purple); font-size: 18px; }
+.b4-page .bc4-note h3 { font-size: 16px; }
+.b4-page .bc4-note p { font-size: 14px; line-height: 1.6; }
+.b4-page .bc4-note .bc4-button { flex-shrink: 0; }
+.b4-page :is(.bc4-profile, .bc4-current, .bc4-yellowCard) { background: #fffaee; border: 1px solid var(--b4-gold); border-radius: 30px; box-shadow: none; }
+.b4-page .bc4-profile { gap: 24px; padding: 16px 20px; }
+.b4-page .bc4-profile h2 { font-size: 24px; font-weight: 700; }
+.b4-page .bc4-profileRow { gap: 18px; }
+.b4-page .bc4-avatar { flex-shrink: 0; }
+.b4-page .bc4-current { padding: 18px 25px; }
+.b4-page .bc4-current h3 { font-size: 20px; font-weight: 700; }
+.b4-page .bc4-current:has(.bc4-metrics > div:nth-child(5)) .bc4-metrics { grid-template-columns: .7fr .7fr 1.5fr .9fr 1.3fr; }
+.b4-page .bc4-current:has(.bc4-metrics > div:nth-child(5)) .bc4-metrics dd { font-size: 11px; padding: 8px 4px; word-break: normal; }
+.b4-page .bc4-metrics { align-items: end; }
+.b4-page .bc4-metrics dt { font-size: 12px; }
+.b4-page .bc4-metrics dd { padding: 10px 8px; border: 1px solid var(--b4-gold); border-radius: 20px; background: #fff; font-size: 12px; overflow-wrap: normal; }
+.b4-page .bc4-tag { padding: 2px 12px; border: 1px solid var(--b4-gold); border-radius: 20px; background: white; font-size: 12px; }
+.b4-page .bc4-cardTags { display: flex; flex-wrap: wrap; gap: 8px; }
+.b4-page .bc4-cardTags .bc4-tag { background: #fffaee; margin: 0; }
+.b4-page .bc4-infoList { font-size: 14px; }
+.b4-page .bc4-schoolTimeline { padding: 30px 25px; }
+.b4-page .bc4-stageIcon { width: 70px; height: 70px; background: var(--b4-gradient); }
+.b4-page .bc4-schoolTimeline li:not(:last-child)::after { top: 30px; height: 10px; background: #eee5f4; }
+.b4-page .bc4-schoolTimeline h3 { font-size: 18px; }
+.b4-page .bc4-schoolTimeline strong { font-size: 12px; font-weight: 500; }
+.b4-page .bc4-schoolTimeline p { margin-top: 12px; font-size: 16px; }
+.b4-page .bc4-semesterTimeline { padding: 30px 20px; }
+.b4-page .bc4-semesterTimeline li:not(:last-child)::after { top: 30px; height: 10px; background: #eee5f4; }
+.b4-page .bc4-semesterTimeline button { width: 70px; height: 70px; background: #c8addb; }
+.b4-page .bc4-semesterTimeline button.bc4-semesterSelected { background: var(--b4-purple); outline: 5px solid #e7daf0; color: #fff; }
+.b4-page .bc4-semesterTimeline button:hover:not(:disabled) { background: #56078e; color: #fff; }
+.b4-page .bc4-semesterTimeline .bc4-unavailable button { color: var(--b4-purple); background: #eee5f4; opacity: 1; }
+.b4-page .bc4-detailMetrics { gap: 25px; }
+.b4-page .bc4-detailMetrics strong { font-size: 24px; }
+.b4-page .bc4-detailMetrics span { font-size: 14px; margin-bottom: 12px; }
+.b4-page .bc4-yellowCard { padding: 24px 20px; border-radius: 20px; }
+.b4-page .bc4-detailOuter { padding: 0; background: #fff; border: 0; }
+.b4-page .bc4-informationLive > .bc4-profile { margin-bottom: 18px; }
+.b4-page .bc4-field :is(input, select, textarea), .b4-page .bc4-radioGroup label, .b4-page .bc4-radios label { border-color: #e6e6e6; border-radius: 20px; }
+.b4-page .bc4-field :is(input, select, textarea):focus-visible { border-color: var(--b4-purple); }
+.b4-page .bc4-field select { appearance: none; padding-right: 40px; background-image: url('/images/b4/figma/39fb5.svg') !important; background-repeat: no-repeat !important; background-position: right 14px center !important; background-size: 20px 20px !important; }
+.b4-page .bc4-field [aria-invalid="true"] { border-color: #b42318; }
+.b4-page .bc4-criterionInput { border-color: #e6e6e6; border-radius: 20px; }
+.b4-page :is(.bc4-draftCriterion, .bc4-readonly) { border-color: var(--b4-border); border-radius: 20px; }
+.b4-page .bc4-iconButton { border-radius: 50%; }
+.b4-page .bc4-radioGroup label:has(input:checked), .b4-page .bc4-radios label:has(input:checked) { background: #e7daf0; }
+.b4-page .bc4-listTitle { margin: 38px 0 20px; padding: 0; border: 0; font-size: 24px; line-height: 1.2; font-weight: 700; }
+.b4-page .bc4-alumniCard { padding: 28px; border: 1px solid var(--b4-border); border-radius: 30px; box-shadow: 0 16px 20px -8px #00000024; gap: 16px; }
+.b4-page .bc4-alumniCard header .bc4-avatar { width: 70px; height: 70px; flex-basis: 70px; border-radius: 50%; }
+.b4-page .bc4-alumniCard h3 { font-size: 20px; }
+.b4-page .bc4-alumniCard header p { font-size: 12px; }
+.b4-page .bc4-campus { min-width: 0; border-radius: 20px; background: var(--b4-gradient); padding: 16px 20px; }
+.b4-page .bc4-campus > div { min-width: 0; }
+.b4-page .bc4-campus p { font-weight: 600; }
+.b4-page .bc4-campus small { font-size: 12px; }
+.b4-page .bc4-campus img { flex-shrink: 0; }
+.b4-page .bc4-studentAlumniFooter { position: relative; min-height: 70px; background: #fff; padding: 20px 10px; font-size: 14px; }
+.b4-page .bc4-studentDirectoryFilters { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.b4-page .bc4-studentDirectoryFilters > .b4-searchField { grid-column: 1 / -1; }
+.b4-page .bc4-selectCaret { position: absolute; right: 20px; pointer-events: none; }
+.b4-page .bc4-studentRecommendationDetail { padding: 12px 40px 0; }
+.b4-page .bc4-studentRecommendationDetail .bc4-recBody, .b4-page .bc4-studentRecommendationDetail .bc4-referenceGrid { grid-template-columns: 1fr; }
+.b4-page .bc4-recommendationFacts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.b4-page .bc4-recommendationFacts > div { border: 1px solid var(--b4-purple); border-radius: 20px; padding: 12px 8px; text-align: center; }
+.b4-page .bc4-recommendationFacts dt { font-size: 12px; margin-bottom: 6px; }
+.b4-page .bc4-recommendationFacts dd { margin: 0; font-size: 14px; }
+.b4-page .bc4-referenceGrid { display: grid; grid-template-columns: 1.8fr 1fr; gap: 20px; }
+.b4-page .bc4-referenceGrid .bc4-aiCta h2 { display: flex; gap: 16px; align-items: center; font-size: 24px; }
+.b4-page .bc4-referenceGrid .bc4-aiCta h2 img { flex-shrink: 0; }
+.b4-page .bc4-filterRow > .bc4-field :is(input, select) { min-height: 47px; padding-inline: 20px; font-size: 14px; }
+.b4-page .bc4-filterRow { grid-template-columns: 1.47fr 1fr 1fr .74fr; }
+.b4-page .bc4-cohortFilter { margin: -6px 0 20px; }
+.b4-page .bc4-cohortFilter > .bc4-field { margin-top: 12px; max-width: 300px; }
+.b4-page .bc4-filterRow .bc4-fieldSearch { position: relative; }
+.b4-page .bc4-fieldSearch > img { position: absolute; left: 20px; top: 14px; }
+.b4-page .bc4-filterRow .bc4-fieldSearch input { padding-left: 48px; }
+.b4-page .bc4-scholarCard { padding: 28px; }
+.b4-page .bc4-scholarCard h3 { font-size: 20px; min-height: 38px; }
+.b4-page .bc4-scholarCard .bc4-metrics { margin-top: 14px; border-radius: 20px; }
+.b4-page .bc4-scholarCard .bc4-metrics dd { border: 0; background: transparent; }
+.b4-page .bc4-scholarCard .bc4-metrics > div + div { border-left: 1px solid #bdb4c9; padding-left: 5px; }
+.b4-page .bc4-scholarCard .bc4-reason { border-radius: 20px; padding: 12px; background: #fffaee; }
+.b4-page :is(.bc4-recommendation, .bc4-evaluation) { border-radius: 20px; }
+.b4-page .bc4-recommendation { border-color: var(--b4-border); box-shadow: var(--b4-card-shadow); }
+.b4-page .bc4-recommendationHeader { border-bottom-color: var(--b4-gold); background: #fffaee; }
+.b4-page .bc4-recBody { padding: 25px 30px; }
+.b4-page .bc4-evaluation { background: #fffaee; font-size: 14px; padding: 13px; }
+.b4-page .bc4-recBody h4 { font-size: 16px; }
+.b4-page .bc4-dialog { border: 1px solid var(--b4-border); border-radius: 20px; box-shadow: 0 32px 64px -12px #0000003d; }
+.b4-page .bc4-dialog::backdrop { background: #0008; backdrop-filter: blur(3px); }
+.b4-page .bc4-dialogTitle { background: var(--b4-gradient); border: 0; }
+.b4-page .bc4-dialogTitle h2 { font-size: 24px; }
+.b4-page .bc4-dialog:has(#bc4-edit-recommendation-title) { background: var(--b4-gradient); }
+.b4-page .bc4-dialog .bc4-readonly { background: #fff; }
+.b4-page .bc4-dialog:open { animation: b4-dialog-in 160ms ease-out; }
+.b4-page .b4-analyticsStats { gap: 40px; margin: 20px 0 30px; }
+.b4-page .b4-analyticsStats article { min-height: 150px; padding: 23px 29px; border: 1px solid var(--b4-gold); border-radius: 30px; background: #fffaee; gap: 14px; }
+.b4-page .b4-analyticsStats article > span { font-size: 18px; font-weight: 500; }
+.b4-page .b4-analyticsStats article > strong { min-height: auto; font-size: 24px; font-weight: 700; }
+.b4-page .b4-analyticsStats article > small { font-size: 12px; }
+.b4-page .b4-analyticsGrid { padding: 28px 29px; gap: 30px; }
+.b4-page .bc4-patternSection { border-color: var(--b4-gold); }
+.b4-page .bc4-analyticsLive .b4-analyticsFilters { margin-bottom: 20px; }
+.b4-page .bc4-patternSection > h2 { background: #fffaee; border-bottom: 1px solid #fcc850; }
+.b4-page .b4-analyticsCard { padding: 22px 28px; }
+.b4-page .b4-analyticsCard > h3 { font-size: 20px; }
+.b4-page .b4-analyticsToggle { flex-wrap: wrap; }
+.b4-page .b4-analyticsToggle button { padding: 6px 12px; }
+.b4-page .b4-analyticsToggle button[aria-pressed="true"] { background: var(--b4-purple); color: white; }
+.b4-page .b4-tuitionRows { padding-bottom: 28px; }
+.b4-page .b4-tuitionRow { border-color: var(--b4-border); border-radius: 30px; padding: 20px; min-height: 94px; }
+.b4-page .b4-tuitionIdentity strong { font-size: 16px; }
+.b4-page .b4-tuitionIdentity span { font-size: 12px; }
+.b4-page .bc4-tuitionValues { min-width: 0; }
+.b4-page .bc4-tuitionLimits { display: flex; justify-content: space-between; gap: 16px; font-size: 12px; flex-wrap: wrap; }
+.b4-page .bc4-tuitionTrack { position: relative; height: 12px; margin: 8px 7px; border-radius: 10px; background: #eeebed; }
+.b4-page .bc4-tuitionTrack > span { position: absolute; height: 100%; background: var(--b4-purple); border-radius: inherit; }
+.b4-page .bc4-tuitionTrack i { position: absolute; top: -2px; width: 16px; height: 16px; transform: translateX(-50%); border: 2px solid white; border-radius: 50%; background: var(--b4-purple); }
+.b4-page .bc4-tuitionValues > p { margin-top: 8px; font-size: 12px; color: #777; }
+.b4-page .bc4-rangeMore { display: flex; align-items: center; justify-content: space-between; padding: 0 29px 24px; gap: 15px; font-size: 12px; color: #777; }
+.b4-page .bc4-chat { border: 1px solid var(--b4-border); border-radius: 30px; box-shadow: 0 16px 24px -8px #00000024; }
+.b4-page .bc4-chatHeader { padding: 18px 28px; gap: 14px; min-height: 64px; color: #0b0b0b; background: var(--b4-gradient); }
+.b4-page .bc4-chatHeader h2 { font-size: 24px; }
+.b4-page .bc4-chatHeader > div { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 18px; }
+.b4-page .bc4-chatHeader h2 { margin: 0; }
+.b4-page .bc4-chatHeader p { font-size: 12px; }
+.b4-page .bc4-chatMessages { padding: 40px; min-height: 580px; }
+.b4-page .bc4-chatLine { gap: 24px; }
+.b4-page .bc4-botAvatar { width: 30px; height: 30px; flex-basis: 30px; background: transparent; }
+.b4-page .bc4-bubble { border-radius: 16px; padding: 20px; max-width: 600px; font-size: 14px; box-shadow: var(--b4-card-shadow); }
+.b4-page .bc4-bubble h3 { font-size: 20px; font-weight: 700; color: var(--b4-purple); }
+.b4-page .bc4-chatSuggestions { gap: 18px; }
+.b4-page .bc4-chatSuggestions button { border: 1px solid var(--b4-purple); border-radius: 20px; padding: 12px 18px; color: var(--b4-purple); background: #fff; font-size: 14px; font-weight: 600; }
+.b4-page .bc4-chatSuggestions button:hover, .b4-page .bc4-chatSuggestions button:focus-visible { color: white; background: var(--b4-purple); }
+.b4-page .bc4-chatUser .bc4-bubble { padding: 20px 30px; border: 0; border-radius: 30px; background: #fff7e3; }
+.b4-page .bc4-bubble ul { padding-left: 22px; list-style: disc; }
+.b4-page .bc4-bubble li + li { margin-top: 8px; }
+.b4-page .bc4-scholarCard > h3 { border-bottom: 1px solid #e7daf0; padding-bottom: 16px; margin-bottom: 6px; }
+.b4-page .bc4-bestMatch { display: inline-block; color: #5f089e; background: #f5edff; border-radius: 12px; padding: 6px 10px; font-size: 11px; }
+.b4-page .bc4-studentDirectoryTable th { text-transform: none; }
+.b4-page .bc4-recommendationHidden { opacity: 1; background: #f7f5f8; border-style: dashed; }
+.b4-page .bc4-recommendationHidden .bc4-recBody { display: none; }
+.b4-page .bc4-recommendationHidden .bc4-recommendationHeader { background: #f7f5f8; }
+.b4-page .bc4-recommendationSelection { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.b4-page .bc4-recommendationSelection p { margin: 0; color: #655a70; }
+.b4-page .bc4-studentChoices { display: grid; gap: 12px; margin-top: 20px; }
+.b4-page .bc4-studentChoices > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 18px; border: 1px solid var(--b4-border); border-radius: 20px; }
+.b4-page .bc4-studentChoices p { margin: 6px 0 0; font-size: 13px; color: #655a70; }
+.b4-page .bc4-rankingDetails { padding: 16px 20px; margin-bottom: 24px; border-radius: 20px; background: #f7f3fb; }
+.b4-page .bc4-rankingDetails summary { cursor: pointer; color: var(--b4-purple); font-weight: 600; }
+.b4-page .bc4-rankingDetails summary:focus-visible { outline: 2px solid var(--b4-purple); outline-offset: 5px; }
+.b4-page .bc4-rankingDetails p { margin: 12px 0 0; }
+.b4-page .bc4-recFooter { flex-wrap: wrap; }
+.b4-page .bc4-recommendationHeader > div:first-child { min-width: 0; overflow-wrap: anywhere; }
+.b4-page .bc4-score { flex-shrink: 0; }
+.b4-page .bc4-scoreNote { margin: -10px 0 24px; font-size: 13px; color: #655a70; }
+.b4-page .bc4-backRecommendations { margin-bottom: 24px; }
+.b4-page .bc4-studentRecommendationDetail .bc4-recommendationHeader h2 { margin: 0 0 10px; font-size: 21px; font-weight: 700; }
+.b4-page .bc4-studentRecommendationDetail .bc4-recBody h3 { margin: 0 0 18px; font-size: 16px; font-weight: 700; }
+.b4-page .bc4-chatAnswerText { white-space: pre-wrap; overflow-wrap: anywhere; }
+.b4-page .bc4-chatAnswerLabel { color: #655a70; font-size: 12px; }
+.b4-page .bc4-chatError { padding: 18px 28px; border-top: 1px solid #e7daf0; background: #fff8f3; }
+.b4-page .bc4-chatError p { margin: 0 0 12px; }
+.b4-page .bc4-chatSources { margin-top: 18px; }
+.b4-page .bc4-chatSources a { color: var(--b4-purple); text-decoration: underline; }
+.b4-page .bc4-bubble ul { padding-left: 20px; margin: 12px 0; }
+.b4-page .bc4-chatSuggestions button:disabled { opacity: .55; cursor: not-allowed; }
+.b4-page .bc4-downloadTemplate { text-decoration: underline; text-underline-offset: 4px; }
+.b4-page .bc4-templateGuide { overflow-x: auto; padding: 16px; border: 1px solid var(--b4-border); border-radius: 16px; }
+.b4-page .bc4-templateGuide summary { cursor: pointer; color: var(--b4-purple); font-weight: 600; }
+.b4-page .bc4-templateGuide p { margin: 12px 0; line-height: 1.6; }
+.b4-page .bc4-templateGuide table { min-width: 500px; font-size: 12px; }
+.b4-page .bc4-chatInput { padding: 20px 60px; gap: 16px; }
+.b4-page .bc4-chatInput input { min-height: 45px; border-radius: 30px; padding: 12px 30px; font-size: 14px; }
+.b4-page .bc4-chatInput button { min-width: 72px; height: 45px; padding: 10px 20px; border-radius: 30px; }
+.b4-page .bc4-chatScholar { border-color: var(--b4-border); border-radius: 20px; box-shadow: var(--b4-card-shadow); }
+.b4-page .bc4-aiCta { border-radius: 30px; }
+.b4-page .bc4-aiCta .bc4-button { color: var(--b4-purple); background: #fff; }
+.b4-page .bc4-empty { border: 1px dashed var(--b4-border); border-radius: 20px; background: #fcfaff; }
+.b4-page :is(.bc4-status, .bc4-demoNote):empty { display: none; }
+.b4-capstoneNav { position: relative; z-index: 50; background: #fff; color: #1e1e1e; font-family: var(--font-b4), sans-serif; }
+.b4-capstoneNavInner { display: flex; align-items: center; height: 80px; gap: 34px; width: calc(100% - 80px); max-width: 1224px; margin: auto; }
+.b4-capstoneBrand { display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; text-decoration: none; font-size: 20px; font-weight: 700; }
+.b4-capstoneBrand b { color: #c99a27; }
+.b4-capstoneBrand img { width: 47px; height: 41px; object-fit: cover; }
+.b4-capstoneMainNav { display: flex; align-items: center; gap: 25px; font-size: 16px; font-weight: 700; }
+.b4-capstoneMainNav > a { white-space: nowrap; }
+.b4-capstoneNav :is(button, a):focus-visible { outline: 3px solid #bb90da; outline-offset: 4px; }
+.b4-capstoneMainNav a:hover { color: #5f089e; }
+.b4-capstoneMenu { position: relative; }
+.b4-capstoneMenu > button { display: flex; align-items: center; gap: 8px; background: transparent; border: 0; cursor: pointer; font: inherit; }
+.b4-capstoneMenu > button > img:last-child { transition: transform 150ms ease; }
+.b4-capstoneMenu > button[aria-expanded="true"] > img:last-child { transform: rotate(180deg); }
+.b4-capstoneActive { height: 43px; border-bottom: 2px solid #5f089e !important; color: #5f089e; }
+.b4-capstoneDropdown { position: absolute; z-index: 60; top: calc(100% + 8px); left: 0; width: 260px; padding: 6px; border: 1px solid #e7daf0; border-radius: 16px; background: #fff; box-shadow: 0 12px 24px #2610351a; animation: b4-dialog-in 150ms ease-out; }
+.b4-capstoneDropdown > :is(a, button) { display: block; width: 100%; padding: 12px; border: 0; border-radius: 10px; text-align: left; background: #fff; color: #1e1e1e; font: inherit; font-size: 13px; cursor: pointer; }
+.b4-capstoneDropdown > :is(a, button):hover, .b4-capstoneDropdown > .b4-capstoneSelected { background: #e7daf0; color: #5f089e; }
+.b4-capstoneAccount { margin-left: auto; }
+.b4-capstoneAccount > button { gap: 10px; text-align: left; }
+.b4-capstoneAccount > button > span { display: grid; max-width: 180px; font-size: 18px; line-height: 1.5; }
+.b4-capstoneAccount > button > span > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.b4-capstoneAccount small { font-size: 14px; color: #5f089e; }
+.b4-capstoneAccount .b4-capstoneDropdown { right: 0; left: auto; width: 200px; }
+.b4-capstoneLogin { display: inline-flex; padding: 8px 22px; border: 1px solid #5f089e; border-radius: 20px; color: #5f089e; font-size: 14px; }
+.b4-capstoneMobileToggle { display: none; border: 0; border-radius: 12px; background: transparent; padding: 8px; cursor: pointer; }
+.b4-capstoneMobile { display: grid; padding: 10px 24px 20px; gap: 5px; border-top: 1px solid #eee; }
+.b4-capstoneMobile > a { padding: 10px; border-radius: 12px; font-size: 14px; }
+.b4-capstoneMobile > a:hover { background: #e7daf0; }
+@keyframes b4-dialog-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 1200px) {
+  .b4-capstoneMainNav { gap: 18px; font-size: 14px; }
+  .b4-capstoneNavInner { gap: 22px; }
+  .b4-capstoneAccount > button > span { max-width: 130px; font-size: 15px; }
+  .b4-page .b4-tabs { justify-content: flex-start; gap: 28px; }
+  .b4-page .b4-tabs > a { font-size: 14px; }
+}
+@media (max-width: 900px) {
+  .b4-capstoneMainNav, .b4-capstoneAccount { display: none; }
+  .b4-capstoneMobileToggle { display: inline-flex; margin-left: auto; }
+  .b4-page .b4-container, .b4-capstoneNavInner { width: calc(100% - 40px); }
+  .b4-page .b4-analyticsStats { gap: 16px; }
+  .b4-page .b4-analyticsStats article { padding: 20px; }
+  .b4-page .b4-analyticsStats article > span { font-size: 15px; }
+  .b4-page .b4-analyticsStats article > strong { font-size: 22px; }
+  .b4-page .bc4-note { flex-wrap: wrap; }
+  .b4-page .bc4-studentRecommendationDetail { padding-inline: 0; }
+  .b4-page .bc4-referenceGrid { grid-template-columns: 1fr; }
+  .b4-page .bc4-filterRow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .b4-page .bc4-note > .bc4-button { margin-left: auto; }
+}
+@media (max-width: 600px) {
+  .b4-page .b4-hero { min-height: 130px; padding: 18px 0; }
+  .b4-page .b4-hero h1 { font-size: 22px; }
+  .b4-page .b4-breadcrumb { font-size: 10px; gap: 3px; }
+  .b4-page .b4-tabs { min-height: 70px; padding-top: 22px; }
+  .b4-page .b4-tabs > a { font-size: 13px; }
+  .b4-page .b4-tableFooter { flex-direction: column; align-items: center; gap: 14px; }
+  .b4-page .b4-pagination { position: static; transform: none; }
+  .b4-page :is(.bc4-section, .b4-analyticsSection, .bc4-panel, .b4-analyticsCard) { border-radius: 22px; }
+  .b4-page :is(.bc4-sectionHeading, .b4-analyticsSection > h2, .b4-analyticsSectionHeading) { min-height: 54px; padding: 16px 20px; font-size: 17px; }
+  .b4-page :is(.bc4-sectionBody, .bc4-panel, .b4-analyticsCard) { padding: 20px 16px; }
+  .b4-page .b4-analyticsStats { grid-template-columns: 1fr; }
+  .b4-page .b4-analyticsStats article { min-height: 130px; gap: 10px; }
+  .b4-page .bc4-current { padding: 18px; }
+  .b4-page .bc4-current h3 { font-size: 18px; }
+  .b4-page .bc4-current:has(.bc4-metrics > div:nth-child(5)) .bc4-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .b4-page .bc4-profile h2 { font-size: 21px; }
+  .b4-page .bc4-stageIcon { width: 60px; height: 60px; }
+  .b4-page .bc4-schoolTimeline li:not(:last-child)::after { top: 26px; height: 8px; }
+  .b4-page .bc4-schoolTimeline h3 { font-size: 13px; }
+  .b4-page .bc4-schoolTimeline p { font-size: 12px; }
+  .b4-page .bc4-detailMetrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .b4-page .bc4-detailMetrics strong { font-size: 18px; overflow-wrap: anywhere; }
+  .b4-page .bc4-note { padding: 18px; gap: 12px; }
+  .b4-page .bc4-note strong { font-size: 16px; }
+  .b4-page .bc4-note p { font-size: 12px; }
+  .b4-page .bc4-listTitle { font-size: 22px; }
+  .b4-page .bc4-studentAlumniFooter { gap: 16px; }
+  .b4-page .bc4-studentDirectoryFilters { grid-template-columns: 1fr; }
+  .b4-page .bc4-recommendationFacts { grid-template-columns: 1fr; }
+  .b4-page .bc4-rangeMore { flex-direction: column; align-items: flex-end; }
+  .b4-page .bc4-chatHeader { padding: 18px; }
+  .b4-page .bc4-chatHeader h2 { font-size: 20px; }
+  .b4-page .bc4-chatMessages { padding: 24px 14px; min-height: 430px; }
+  .b4-page .bc4-chatLine { gap: 10px; }
+  .b4-page .bc4-bubble { max-width: calc(100% - 40px); font-size: 12px; padding: 16px; }
+  .b4-page .bc4-bubble h3 { font-size: 16px; }
+  .b4-page .bc4-chatSuggestions button { padding: 10px; font-size: 12px; }
+  .b4-page .bc4-chatInput { padding: 16px 14px; gap: 10px; }
+  .b4-page .bc4-chatInput input { padding: 12px 16px; font-size: 12px; }
+  .b4-page .bc4-chatInput button { min-width: 48px; padding: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .b4-page *, .b4-capstoneNav * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

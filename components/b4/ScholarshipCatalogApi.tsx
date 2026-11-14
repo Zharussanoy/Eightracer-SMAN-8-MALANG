@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ChevronDown, ChevronLeft, ChevronRight, Plus, Search } from "lucide-react";
+import { Plus } from "lucide-react";
+import FigmaIcon from "./FigmaIcon";
 import { useUser } from "@/context/UserContext";
 import { ApiError } from "@/lib/eightracer-api";
 import { archiveScholarship, getScholarship, getScholarships, saveScholarship } from "@/lib/b4-scholarship-api";
@@ -11,6 +12,8 @@ import { scholarshipDuration, scholarshipPeriod, scholarshipQuery, scholarshipRe
 import B4Shell from "./B4Shell";
 import CatalogCsvImport from "./CatalogCsvImport";
 import { displayTitle } from "@/lib/display-copy";
+import NumberPagination from "./NumberPagination";
+import { catalogDisplayPage, loadOrderedCatalog } from "@/lib/b4-catalog-order";
 
 type Result = { key: string; page?: ScholarshipPage; error?: string };
 
@@ -27,7 +30,7 @@ export default function ScholarshipCatalogApi() {
   const [status, setStatus] = useState("");
   const submitting = useRef(false);
   const confirmation = useRef<HTMLDialogElement>(null);
-  const key = JSON.stringify([search, level, page, retry]);
+  const key = JSON.stringify([search, level, retry]);
   const allowed = currentUser.schoolStaff === true;
   const current = result?.key === key ? result : null;
 
@@ -36,7 +39,7 @@ export default function ScholarshipCatalogApi() {
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {
-        const response = await getScholarships({ search, level, page, signal: controller.signal });
+        const response = await loadOrderedCatalog((page) => getScholarships({ search, level, page, signal: controller.signal }));
         if (!controller.signal.aborted) setResult({ key, page: response });
       } catch (error) {
         if (controller.signal.aborted) return;
@@ -49,9 +52,9 @@ export default function ScholarshipCatalogApi() {
       }
     }, 300);
     return () => { clearTimeout(timer); controller.abort(); };
-  }, [allowed, search, level, page, key, retry, refreshSession, router]);
+  }, [allowed, search, level, key, retry, refreshSession, router]);
 
-  const data = current?.page;
+  const data = current?.page ? catalogDisplayPage(current.page, page) : undefined;
   const first = data?.data.length ? (data.currentPage - 1) * data.perPage + 1 : 0;
   const reset = () => { setSearch(""); setLevel(""); setPage(1); };
   async function confirmAction() {
@@ -76,8 +79,8 @@ export default function ScholarshipCatalogApi() {
     dataNote="">
     {!allowed ? <p role="alert">Katalog admin hanya tersedia untuk administrator atau guru BK dengan izin aktif dan email terverifikasi.</p> : <>
       <div className="b4-scholarshipsToolbar">
-        <label className="b4-searchField"><Search size={22} /><span className="b4-srOnly">Cari nama beasiswa</span><input type="search" maxLength={100} placeholder="Cari nama beasiswa" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} /></label>
-        <label className="b4-selectField"><span className="b4-srOnly">Jenjang pendidikan</span><select aria-label="Jenjang pendidikan" value={level} onChange={(event) => { setLevel(event.target.value as ScholarshipLevel | ""); setPage(1); }}><option value="">Semua Jenjang</option><option>Kuliah</option><option>SMA</option><option value="Keduanya">Kuliah &amp; SMA</option></select><ChevronDown size={18} /></label>
+        <label className="b4-searchField"><FigmaIcon name="search" size={18} /><span className="b4-srOnly">Cari nama beasiswa</span><input type="search" maxLength={100} placeholder="Cari nama beasiswa" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} /></label>
+        <label className="b4-selectField"><span className="b4-srOnly">Jenjang pendidikan</span><select aria-label="Jenjang pendidikan" value={level} onChange={(event) => { setLevel(event.target.value as ScholarshipLevel | ""); setPage(1); }}><option value="">Semua Jenjang</option><option>Kuliah</option><option>SMA</option><option value="Keduanya">Kuliah &amp; SMA</option></select><FigmaIcon name="caret" size={20} className="bc4-selectCaret" /></label>
         <div className="bc4-catalogActions"><CatalogCsvImport onSaved={() => setRetry((value) => value + 1)} /><Link className="b4-addScholarship" href="/admin/basis-data-beasiswa/tambah"><Plus size={23} />Tambah Beasiswa</Link></div>
       </div>
       {(search || level) && <button type="button" className="b4-resetFilters" onClick={reset}>Reset Pencarian dan Filter</button>}
@@ -90,11 +93,11 @@ export default function ScholarshipCatalogApi() {
             : <tr><td colSpan={7} className="b4-scholarshipsEmpty">{search || level ? "Tidak ada beasiswa yang sesuai dengan pencarian dan filter." : "Belum ada beasiswa di katalog."}</td></tr>}</tbody>
         </table></div>
         {data && <div className="b4-tableFooter b4-scholarshipsFooter"><p role="status">Menampilkan {first} - {first ? first + data.data.length - 1 : 0} dari {data.total} Beasiswa</p>
-          <nav className="b4-pagination" aria-label="Halaman daftar beasiswa"><button type="button" aria-label="Halaman sebelumnya" disabled={data.currentPage <= 1} onClick={() => setPage(data.currentPage - 1)}><ChevronLeft size={20} /></button><span>Halaman {data.currentPage} dari {data.lastPage}</span><button type="button" aria-label="Halaman selanjutnya" disabled={data.currentPage >= data.lastPage} onClick={() => setPage(data.currentPage + 1)}><ChevronRight size={20} /></button></nav>
+          <NumberPagination current={data.currentPage} last={data.lastPage} onChange={setPage} label="Halaman daftar beasiswa" />
         </div>}
       </div>
       <p role="status" className="bc4-status">{status}</p>
-      <dialog ref={confirmation} className="bc4-dialog" onCancel={(event) => { if (busy) event.preventDefault(); }}><div className="bc4-dialogTitle"><h2>{action?.active ? "Arsipkan" : "Aktifkan"} Beasiswa</h2></div><div className="bc4-dialogBody"><p>{action?.active ? "Arsipkan" : "Aktifkan kembali"} <strong>{displayTitle(action?.name)}</strong>?</p><p>Perubahan akan disimpan ke katalog sekolah.</p><p role="alert">{status}</p><div className="bc4-actions"><button className="bc4-button" type="button" disabled={busy} onClick={() => confirmation.current?.close()}>Batal</button><button className="bc4-button bc4-primary" type="button" disabled={busy} onClick={() => void confirmAction()}>{busy ? "Menyimpan…" : action?.active ? "Arsipkan" : "Aktifkan"}</button></div></div></dialog>
+      <dialog ref={confirmation} className="bc4-dialog" aria-labelledby="bc4-catalog-confirm-title" onClick={event => { if (event.target === event.currentTarget && !busy) confirmation.current?.close(); }} onCancel={(event) => { if (busy) event.preventDefault(); }}><div className="bc4-dialogTitle"><h2 id="bc4-catalog-confirm-title">{action?.active ? "Arsipkan" : "Aktifkan"} Beasiswa</h2></div><div className="bc4-dialogBody"><p>{action?.active ? "Arsipkan" : "Aktifkan kembali"} <strong>{displayTitle(action?.name)}</strong>?</p><p>Perubahan akan disimpan ke katalog sekolah.</p><p role="alert">{status}</p><div className="bc4-actions"><button className="bc4-button" type="button" disabled={busy} onClick={() => confirmation.current?.close()}>Batal</button><button className="bc4-button bc4-primary" type="button" disabled={busy} aria-busy={busy} onClick={() => void confirmAction()}>{busy ? "Menyimpan…" : action?.active ? "Arsipkan" : "Aktifkan"}</button></div></div></dialog>
     </>}
   </B4Shell>;
 }

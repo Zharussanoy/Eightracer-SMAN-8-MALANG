@@ -14,8 +14,10 @@ export interface AnalyticsData {
   ipk: AnalyticStats;
   ranges: { university: string; program: string; count: number | null; stats: AnalyticStats }[];
   tuitionRanges?: { university: AnalyticsData["ranges"]; program: AnalyticsData["ranges"] };
-  ipkDistribution?: { label: string; count: number }[];
+  ipkDistribution?: { label: string; count: number | null }[];
   ipkTrend: { label: string; stats: AnalyticStats }[];
+  school?: { admittedAlumni: number | null; admissions: number | null; allAid: number | null };
+  scholarshipOptions?: { value: string; label: string }[];
 }
 function row(value: unknown): Row {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Data analitik belum dapat dibaca. Silakan coba lagi.");
@@ -44,6 +46,41 @@ function label(value: unknown): string {
 function stats(value: unknown): AnalyticStats {
   const source = row(value);
   return { known: count(source.jumlah_diketahui), unknown: count(source.jumlah_belum_tercatat), minimum: analyticNumber(source.minimum), maximum: analyticNumber(source.maksimum), mean: analyticNumber(source.rata_rata) };
+}
+function schoolStats(value: unknown): AnalyticStats {
+  const source = row(value);
+  return {
+    known: count(source.known), unknown: count(source.unknown),
+    minimum: analyticNumber(source.minimum), maximum: analyticNumber(source.maximum), mean: analyticNumber(source.mean),
+  };
+}
+
+export function parseSchoolAnalytics(payload: unknown): AnalyticsData {
+  const data = row(row(payload).data);
+  const summary = row(data.summary);
+  const financial = row(data.financial);
+  const filters = row(data.filters);
+  return {
+    asOf: text(data.as_of),
+    total: count(summary.alumni), recipients: count(summary.scholarship_non_kip), kipk: count(summary.kip),
+    school: { admittedAlumni: count(summary.admitted_alumni), admissions: count(summary.admissions), allAid: count(summary.all_aid) },
+    scholarshipOptions: rows(filters.scholarships).map(item => ({ value: label(item.value), label: label(item.label) })),
+    distribution: rows(data.scholarships).map(item => ({ id: null, label: label(item.label), count: count(item.count) })),
+    cohorts: rows(data.kip_by_cohort).map(item => ({ label: label(item.label), count: count(item.count) })),
+    measuredAlumni: count(financial.measured_alumni),
+    ukt: schoolStats(financial.ukt), ipk: schoolStats(financial.ipk),
+    ranges: rows(financial.ranges).map(item => ({ university: label(item.university), program: label(item.program), count: count(item.count), stats: schoolStats(item.stats) })),
+    ipkTrend: rows(financial.ipk_trend).map(item => ({ label: label(item.label), stats: schoolStats(item.stats) })),
+    ipkDistribution: rows(financial.ipk_distribution ?? []).map(item => ({ label: label(item.label), count: count(item.count) })),
+    periods: rows(data.periods).map(item => ({
+      label: label(item.label), count: count(item.count), kipk: count(item.kipk),
+      scholarships: rows(item.scholarships ?? []).map(program => ({
+        label: label(program.label), count: count(program.count), processing: count(program.processing),
+        accepted: count(program.accepted), rejected: count(program.rejected),
+      })),
+    })),
+    notes: Array.isArray(data.notes) ? data.notes.filter((note): note is string => typeof note === "string") : [],
+  };
 }
 export function parseAnalytics(analyticsPayload: unknown, dashboardPayload: unknown): AnalyticsData {
   const analytics = row(row(analyticsPayload).data), dashboard = row(row(dashboardPayload).data);

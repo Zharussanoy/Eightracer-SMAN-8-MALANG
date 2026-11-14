@@ -50,7 +50,8 @@ function ScholarshipFilter({ value, onChange }: { value: string; onChange: (valu
     </div>
   </details>;
 }
-export default function ScholarshipAnalyticsApi() {
+export default function ScholarshipAnalyticsApi({view="analytics"}:{view?:"analytics"|"summary"}) {
+  const summary=view==="summary";
   const { currentUser, refreshSession } = useUser();
   const router = useRouter();
   const [cohort, setCohort] = useState("");
@@ -110,7 +111,7 @@ export default function ScholarshipAnalyticsApi() {
   const measuredRanges=(modeRanges??data?.ranges??[]).filter(item=>item.stats.minimum!==null&&item.stats.maximum!==null);
   const rangeMax=Math.max(1,...measuredRanges.map(item=>item.stats.maximum??0));
   const visibleRanges=showAllTuition?measuredRanges:measuredRanges.slice(0,5);
-  return <B4Shell title="Analitik Beasiswa & Ringkasan Pola Per-Angkatan" active="analytics" description="Lihat perjalanan pendidikan dan perkembangan kuliah alumni dari masa sekolah hingga kondisi terkini." dataNote="">
+  return <B4Shell title={summary?"Ringkasan Pola Per-Angkatan":"Analitik Beasiswa"} active={summary?"summary":"analytics"} description="Lihat perjalanan pendidikan dan perkembangan kuliah alumni dari masa sekolah hingga kondisi terkini." dataNote="">
     {!currentUser.schoolStaff ? <p role="alert">Akun ini belum memiliki izin membaca analitik sekolah.</p> : <div className="b4-analyticsPage bc4-analyticsLive">
       <div className="b4-analyticsFilters" aria-label="Filter analitik beasiswa">
         <label className="b4-searchField"><span className="b4-srOnly">Angkatan</span><input placeholder="Angkatan" inputMode="numeric" maxLength={4} value={cohort} onChange={(e) => setCohort(e.target.value)} /></label>
@@ -120,12 +121,12 @@ export default function ScholarshipAnalyticsApi() {
       </div>
       {search && <button className="b4-resetFilters" onClick={() => { setCohort(""); setProgram(""); setScholarship(""); setPeriod(""); }}>Reset Filter</button>}
       {invalidYear ? <p role="alert">Isi tahun angkatan dengan 4 digit.</p> : current?.error ? <div className="bc4-empty"><p role="alert">{current.error}</p><button className="bc4-button" onClick={() => setRetry((value) => value + 1)}>Coba Lagi</button></div> : !data ? <p role="status">Memuat analitik dari sekolah…</p> : <>
-        <section className="b4-analyticsStats" aria-label="Ringkasan alumni">
+        {summary&&<section className="b4-analyticsStats" aria-label="Ringkasan alumni">
           <article><span>Total Alumni Terpantau</span><strong className={data.total === null ? "bc4-metricMissing" : undefined} data-analytics-metric="total">{data.total === null ? "Belum tersedia" : `${known(data.total)} Alumni`}</strong><small>Alumni yang tercatat dalam analitik</small></article>
           <article><span>Penerima Beasiswa &amp; Bantuan</span><strong className={data.recipients === null ? "bc4-metricMissing" : undefined} data-analytics-metric="recipients">{data.recipients === null ? "Belum tersedia" : `${known(data.recipients)} Alumni`}</strong><small>{data.recipients === null ? "Jumlah penerima belum tersedia" : "Termasuk KIP-K dan pembebasan biaya; setiap alumni dihitung sekali"}</small></article>
           <article><span>Penerima KIP-K</span><strong className={data.kipk === null ? "bc4-metricMissing" : undefined} data-analytics-metric="kipk">{data.kipk === null ? "Belum tersedia" : `${known(data.kipk)} Alumni`}</strong><small>KIP-K berdasarkan data yang tercatat</small></article>
-        </section>
-        <section className="b4-analyticsSection"><h2>Beasiswa &amp; KIP-K</h2><div className="b4-analyticsGrid">
+        </section>}
+        {!summary&&<><section className="b4-analyticsSection"><h2>Beasiswa &amp; KIP-K</h2><div className="b4-analyticsGrid">
           <article className="b4-analyticsCard"><h3>Penerima KIP-K / Angkatan</h3><AnalyticsBars label="Penerima KIP-K menurut angkatan" data={data.cohorts} /></article>
           <article className="b4-analyticsCard b4-scholarshipDistribution"><h3>Distribusi Beasiswa</h3><AnalyticsDistribution data={more ? data.distribution : data.distribution.slice(0, 5)} /><p className="b4-chartFootnote">Jumlah per program tidak dijumlahkan menjadi penerima unik.</p>{data.distribution.length > 5 && <button className="bc4-button" onClick={() => setMore(!more)}>{more ? "Lihat lebih sedikit" : "Lihat lainnya"}</button>}</article>
         </div></section>
@@ -134,8 +135,9 @@ export default function ScholarshipAnalyticsApi() {
           {measuredRanges.length>5&&<div className="b4-tuitionMore"><button type="button" onClick={()=>setShowAllTuition(v=>!v)}>{showAllTuition?"Lihat lebih sedikit":"Lihat lainnya"}</button></div>}
           <div className="b4-tuitionMore"><button type="button" className="bc4-button" disabled={pdfBusy} onClick={()=>void downloadPdf()}>{pdfBusy?"Mengunduh…":"Ekspor PDF"}</button>{pdfError&&<p role="alert">{pdfError}</p>}</div>
         </section>
-        <section className="b4-analyticsSection"><h2>IPK &amp; Keberlanjutan Beasiswa</h2><div className="b4-analyticsGrid"><article className="b4-analyticsCard"><h3>Distribusi IPK Alumni</h3>{data.ipkDistribution?.some(item=>item.count>0)?<AnalyticsBars label="Distribusi IPK alumni dari progres terbaru" data={data.ipkDistribution}/>:<p className="bc4-empty">Belum ada IPK yang tercatat.</p>}</article><article className="b4-analyticsCard"><h3>Keberlanjutan Beasiswa</h3><p className="bc4-empty">Belum ada data keberlanjutan beasiswa yang tercatat.</p></article></div></section>
-        <section className="b4-analyticsSection"><h2>Pola Historis Mendapat Beasiswa</h2><div className="b4-historyStats">{data.periods.length ? data.periods.map((item, index) => <article key={index}><span>{displayTitle(item.label)}</span><strong>{known(item.count)} Alumni</strong><small>KIP-K: {known(item.kipk)} alumni</small>{item.scholarships.map((program, index) => <p key={index}>{displayTitle(program.label)}: {known(program.count)} alumni · Proses {known(program.processing)} · Diterima {known(program.accepted)} · Ditolak {known(program.rejected)}</p>)}</article>) : <p className="bc4-empty">Belum ada tren beasiswa per periode yang tercatat.</p>}</div></section>
+        <section className="b4-analyticsSection"><h2>IPK &amp; Keberlanjutan Beasiswa</h2><div className="b4-analyticsGrid"><article className="b4-analyticsCard"><h3>Distribusi IPK Alumni</h3>{data.ipkDistribution?.some(item=>(item.count??0)>0)?<AnalyticsBars label="Distribusi IPK alumni dari progres terbaru" data={data.ipkDistribution}/>:<p className="bc4-empty">Belum ada IPK yang tercatat.</p>}</article><article className="b4-analyticsCard"><h3>Keberlanjutan Beasiswa</h3><p className="bc4-empty">Belum ada data keberlanjutan beasiswa yang tercatat.</p></article></div></section>
+        </>}
+        {summary&&<section className="b4-analyticsSection"><h2>Pola Historis Mendapat Beasiswa</h2><div className="b4-historyStats">{data.periods.length ? data.periods.map((item, index) => <article key={index}><span>{displayTitle(item.label)}</span><strong>{known(item.count)} Alumni</strong><small>KIP-K: {known(item.kipk)} alumni</small>{item.scholarships.map((program, index) => <p key={index}>{displayTitle(program.label)}: {known(program.count)} alumni · Proses {known(program.processing)} · Diterima {known(program.accepted)} · Ditolak {known(program.rejected)}</p>)}</article>) : <p className="bc4-empty">Belum ada tren beasiswa per periode yang tercatat.</p>}</div></section>}
         <p className="b4-chartFootnote">Catatan progres: {known(data.measuredAlumni)} alumni. Data belum tercatat tidak dianggap nol. {data.notes?.join(" ")}{data.asOf && ` Data per ${data.asOf}.`}</p>
       </>}
     </div>}

@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronLeft, ChevronRight, Plus, Search } from "lucide-react";
+import { Plus, Search, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import FigmaIcon from "./FigmaIcon";
+import NumberPagination from "./NumberPagination";
 import B4Shell from "./B4Shell";
 import { updateDemo, useDemoData, type CatalogItem } from "./demoStore";
 import "@/components/admin/b-4/scholarships.css";
@@ -26,7 +28,7 @@ function ScholarshipCatalogDemo() {
   const [level, setLevel] = useState("");
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState("");
-  const filtered = data.catalog.filter((item) => item.name.toLocaleLowerCase("id").includes(query.trim().toLocaleLowerCase("id")) && (!level || item.level === level || (level !== "Kuliah & SMA" && item.level === "Kuliah & SMA")));
+  const filtered = [...data.catalog].sort((a,b) => Number(a.archived)-Number(b.archived) || a.name.localeCompare(b.name,"id")).filter((item) => item.name.toLocaleLowerCase("id").includes(query.trim().toLocaleLowerCase("id")) && (!level || item.level === level || (level !== "Kuliah & SMA" && item.level === "Kuliah & SMA")));
   const count = Math.max(1, Math.ceil(filtered.length / 8));
   const current = Math.min(page, count), start = (current - 1) * 8;
   const toggle = (item: CatalogItem) => { updateDemo((state) => ({ ...state, catalog: state.catalog.map((entry) => entry.id === item.id ? { ...entry, archived: !entry.archived } : entry) })); setStatus(`${displayTitle(item.name)} ${item.archived ? "diaktifkan kembali" : "diarsipkan"}.`); };

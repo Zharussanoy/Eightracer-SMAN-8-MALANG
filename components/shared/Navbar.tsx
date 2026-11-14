@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { ChevronDown, Menu, X, ArrowUpRight } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { getB4HomeHref, isB4Page } from "@/lib/b4-navigation";
+import CapstoneNavbar from "@/components/b4/CapstoneNavbar";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -20,6 +21,8 @@ export default function Navbar() {
   const isProfile = pathname === "/profile";
   const b4Href = getB4HomeHref(pathname, currentUser.role, currentUser.schoolStaff);
   const isB4 = isB4Page(pathname);
+
+  if (isB4) return <CapstoneNavbar key={pathname} pathname={pathname} />;
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-purple-100 transition-all">

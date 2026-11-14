@@ -3,6 +3,7 @@ import { loginIdentifier } from "@/lib/auth";
 import { AuthError, authFailure, authResponse, backendAuth, checkMutation, cookieOptions, SESSION_COOKIE, userFromBackend } from "@/lib/server/backend-auth";
 
 export async function POST(request: NextRequest) {
+  let stage = "input";
   try {
     checkMutation(request);
     const payload: unknown = await request.json().catch(() => { throw new AuthError(400, "JSON tidak valid."); });
@@ -19,6 +20,7 @@ export async function POST(request: NextRequest) {
     if (typeof input.password !== "string" || input.password.length === 0 || input.password.length > 256) {
       throw new AuthError(422, "Isi kata sandi akun.", { password: ["Isi kata sandi akun."] });
     }
+    stage = "backend-login";
     const result = await backendAuth("/login", { body: { ...identifier, password: input.password } });
     if (!result || typeof result !== "object") throw new AuthError(502, "Respons login backend belum sesuai kontrak.");
     const session = result as Record<string, unknown>;
@@ -27,6 +29,7 @@ export async function POST(request: NextRequest) {
       throw new AuthError(502, "Token atau masa berlaku sesi backend belum sesuai kontrak.");
     }
     // Identitas dan grant selalu berasal dari /me, bukan input atau preset role FE.
+    stage = "backend-account";
     let user;
     try { user = userFromBackend(await backendAuth("/me", { token: session.token })); }
     catch (error) {
@@ -36,5 +39,12 @@ export async function POST(request: NextRequest) {
     const response = authResponse({ message: "Login berhasil.", user, expires_at: session.expires_at });
     response.cookies.set(SESSION_COOKIE, session.token, { ...cookieOptions(request), expires: expiry });
     return response;
-  } catch (error) { return authFailure(error); }
+  } catch (error) {
+    const response = authFailure(error);
+    response.headers.set("X-Auth-Stage", stage);
+    if (process.env.NODE_ENV === "development") {
+      console.info("[auth-check]", JSON.stringify({ stage, status: response.status }));
+    }
+    return response;
+  }
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import type { RecommendationStudent, RecommendationStudentPage } from "@/lib/b4-students";
 import { displayTitle } from "@/lib/display-copy";
+import NumberPagination from "./NumberPagination";
 
 export default function RecommendationStudentPicker({ onSelect }: { onSelect: (student: RecommendationStudent) => void }) {
   const { refreshSession } = useUser();
@@ -43,7 +44,7 @@ export default function RecommendationStudentPicker({ onSelect }: { onSelect: (s
     {invalidYear ? <p role="alert">Angkatan harus 4 digit.</p> : current?.error ? <div className="bc4-empty"><p role="alert">{current.error}</p><button className="bc4-button" onClick={() => setRetry((value) => value + 1)}>Coba Lagi</button></div>
       : !data ? <p role="status">Memuat siswa sekolah…</p> : <>
         <div className="b4-tableScroll" tabIndex={0} role="region" aria-label="Pilihan siswa"><table className="b4-table"><thead><tr><th>Nama Siswa</th><th>Angkatan</th><th>Aksi</th></tr></thead><tbody>{data.data.map((student) => <tr key={student.id}><td>{displayTitle(student.name)}</td><td>{student.cohort ?? "Belum tercatat"}</td><td><button className="bc4-button" data-preview-student={student.id} onClick={() => onSelect(student)}>Lihat Pratinjau</button></td></tr>)}{!data.data.length && <tr><td colSpan={3}>Tidak ada siswa yang sesuai dengan pencarian.</td></tr>}</tbody></table></div>
-        <div className="b4-tableFooter"><p>Menampilkan {data.data.length ? (data.currentPage - 1) * data.perPage + 1 : 0}–{data.data.length ? (data.currentPage - 1) * data.perPage + data.data.length : 0} dari {data.total} siswa</p><nav className="b4-pagination" aria-label="Halaman siswa"><button aria-label="Halaman sebelumnya" disabled={data.currentPage <= 1} onClick={() => setPage(data.currentPage - 1)}>‹</button><span>Halaman {data.currentPage} dari {data.lastPage}</span><button aria-label="Halaman selanjutnya" disabled={data.currentPage >= data.lastPage} onClick={() => setPage(data.currentPage + 1)}>›</button></nav></div>
+        <div className="b4-tableFooter"><p>Menampilkan {data.data.length ? (data.currentPage - 1) * data.perPage + 1 : 0}–{data.data.length ? (data.currentPage - 1) * data.perPage + data.data.length : 0} dari {data.total} siswa</p><NumberPagination current={data.currentPage} last={data.lastPage} onChange={setPage} label="Halaman siswa" /></div>
       </>}
   </div></section>;
 }

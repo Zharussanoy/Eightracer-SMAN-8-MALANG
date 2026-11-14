@@ -45,9 +45,11 @@ function Chat({ recommendationId }: { recommendationId?: string }) {
   })}<div ref={end} /></div><form className="bc4-chatInput" onSubmit={(event) => { event.preventDefault(); send(input); }}><label className="b4-srOnly" htmlFor="b4-chat-question">Pertanyaan Tentang Beasiswa</label><input id="b4-chat-question" placeholder="Tulis pertanyaanmu tentang beasiswa…" value={input} maxLength={1000} onChange={(event) => setInput(event.target.value)} /><button type="submit" disabled={!input.trim()} aria-label="Kirim pertanyaan"><Send size={30} /></button><small>Jawaban demo berdasarkan informasi contoh yang tersedia.</small></form></section></B4Shell>;
 }
 
-export default function ScholarshipChatPage({recommendationId}:{recommendationId?:string}){
+export default function ScholarshipChatPage({recommendationId,scholarshipId,targetLevel,invalidContext}:{recommendationId?:string;scholarshipId?:number;targetLevel?:string;invalidContext?:boolean}){
+ recommendationId=scholarshipId?String(scholarshipId):recommendationId;
  const {authStatus,currentUser,authMessage}=useUser();
- if(authStatus==="authenticated")return <ScholarshipChatApi key={currentUser.id+":"+recommendationId} recommendationId={recommendationId}/>;
+ if(invalidContext)return <B4Shell student showDemoProfile={false} title="Informasi Beasiswa" description="Pelajari pilihan beasiswamu." dataNote=""><p role="alert">Pilihan beasiswa tidak valid. Kembali ke daftar untuk memilih beasiswa.</p><Link href="/siswa/rekomendasi-beasiswa">Kembali ke Rekomendasi</Link></B4Shell>;
+ if(authStatus==="authenticated")return <ScholarshipChatApi key={currentUser.id+":"+recommendationId} recommendationId={recommendationId} targetLevel={targetLevel}/>;
  if(authStatus==="anonymous")return <ScholarshipChatDemo recommendationId={recommendationId}/>;
  return <B4Shell student showDemoProfile={false} title="AI Rekomendasi Beasiswa" description="Informasi beasiswa dari sekolah." dataNote=""><p role="status">{authStatus==="loading"?"Memeriksa sesi akun…":authMessage}</p></B4Shell>;
 }

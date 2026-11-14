@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { AuthError } from "./backend-auth";
-export function schoolAnalyticsQuery(request: NextRequest) {
-  const query = request.nextUrl.searchParams;
+export function schoolAnalyticsQuery(request: NextRequest | URLSearchParams) {
+  const query = request instanceof URLSearchParams ? request : request.nextUrl.searchParams;
   if ([...query.keys()].some(key => !["angkatan","prodi","beasiswa_id","periode"].includes(key) || query.getAll(key).length !== 1)
     || [...query.values()].some(value => !value.trim() || value.length > 100)
     || (query.has("angkatan") && !/^\d{4}$/.test(query.get("angkatan")!))
