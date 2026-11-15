@@ -1,0 +1,2 @@
+nama_beasiswa,jenjang,durasi,satuan_durasi,periode_apply,penyelenggara,deskripsi,tanggal_buka,tanggal_tutup,link_pendaftaran,nama_kriteria,tipe_kriteria,operator,nilai_kriteria,bobot
+"CONTOH UJI - ganti sebelum disimpan","SMA","1","tahun","Juli - Agustus","Penyelenggara Uji","Program uji katalog","","","","Nilai TKA minimum","nilai_tka",">=","85",""

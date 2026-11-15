@@ -10,7 +10,7 @@ import FigmaIcon from "./FigmaIcon";
 import "./capstone.css";
 
 export default function CapstoneNavbar({ pathname }: { pathname: string }) {
-  const { currentUser, isLoggedIn, getDisplayRole, logout } = useUser();
+  const { currentUser, isLoggedIn, authStatus, getDisplayRole, logout } = useUser();
   const [menu, setMenu] = useState<"services" | "account" | "mobile" | null>(null);
   const root = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -33,7 +33,9 @@ export default function CapstoneNavbar({ pathname }: { pathname: string }) {
         </div>
         <Link href="/#tentang" onClick={close}>Tentang Kami</Link><Link href="/tim-pengembang" onClick={close}>Pengembang</Link>
       </nav>
-      <div className="b4-capstoneAccount b4-capstoneMenu">{isLoggedIn ? <>
+      <div className="b4-capstoneAccount b4-capstoneMenu">{authStatus === "loading" ? (
+        <span className="b4-capstoneLogin" style={{ opacity: 0.6 }}>Memeriksa sesi…</span>
+      ) : isLoggedIn ? <>
         <button type="button" aria-expanded={menu === "account"} aria-controls="b4-account-menu" onClick={() => setMenu(menu === "account" ? null : "account")}><FigmaIcon name="account" size={36} /><span><span>{currentUser.name}</span><small>{getDisplayRole().label}</small></span><FigmaIcon name="accountCaret" size={24} /></button>
         {menu === "account" && <div id="b4-account-menu" className="b4-capstoneDropdown"><Link href="/profile" onClick={close}>Profil saya</Link><button type="button" onClick={() => { close(); void logout(); }}>Keluar</button></div>}
       </> : <Link href="/login" className="b4-capstoneLogin">Masuk</Link>}</div>

@@ -2,6 +2,11 @@ import { parseCatalogCsvRows, type CatalogCsvRow } from "./b4-catalog-csv";
 
 export const PROGRAM_COLUMNS = ["Nama Beasiswa", "Jenjang", "Durasi", "Satuan Durasi", "Periode Pendaftaran", "Penyelenggara", "Deskripsi", "Tanggal Buka", "Tanggal Tutup", "Link Pendaftaran"] as const;
 export const CRITERIA_COLUMNS = ["Nama Beasiswa", "Jenjang", "Nama Syarat", "Jenis Kriteria", "Operator", "Nilai Syarat", "Bobot"] as const;
+export const UNIFIED_CATALOG_COLUMNS = [
+  "Nama Beasiswa", "Jenjang", "Durasi", "Satuan Durasi", "Periode Pendaftaran",
+  "Penyelenggara", "Deskripsi", "Tanggal Buka", "Tanggal Tutup", "Link Pendaftaran",
+  "Nama Syarat", "Jenis Kriteria", "Operator", "Nilai Syarat", "Bobot"
+] as const;
 export const CRITERIA_FIELDS: Record<string, string> = {
   "Nilai TKA": "nilai_tka", "Rata-rata Rapor": "rata_rapor", "Rapor Kelas 12": "rata_rapor_kelas_12",
   "Penghasilan Orang Tua": "penghasilan_orang_tua", "Kehadiran (%)": "persentase_kehadiran",

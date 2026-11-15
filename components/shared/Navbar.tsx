@@ -13,7 +13,7 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
   const pathname = usePathname();
-  const { isLoggedIn, currentUser, getDisplayRole } = useUser();
+  const { isLoggedIn, currentUser, authStatus, getDisplayRole } = useUser();
   const displayRole = getDisplayRole();
 
   const isHome = pathname === "/";
@@ -192,6 +192,10 @@ export default function Navbar() {
                   />
                 </div>
               </Link>
+            </div>
+          ) : authStatus === "loading" ? (
+            <div className="hidden md:flex items-center gap-4">
+              <span className="text-xs text-slate-400 font-medium px-4 py-2">Memeriksa akun…</span>
             </div>
           ) : (
             <div className="hidden md:flex items-center gap-4">
