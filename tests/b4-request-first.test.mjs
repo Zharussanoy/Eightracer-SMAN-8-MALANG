@@ -65,3 +65,32 @@ for(const overview of [true,false])test(`chat ${overview?'calculates on explicit
  button.props.onClick();await tick();assert.equal(calls.length,1);assert.equal(calls[0].url,overview?'/api/b4/recommendations/generate':'/api/b4/recommendations/chat');
  assert.equal(calls[0].init.body.siswa_id,undefined);assert.ok(updates.length>0);
 });
+const general={id:4,name:'Program Akademik',provider:'Penyelenggara Resmi',description:'Informasi umum program sekolah.',level:'Kuliah',opens:null,closes:null,period:null,duration:8,durationUnit:'semester',registrationUrl:'https://example.org/beasiswa',criteria:[{name:'Nilai Rapor Minimum',operator:'>=',required:'80'}],recipients:{total:1,data:[{admissionId:591,name:'Alumni Terdaftar',university:'Universitas Terdaftar',program:'Program Studi',cohort:'2026',evidence:'school_record'}]}};
+test('default student page lists general scholarships and keeps the general AI entry below the cards',()=>{
+ const load=harness(undefined,undefined,{'next/navigation':{useSearchParams:()=>new URLSearchParams('')},'./useStudentScholarshipCatalog':{useStudentScholarshipCatalog:()=>({data:{data:[general],currentPage:1,lastPage:1,total:1}})}});
+ const Page=load('components/b4/StudentRecommendationsPage.tsx').default,html=renderToStaticMarkup(React.createElement(Page));
+ assert.match(html,/Program Akademik/);assert.match(html,/catalog-4/);assert.match(html,/Lihat Detail Beasiswa/);
+ assert.ok(html.indexOf('>Tanya Eightracer AI<')>html.indexOf('Lihat Detail Beasiswa'));
+ assert.doesNotMatch(html,/Skor Kecocokan|Alasan Rekomendasi|Paling Sesuai|86\/100/);
+});
+test('general detail displays the actual program, provider and recipient without assessing the student',()=>{
+ const load=harness(undefined,undefined,{'./useStudentScholarshipCatalog':{useStudentScholarshipCatalog:()=>({data:{data:general}})}});
+ const Page=load('components/b4/StudentRecommendationsPage.tsx').StudentRecommendationDetail,html=renderToStaticMarkup(React.createElement(Page,{id:'catalog-4'}));
+ for(const text of ['Penyelenggara Resmi','Alumni Terdaftar','Persyaratan Umum','chat?beasiswa=4','/siswa/jejak-alumni/591'])assert.match(html,new RegExp(text.replace(/[?]/g,'\\?')));
+ assert.doesNotMatch(html,/Skor Kecocokan|Alasan Rekomendasi|Evaluasi Kriteria Siswa|Dian Permata/);
+});
+test('general scholarship projection strips private fields and rejects unsafe recipient identifiers',()=>{
+ const parse=harness()('lib/b4-general-scholarships.ts').parseGeneralScholarship;
+ const item=parse({...general,student_profile:'PRIVATE',registrationUrl:'javascript:alert(1)'},true);
+ assert.equal(item.registrationUrl,null);assert.equal('student_profile' in item,false);
+ assert.throws(()=>parse({...general,recipients:{total:1,data:[{...general.recipients.data[0],admissionId:-1}]}},true));
+});
+test('AI opened from a general detail keeps the selected program before personal results exist',async()=>{
+ const calls=[],mockReact={...React,useState:initial=>[initial,()=>{}],useEffect:()=>{},useRef:initial=>({current:initial})};
+ const load=harness(undefined,undefined,{react:mockReact,'./useStudentScholarshipCatalog':{useStudentScholarshipCatalog:()=>({data:{data:general}})},'@/lib/b4-recommendation-data':{recommendationRequest:async(url,init)=>{calls.push({url,init});return{answer:'Penerima tercatat pada sekolah.',llmUsed:false,scholarshipId:4,suggestions:[]};}}});
+ const tree=load('components/b4/ScholarshipChatApi.tsx').default({recommendationId:'4'});
+ function nodes(v){return Array.isArray(v)?v.flatMap(nodes):v&&typeof v==='object'&&v.props?[v,...nodes(v.props.children)]:[];}
+ const all=nodes(tree);assert.ok(all.some(n=>n.type==='strong'&&n.props.children==='Program Akademik'));
+ all.find(n=>n.type==='button'&&n.props.children==='Siapa saja penerima beasiswa ini?').props.onClick();await tick();
+ assert.equal(calls.length,1);assert.equal(calls[0].url,'/api/b4/recommendations/chat');assert.equal(calls[0].init.body.beasiswa_id,4);assert.equal(calls[0].init.body.siswa_id,undefined);
+});

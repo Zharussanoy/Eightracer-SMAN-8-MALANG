@@ -115,3 +115,14 @@
 .b4-page .bc4-recommendation .bc4-pair .bc4-yellowCard p { margin:0 0 4px; font-size:12px; color:#665771; }
 .b4-page .bc4-recommendation .bc4-pair .bc4-yellowCard strong { font-size:14px; font-weight:500; line-height:1.5; }
 @media(max-width:640px){ .b4-page .bc4-recommendationCards .bc4-scholarCard{padding:18px;} .b4-page .bc4-recommendationCards .bc4-scholarCard > h3{min-height:0;} .b4-page .bc4-recommendationCards .bc4-cardHighlight:empty{display:none;} .b4-page .bc4-recommendation .bc4-recBody{gap:16px;padding:18px;} }
+
+.b4-page .bc4-generalDetail .bc4-panel > p { font-size:14px;line-height:1.7;margin:12px 0;white-space:pre-line; }
+.b4-page .bc4-generalDetail .bc4-panel > h3 { font-size:16px;font-weight:600;margin:20px 0 10px; }
+.b4-page .bc4-generalDetail ul { list-style:disc;padding-left:20px;font-size:14px;line-height:1.65; }
+.b4-page .bc4-generalDetail li + li { margin-top:8px; }
+.b4-page .bc4-recipientList { display:grid;gap:12px;margin-top:16px; }
+.b4-page .bc4-recipientList .bc4-yellowCard { padding:16px; }
+.b4-page .bc4-recipientList .bc4-profile { gap:12px; }
+.b4-page .bc4-recipientList .bc4-profile h3 { font-size:16px;font-weight:600;margin:0 0 4px; }
+.b4-page .bc4-recipientList .bc4-profile p { font-size:13px;font-weight:400;margin:0; }
+.b4-page .bc4-recipientList .bc4-button { margin-top:12px;min-height:40px;padding:8px 12px;font-size:13px; }

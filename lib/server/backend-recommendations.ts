@@ -22,7 +22,7 @@ const allowedMessages = new Set([
 ]);
 export async function backendRecommendations(request: NextRequest, path: string, options: { method?: "GET" | "POST" | "PATCH" | "DELETE"; query?: URLSearchParams; body?: unknown } = {}) {
   const method=options.method??"GET";
-  const valid=method==="GET" ? path==="/siswa" || /^\/siswa\/[1-9]\d*\/rekomendasi-beasiswa\/preview$/.test(path) || /^\/rekomendasi-beasiswa(?:\/saya|\/[1-9]\d*)?$/.test(path)
+  const valid=method==="GET" ? path==="/siswa" || /^\/beasiswa-siswa(?:\/[1-9]\d*)?$/.test(path) || /^\/siswa\/[1-9]\d*\/rekomendasi-beasiswa\/preview$/.test(path) || /^\/rekomendasi-beasiswa(?:\/saya|\/[1-9]\d*)?$/.test(path)
     : method==="POST" ? path==="/chat-beasiswa" || path==="/rekomendasi-beasiswa/saya/generate" || /^\/siswa\/[1-9]\d*\/rekomendasi-beasiswa\/(?:generate|save)$/.test(path)
     : method==="PATCH" ? /^\/rekomendasi-beasiswa\/[1-9]\d*\/(?:review|detail\/[1-9]\d*)$/.test(path)
     : /^\/rekomendasi-beasiswa\/[1-9]\d*\/detail\/[1-9]\d*$/.test(path);
