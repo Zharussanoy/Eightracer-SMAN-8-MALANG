@@ -9,7 +9,7 @@ export function catalogCsvTemplate() {
 }
 function dateValid(value: string) { return /^\d{4}-\d{2}-\d{2}$/.test(value) && new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value; }
 export function parseCatalogCsvRows(values: Record<string, unknown>[]): CatalogCsvRow[] {
-  if (!values.length || values.length > 20) throw new Error("Isi 1–20 baris informasi beasiswa dalam satu file CSV.");
+  if (!values.length || values.length > 20) throw new Error("Isi 1–20 baris informasi beasiswa dalam satu file.");
   const names = new Set<string>();
   return values.map((raw, index) => {
     const errors: string[] = [];
@@ -18,9 +18,9 @@ export function parseCatalogCsvRows(values: Record<string, unknown>[]): CatalogC
     if (!row.nama_beasiswa) errors.push("Nama beasiswa wajib diisi.");
     if (!["SMA", "Kuliah", "Keduanya"].includes(row.jenjang)) errors.push("Jenjang harus SMA, Kuliah atau Keduanya.");
     const duration = Number(row.durasi);
-    if (!/^\d+$/.test(row.durasi ?? "") || !Number.isSafeInteger(duration) || duration < 1) errors.push("Durasi harus bilangan bulat positif.");
-    if (!["semester", "tahun", "bulan"].includes(row.satuan_durasi)) errors.push("Satuan durasi harus semester, tahun atau bulan.");
-    if (!row.periode_apply) errors.push("Periode apply wajib diisi.");
+    if (row.durasi && (!/^\d+$/.test(row.durasi) || !Number.isSafeInteger(duration) || duration < 1 || duration > 100)) errors.push("Durasi harus bilangan bulat positif.");
+    if ((row.durasi || row.satuan_durasi) && !["semester", "tahun", "bulan"].includes(row.satuan_durasi)) errors.push("Satuan durasi harus semester, tahun atau bulan.");
+
     for (const field of ["tanggal_buka", "tanggal_tutup"]) {
       try { if (row[field] && !dateValid(row[field])) errors.push(`${field} harus tanggal YYYY-MM-DD yang valid.`); }
       catch { errors.push(`${field} tidak valid.`); }
@@ -46,7 +46,7 @@ export function parseCatalogCsvRows(values: Record<string, unknown>[]): CatalogC
     const key = `${row.nama_beasiswa?.toLocaleLowerCase("id")}:${row.jenjang}`;
     if (names.has(key)) errors.push("Nama dan jenjang yang sama berulang dalam file.");
     names.add(key);
-    const input: ScholarshipInput = { nama_beasiswa: row.nama_beasiswa, jenjang: row.jenjang as ScholarshipInput["jenjang"], durasi: duration, satuan_durasi: row.satuan_durasi, periode_apply: row.periode_apply, is_active: true,
+    const input: ScholarshipInput = { nama_beasiswa: row.nama_beasiswa, jenjang: row.jenjang as ScholarshipInput["jenjang"], durasi: row.durasi ? duration : null, satuan_durasi: row.durasi ? row.satuan_durasi : null, periode_apply: row.periode_apply || null, is_active: true,
       penyelenggara: row.penyelenggara || null, deskripsi: row.deskripsi || null, tanggal_buka: row.tanggal_buka || null, tanggal_tutup: row.tanggal_tutup || null, link_pendaftaran: row.link_pendaftaran || null, kriteria: criteria };
     return { line: index + 2, errors, ...(errors.length ? {} : { input }) };
   });
