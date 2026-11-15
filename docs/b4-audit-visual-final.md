@@ -40,3 +40,9 @@ Penggabungan timeline ke detail diuji ulang lewat daftar alumni: halaman detail 
 Push pertama ditolak karena origin/b4 telah diperbarui sampai 1dba6ac. Pembaruan itu digabung tanpa force push. Bagian batas BE di atas merekam keadaan sebelum sinkronisasi, bukan status implementasi terbaru: rekan telah menambahkan Simpan/Generate rekomendasi, hasil otomatis siswa, kontrol progres serta pratinjau/commit impor progres.
 
 Timeline dipasang pula pada AdminAlumniDetailPage terbaru memakai proyeksi timeline berizin, dan tab global Timeline dihapus. Pertanyaan lanjutan chat diterapkan pada ScholarshipChatApi yang sekarang aktif. Build gabungan dan 122 tes lokal lulus. Belum melakukan uji operasi tulis atau provider di BE sekolah; keberhasilan kode/tes lokal bukan bukti layanan tersebut sudah lulus di server tujuan.
+
+## Koreksi berdasarkan tiga screenshot revisi
+
+Sinkronisasi progres sempat terbawa kembali saat penggabungan update rekan. Bagian itu kini dihapus sepenuhnya dari detail alumni, termasuk handler impor dan dialog tersembunyi. Form progres manual serta riwayat dipertahankan. Tiga kriteria diperiksa bersama: tidak ada tab global Timeline, timeline tampil langsung pada detail alumni terpilih, dan tidak ada sinkronisasi spreadsheet pada detail. API impor di server tidak dihapus; halaman ini tidak lagi memanggilnya.
+
+Koreksi 15 November: tautan Lihat & Kelola progres disembunyikan hanya saat timeline berada di detail yang sama; route lama tetap dapat menuju detail. Verifikasi browser dengan data sintetis: tab Timeline=false, timeline di detail=true, sinkronisasi=false, input file=0, tautan kelola berulang=false. Build dan lint lulus; 123 tes lokal lulus. Tidak menekan Simpan atau mengarsipkan data sekolah.

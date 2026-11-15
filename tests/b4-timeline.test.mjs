@@ -87,3 +87,14 @@ test("status KIP pada detail semester memakai istilah yang sama dengan formulir"
   assert.ok(html.includes(`<span>Status KIP-K</span><strong>${label}</strong>`));
  }
 });
+
+test("timeline di dalam detail tetap lengkap tanpa tautan kembali ke detail yang sama", () => {
+ const parsed=api.parseAlumniTimeline({data});
+ const embedded=renderToStaticMarkup(React.createElement(component.default,{alumni:parsed,embedded:true}));
+ assert.match(embedded,/Perjalanan Pendidikan SMA/);
+ assert.match(embedded,/Perjalanan Pendidikan Perguruan Tinggi/);
+ assert.match(embedded,/Detail Semester/);
+ assert.doesNotMatch(embedded,/Lihat &amp; Kelola progres|informasi-detail\?id=/);
+ const standalone=renderToStaticMarkup(React.createElement(component.default,{alumni:parsed}));
+ assert.match(standalone,/informasi-detail\?id=1/);
+});
