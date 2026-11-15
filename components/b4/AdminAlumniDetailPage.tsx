@@ -34,26 +34,26 @@ export default function AdminAlumniDetailPage({ id }: { id?: string }) {
   const timeline = allowed && timelineResult?.id === id ? timelineResult : null;
   useEffect(() => {
     if (!allowed || !validId || !id) return;
-    const controller = new AbortController();
-    void getAlumniTimeline(Number(id), controller.signal).then(({ data }) => {
-      if (!controller.signal.aborted) setTimelineResult({ id, data });
+    let disposed = false;
+    void getAlumniTimeline(Number(id)).then(({ data }) => {
+      if (!disposed) setTimelineResult({ id, data });
     }).catch(error => {
-      if (!controller.signal.aborted) setTimelineResult({ id, error: explain(error) });
+      if (!disposed) setTimelineResult({ id, error: explain(error) });
     });
-    return () => controller.abort();
+    return () => { disposed = true; };
   }, [allowed, validId, id, retry]);
 
   useEffect(() => {
     if (!allowed || !validId || !id) return;
-    const controller = new AbortController();
-    void getAlumniDetail(id, controller.signal).then(({ data }) => {
-      if (!controller.signal.aborted) { setResult({ id, data }); setForm(newProgressForAlumni(data)); }
+    let disposed = false;
+    void getAlumniDetail(id).then(({ data }) => {
+      if (!disposed) { setResult({ id, data }); setForm(newProgressForAlumni(data)); }
     }).catch((error) => {
-      if (controller.signal.aborted) return;
+      if (disposed) return;
       if (error instanceof ApiError && error.status === 401) void refreshSession();
       setResult({ id, error: explain(error) });
     });
-    return () => controller.abort();
+    return () => { disposed = true; };
   }, [allowed, validId, id, retry, refreshSession]);
   const field = <K extends keyof ProgressForm>(key: K, value: ProgressForm[K]) => setForm((previous) => ({ ...previous, [key]: value }));
   const refresh = () => setRetry((value) => value + 1);

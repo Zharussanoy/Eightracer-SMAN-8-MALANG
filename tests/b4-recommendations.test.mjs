@@ -197,3 +197,15 @@ test("save proxy rejects cross-origin, extra identifiers, and mismatched respons
  assert.equal(calls,0);
  assert.equal((await route.POST(request("/api/b4/recommendations/11/save",{target_jenjang:"SMA"}),context)).status,502);
 });
+
+test("catalog reactivation only changes status, accepts official programs without numeric criteria",async()=>{
+ const calls=[],load=harness(async(url,init)=>{calls.push({url,init});return Response.json({data:{id:5,nama_beasiswa:"Beasiswa TELADAN",jenjang:"Kuliah",is_active:true,kriteria:[]}});});
+ const route=load("app/api/b4/beasiswa/[id]/activate/route.ts");
+ const result=await route.POST(request("/api/b4/beasiswa/5/activate",{}),{params:Promise.resolve({id:"5"})});
+ assert.equal(result.status,200);assert.equal(calls.length,1);assert.equal(calls[0].url,"https://backend.example/api/beasiswa/5/activate");assert.equal(calls[0].init.body,"{}");
+});
+test("reactivation blocks cross-origin and extra policy edits before contacting backend",async()=>{
+ let calls=0;const route=harness(async()=>{calls++;return Response.json({});})("app/api/b4/beasiswa/[id]/activate/route.ts");const params={params:Promise.resolve({id:"5"})};
+ assert.equal((await route.POST(request("/api/b4/beasiswa/5/activate",{},"https://invalid.example"),params)).status,403);
+ assert.equal((await route.POST(request("/api/b4/beasiswa/5/activate",{official_policy:{}}),params)).status,422);assert.equal(calls,0);
+});

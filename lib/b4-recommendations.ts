@@ -1,4 +1,4 @@
-export interface RecommendationRanking { status: string | null; reason: string | null; similarity: number | null; rank: number | null }
+export interface RecommendationRanking { status: string | null; reason: string | null; similarity: number | null; rank: number | null; highlighted?:boolean; highlightLabel?:string|null; highlightReason?:string|null }
 export interface RecommendationCandidate {
   id: number;
   name: string;
@@ -39,7 +39,7 @@ function integer(value: unknown): number | null {
 function calendar(value: unknown) { return typeof value === "string" && /^\d{4}-\d{2}-\d{2}(?:T.*)?$/.test(value) ? value.slice(0, 10) : null; }
 function ranking(value: unknown): RecommendationRanking {
   const row = record(value ?? {});
-  return { status: text(row.status), reason: text(row.alasan_status), similarity: bounded(row.skor_kemiripan, 1), rank: integer(row.peringkat) };
+  return { status: text(row.status), reason: text(row.alasan_status), similarity: bounded(row.skor_kemiripan, 1), rank: integer(row.peringkat), highlighted: row.unggulan===true, highlightLabel: text(row.label_unggulan), highlightReason: text(row.alasan_unggulan) };
 }
 function scalar(value: unknown): string | null {
   if (typeof value === "string") return value;

@@ -6,6 +6,7 @@ class RecommendationThrottleError extends AuthError {
   constructor(public retryAfter:number){super(429, "Pesan dikirim terlalu cepat. Coba lagi dalam "+retryAfter+" detik; pertanyaanmu tetap tersimpan.");}
 }
 const allowedMessages = new Set([
+  "Rekomendasi beasiswa hanya tersedia untuk siswa aktif SMA 8. Periksa status kelulusan dan riwayat kelas.",
   "Akun belum terhubung dengan data siswa.",
   "Jenjang siswa belum diketahui. Lengkapi riwayat kelas aktif SMA.",
   "Belum ada beasiswa aktif yang sesuai jenjang.",
@@ -21,8 +22,8 @@ const allowedMessages = new Set([
 ]);
 export async function backendRecommendations(request: NextRequest, path: string, options: { method?: "GET" | "POST" | "PATCH" | "DELETE"; query?: URLSearchParams; body?: unknown } = {}) {
   const method=options.method??"GET";
-  const valid=method==="GET" ? path==="/siswa" || /^\/siswa\/[1-9]\d*\/rekomendasi-beasiswa\/preview$/.test(path) || /^\/rekomendasi-beasiswa(?:\/saya|\/[1-9]\d*)?$/.test(path)
-    : method==="POST" ? path==="/chat-beasiswa" || /^\/siswa\/[1-9]\d*\/rekomendasi-beasiswa\/(?:generate|save)$/.test(path)
+  const valid=method==="GET" ? path==="/siswa" || /^\/beasiswa-siswa(?:\/[1-9]\d*)?$/.test(path) || /^\/siswa\/[1-9]\d*\/rekomendasi-beasiswa\/preview$/.test(path) || /^\/rekomendasi-beasiswa(?:\/saya|\/[1-9]\d*)?$/.test(path)
+    : method==="POST" ? path==="/chat-beasiswa" || path==="/rekomendasi-beasiswa/saya/generate" || /^\/siswa\/[1-9]\d*\/rekomendasi-beasiswa\/(?:generate|save)$/.test(path)
     : method==="PATCH" ? /^\/rekomendasi-beasiswa\/[1-9]\d*\/(?:review|detail\/[1-9]\d*)$/.test(path)
     : /^\/rekomendasi-beasiswa\/[1-9]\d*\/detail\/[1-9]\d*$/.test(path);
   if(!valid)throw new AuthError(422,"Tujuan rekomendasi tidak valid.");

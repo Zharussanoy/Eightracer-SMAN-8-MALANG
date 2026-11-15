@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
     const backendQuery=new URLSearchParams(query);
     if(query.has("publication")){backendQuery.delete("publication");backendQuery.set("rekomendasi_published",query.get("publication")==="true"?"1":"0");}
     backendQuery.set("per_page","20");
+    backendQuery.set("aktif_rekomendasi","1");
     return authResponse(parseRecommendationStudents(await readBackendRecommendations(request,"/siswa",backendQuery)));
   } catch(error){return recommendationFailure(error,request);}
 }

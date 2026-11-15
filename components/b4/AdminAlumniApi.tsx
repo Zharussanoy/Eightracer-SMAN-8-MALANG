@@ -19,20 +19,20 @@ function useAlumniRead<T>(path: string | null) {
   const [result, setResult] = useState<{ key: string; data?: T; error?: string }>();
   useEffect(() => {
     if (!path) return;
-    const abort = new AbortController();
+    let disposed = false;
     const timer = setTimeout(async () => {
       try {
-        const response = await fetch(path, { credentials: "same-origin", headers: { Accept: "application/json" }, cache: "no-store", signal: abort.signal });
+        const response = await fetch(path, { credentials: "same-origin", headers: { Accept: "application/json" }, cache: "no-store" });
         const payload = await response.json();
-        if (abort.signal.aborted) return;
+        if (disposed) return;
         if (response.status === 401) { void refreshSession(); router.replace("/login"); }
         if (!response.ok) throw new Error(payload.message ?? "Data alumni belum dapat dimuat.");
         setResult({ key, data: payload });
       } catch (error) {
-        if (!abort.signal.aborted) setResult({ key, error: error instanceof Error ? error.message : "Aplikasi belum dapat dihubungi." });
+        if (!disposed) setResult({ key, error: error instanceof Error ? error.message : "Aplikasi belum dapat dihubungi." });
       }
     }, 300);
-    return () => { clearTimeout(timer); abort.abort(); };
+    return () => { disposed = true; clearTimeout(timer); };
   }, [path, key, refreshSession, router]);
   return { ...(result?.key === key ? result : {}), retry: () => setRetry((value) => value + 1) };
 }

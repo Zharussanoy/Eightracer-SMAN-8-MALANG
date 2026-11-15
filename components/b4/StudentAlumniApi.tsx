@@ -24,25 +24,27 @@ function useAlumni<T>(path: string) {
   const key = `${path}:${retry}:${currentUser.id}:${authStatus}`;
   useEffect(() => {
     if (!permitted) return;
-    const abort = new AbortController(); let running = false;
+    // Ignore late read results after navigation without rejecting the browser request.
+    let disposed = false, running = false;
     async function load() {
-      if (running || abort.signal.aborted) return;
+      if (running || disposed) return;
       running = true;
       try {
-        const response = await fetch(path, { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" }, signal: abort.signal });
+        const response = await fetch(path, { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } });
         const payload = await response.json();
+        if (disposed) return;
         if (!response.ok) {
           if (response.status === 401) void refreshSession();
           throw new Error(payload.message ?? "Jejak Alumni belum dapat dimuat.");
         }
-        if (!abort.signal.aborted) setResult({ key, data: payload });
-      } catch (error) { if (!abort.signal.aborted) setResult({ key, error: error instanceof Error ? error.message : "Jejak Alumni belum dapat dihubungi." }); }
+        if (!disposed) setResult({ key, data: payload });
+      } catch (error) { if (!disposed) setResult({ key, error: error instanceof Error ? error.message : "Jejak Alumni belum dapat dihubungi." }); }
       finally { running = false; }
     }
     const visible = () => { if (document.visibilityState === "visible") void load(); };
     void load(); window.addEventListener("focus", visible); document.addEventListener("visibilitychange", visible);
     const timer = window.setInterval(visible, 20_000);
-    return () => { abort.abort(); window.clearInterval(timer); window.removeEventListener("focus", visible); document.removeEventListener("visibilitychange", visible); };
+    return () => { disposed = true; window.clearInterval(timer); window.removeEventListener("focus", visible); document.removeEventListener("visibilitychange", visible); };
   }, [path, key, permitted, refreshSession]);
   const current = result?.key === key ? result : null;
   return { data: current?.data, error: !permitted ? "Masuk dengan akun siswa untuk membaca Jejak Alumni." : current?.error, retry: () => setRetry((value) => value + 1) };
@@ -96,10 +98,10 @@ function Detail({ id }: { id: string }) {
         <div className="bc4-panel"><h3 className="bc4-underlined">Indikator Seleksi &amp; Kelayakan Sekolah</h3><div className="bc4-campus"><div><small>Nilai Rapor Pendaftaran</small><h3>{data.admissionGrade ?? "-"}</h3></div><div><small>Skor UTBK</small><h3>{data.utbk ?? "-"}</h3></div></div>{<p className="b4-chartFootnote">Indikator lain belum tersedia pada data yang dipublikasikan.</p>}</div>
       </div></section>
       <section className="bc4-section"><h2 className="bc4-sectionHeading">Prestasi &amp; Portofolio Pendukung</h2><div className="bc4-sectionBody">{alumni.achievements.length ? <div className="bc4-grid3">{alumni.achievements.map((item, index) => <article className="bc4-yellowCard" key={index}>{item.level && <span className="bc4-tag">{item.level}</span>}<h3>{display(item.name ?? item.type)}</h3><p>{[item.rank, item.field, item.provider, item.year].filter(Boolean).join(" · ")}</p></article>)}</div> : <p className="bc4-empty">-</p>}</div></section>
-    </> : <PublishedTimeline events={data.events} graduationYear={alumni.graduationYear} entryYear={alumni.entryYear} />}
+    </> : <PublishedTimeline events={data.events} />}
   </div></Frame>;
 }
-function PublishedTimeline({ events, graduationYear, entryYear }: { events: StudentAlumniEvent[]; graduationYear: string|null; entryYear: string|null }) {
+function PublishedTimeline({ events }: { events: StudentAlumniEvent[] }) {
   const progress = events.filter((event) => event.semester !== null);
   const school = events.filter((event) => event.semester === null);
   const [selectedKey, setSelectedKey] = useState(progress[0]?.key ?? "");

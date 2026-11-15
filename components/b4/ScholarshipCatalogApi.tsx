@@ -7,7 +7,7 @@ import { Plus } from "lucide-react";
 import FigmaIcon from "./FigmaIcon";
 import { useUser } from "@/context/UserContext";
 import { ApiError } from "@/lib/eightracer-api";
-import { archiveScholarship, getScholarship, getScholarships, saveScholarship } from "@/lib/b4-scholarship-api";
+import { archiveScholarship, activateScholarship, getScholarships } from "@/lib/b4-scholarship-api";
 import { scholarshipDuration, scholarshipPeriod, scholarshipQuery, scholarshipRegistrationLabel, type ScholarshipPage, type ScholarshipLevel, type ScholarshipRow } from "@/lib/b4-scholarships";
 import B4Shell from "./B4Shell";
 import CatalogCsvImport from "./CatalogCsvImport";
@@ -62,11 +62,7 @@ export default function ScholarshipCatalogApi() {
     submitting.current = true; setBusy(true); setStatus("");
     try {
       if (action.active) await archiveScholarship(action.id);
-      else {
-        const detail = await getScholarship(action.id);
-        if (!detail.input) throw new Error("Informasi lengkap beasiswa belum tersedia untuk diaktifkan. Muat ulang katalog.");
-        await saveScholarship({ ...detail.input, is_active: true }, action.id);
-      }
+      else await activateScholarship(action.id);
       confirmation.current?.close();
       setStatus(`${displayTitle(action.name)} berhasil ${action.active ? "diarsipkan" : "diaktifkan"}.`);
       setRetry((value) => value + 1);

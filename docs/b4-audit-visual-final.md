@@ -46,3 +46,5 @@ Timeline dipasang pula pada AdminAlumniDetailPage terbaru memakai proyeksi timel
 Sinkronisasi progres sempat terbawa kembali saat penggabungan update rekan. Bagian itu kini dihapus sepenuhnya dari detail alumni, termasuk handler impor dan dialog tersembunyi. Form progres manual serta riwayat dipertahankan. Tiga kriteria diperiksa bersama: tidak ada tab global Timeline, timeline tampil langsung pada detail alumni terpilih, dan tidak ada sinkronisasi spreadsheet pada detail. API impor di server tidak dihapus; halaman ini tidak lagi memanggilnya.
 
 Koreksi 15 November: tautan Lihat & Kelola progres disembunyikan hanya saat timeline berada di detail yang sama; route lama tetap dapat menuju detail. Verifikasi browser dengan data sintetis: tab Timeline=false, timeline di detail=true, sinkronisasi=false, input file=0, tautan kelola berulang=false. Build dan lint lulus; 123 tes lokal lulus. Tidak menekan Simpan atau mengarsipkan data sekolah.
+
+Sebelum push koreksi, update rekan sampai 3cca845 digabung. Penghapusan sinkronisasi dan mode timeline embedded tetap dipertahankan. Build gabungan serta 142 tes lokal lulus.
