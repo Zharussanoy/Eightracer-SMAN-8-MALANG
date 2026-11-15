@@ -3,6 +3,7 @@
 import { scholarshipEvidenceLabel, kipEvidenceLabel } from "@/lib/b4-scholarship-evidence";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { RotateCcw } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { ApiError } from "@/lib/eightracer-api";
 import { getAlumniTimeline, getTimelineAlumniPage } from "@/lib/b4-alumni-api";
@@ -22,12 +23,14 @@ export default function AdminTimelinePage() {
   const allowed = authStatus === "authenticated" && currentUser.schoolStaff === true;
   const [query, setQuery] = useState(""), [university, setUniversity] = useState(""), [program, setProgram] = useState(""), [admission, setAdmission] = useState("");
   const [page, setPage] = useState(1), [retry, setRetry] = useState(0);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [result, setResult] = useState<PageResult | null>(null), [detail, setDetail] = useState<DetailResult | null>(null);
   const [filters, setFilters] = useState<AlumniFilters>({ universities: [], studyPrograms: [], admissionPaths: [] });
   const key = JSON.stringify([query, university, program, admission, page, retry]);
   const current = allowed && result?.key === key ? result : null;
   const rows = current?.data?.data ?? [];
-  const activeId = rows[0]?.id;
+  const activeId = rows.some((row) => row.id === selectedId) ? selectedId ?? undefined : rows[0]?.id;
+  const activeIndex = rows.findIndex((row) => row.id === activeId);
   const currentDetail = allowed && activeId === detail?.id ? detail : null;
   const alumni = currentDetail?.data;
   const hasFilters = Boolean(query || university || program || admission);
@@ -62,6 +65,7 @@ export default function AdminTimelinePage() {
   }, [allowed, activeId, retry, refreshSession]);
 
   function change(set: (value: string) => void, value: string) { set(value); setPage(1); }
+  function resetFilters() { setQuery(""); setUniversity(""); setProgram(""); setAdmission(""); setPage(1); }
   const latest = alumni?.progress[0];
   return <B4Shell title="Timeline Individu" active="timeline" description="Lihat perjalanan pendidikan dan perkembangan kuliah alumni dari masa sekolah hingga kondisi terkini.">
     <div className="bc4-filterRow">
@@ -72,13 +76,22 @@ export default function AdminTimelinePage() {
         { label: "Jalur Masuk", key: "admission", value: admission, set: setAdmission, options: filters.admissionPaths.map((item) => ({ value: item, label: item })) },
       ].map(({ label, key, value, set, options }) => <label className="bc4-field" key={key}><span className="b4-srOnly">{displayTitle(label)}</span><select aria-label={label} value={value} onChange={(event) => change(set, event.target.value)}><option value="">{displayTitle(label)}</option>{options.map((option) => <option key={option.value} value={option.value}>{displayTitle(option.label)}</option>)}</select></label>)}
     </div>
+    {!!rows.length && <div className="bc4-adminSubbar">
+      <label className="bc4-field bc4-alumniPicker">Pilih Alumni
+        <select aria-label="Pilih alumni untuk melihat timeline" value={activeId ?? ""} onChange={(event) => setSelectedId(Number(event.target.value))}>
+          {rows.map((row) => <option key={row.id} value={row.id}>{displayTitle(row.name)} — {displayTitle(row.university)}</option>)}
+        </select>
+      </label>
+      <p className="bc4-adminSubbarMeta" role="status">Menampilkan alumni {activeIndex + 1} dari {rows.length} pada halaman ini</p>
+      {hasFilters && <button type="button" className="bc4-button bc4-resetButton" onClick={resetFilters}><RotateCcw size={16} aria-hidden="true" />Reset Filter</button>}
+    </div>}
     {!allowed ? <div className="bc4-empty" role="status">{authStatus === "loading" ? "Memeriksa sesi akun…" : "Timeline sekolah hanya untuk admin atau Guru BK yang berwenang."}</div>
       : current?.error ? <div className="bc4-empty" role="alert">{current.error}<p><button className="bc4-button" type="button" onClick={refresh}>Coba Lagi</button></p></div>
       : !current?.data ? <div className="bc4-empty" role="status">Memuat data alumni…</div>
       : !rows.length ? <div className="bc4-empty" role="status"><strong>{hasFilters ? "Tidak ada alumni yang cocok dengan pencarian ini." : "Belum ada data alumni."}</strong>
         <p>Ubah pencarian atau lihat daftar Alumni di PT.</p>
         <Link className="bc4-button" href="/admin/alumni-perguruan-tinggi">Buka Alumni di PT</Link>
-        {hasFilters && <button className="bc4-button" type="button" onClick={() => { setQuery(""); setUniversity(""); setProgram(""); setAdmission(""); setPage(1); }}>Reset Filter</button>}
+        {hasFilters && <button className="bc4-button" type="button" onClick={resetFilters}>Reset Filter</button>}
       </div> : <>
         {currentDetail?.error ? <div className="bc4-empty" role="alert">{currentDetail.error}<p><button className="bc4-button" type="button" onClick={refresh}>Muat Ulang</button></p></div>
           : !alumni ? <div className="bc4-empty" role="status">Memuat riwayat alumni…</div> : <>

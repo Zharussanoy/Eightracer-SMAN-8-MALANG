@@ -11,6 +11,7 @@ import "./complete.css";
 import "./repo-b4-additions.css";
 import { displayTitle } from "@/lib/display-copy";
 import "./capstone.css";
+import "./admin-ui.css";
 
 export function Avatar({ name, small = false, example = true }: { name: string; small?: boolean; example?: boolean }) {
   return <span className={`bc4-avatar ${small ? "bc4-avatarSmall" : ""}`} aria-label={`${example ? "Profil contoh" : "Profil"} ${name}`}><UserRound size={small ? 30 : 48} aria-hidden="true" /></span>;
@@ -22,7 +23,7 @@ export default function B4Shell({ title, description, student = false, active = 
   title: string; description: string; student?: boolean; active?: "alumni" | "recommendations" | "database" | "timeline" | "analytics" | "summary"; children: ReactNode; parent?: { label: string; href: string }; dataNote?: string; showDemoProfile?: boolean; tabQuery?: string;
 }) {
   const data = useDemoData();
-  return <div className="b4-page bc4-page">
+  return <div className={`b4-page bc4-page${student ? "" : " bc4-adminShell"}`}>
     <main><section className="b4-hero"><div className="b4-container"><nav className="b4-breadcrumb" aria-label="Breadcrumb"><Link href="/#layanan">Layanan</Link><FigmaIcon name="breadcrumb" size={24} /><span>Alumni dan Beasiswa</span><FigmaIcon name="breadcrumb" size={24} />{parent && <><Link href={parent.href}>{displayTitle(parent.label)}</Link><FigmaIcon name="breadcrumb" size={24} /></>}<span aria-current="page">{displayTitle(title)}</span></nav><h1>{displayTitle(title)}</h1><p>{description}</p></div></section>
 
       <div className="b4-container">{student ? <StudentTabs active={active === "alumni" ? "alumni" : "recommendations"} /> : <B4Tabs query={tabQuery} active={active === "database" ? "Basis Data Beasiswa" : active === "alumni" ? "Alumni di PT" : active === "timeline" ? "Timeline individu" : active === "summary" ? "Ringkasan Pola" : active === "analytics" ? "Analitik Beasiswa" : "Rekomendasi Beasiswa"} />}

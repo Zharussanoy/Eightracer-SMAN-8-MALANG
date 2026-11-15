@@ -8,9 +8,9 @@ import { getAlumniPage } from "@/lib/b4-alumni-api";
 import type { AlumniPage, AlumniFilters } from "@/lib/b4-alumni";
 import { educationStatus } from "@/lib/b4-progress";
 import Link from "next/link";
-import { ChevronDown, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
-import B4Tabs from "./B4Tabs";
-import "./college.css";
+import { ChevronDown, Search, X } from "lucide-react";
+import B4Shell from "@/components/b4/B4Shell";
+import NumberPagination from "@/components/b4/NumberPagination";
 import { displayTitle } from "@/lib/display-copy";
 
 const PAGE_SIZE = 8;
@@ -51,7 +51,6 @@ export default function AlumniCollegePage() {
   const pageCount = data?.lastPage ?? 1;
   const currentPage = data?.currentPage ?? page;
   const start = (currentPage - 1) * PAGE_SIZE;
-  const pageNumbers = [...new Set([1, currentPage, pageCount])].sort((a, b) => a - b);
   const universities = options.universities, studyPrograms = options.studyPrograms, admissionPaths = options.admissionPaths;
 
   useEffect(() => {
@@ -79,79 +78,58 @@ export default function AlumniCollegePage() {
     setQuery(""); setUniversity(""); setProgram(""); setAdmission(""); setPage(1);
   };
 
-  return (
-    <div className={"b4-page"}>
-      <main>
-        <section className={"b4-hero"} aria-labelledby="b4-page-title">
-          <div className={"b4-container"}>
-            <nav aria-label="Breadcrumb" className={"b4-breadcrumb"}>
-              <Link href="/#layanan">Layanan</Link><ChevronRight size={14} aria-hidden="true" />
-              <span>Alumni dan Beasiswa</span><ChevronRight size={14} aria-hidden="true" />
-              <span aria-current="page">Alumni di PT</span>
-            </nav>
-            <h1 id="b4-page-title">Alumni di Perguruan Tinggi</h1>
-            <p>Kelola progres alumni selama menempuh pendidikan di Perguruan Tinggi berdasarkan periode</p>
-          </div>
-        </section>
-
-        <div className={"b4-container"}>
-          <B4Tabs active="Alumni di PT" />
-
-          <section className={"b4-directory"} aria-label="Daftar alumni di perguruan tinggi">
-            <div className={"b4-filters"}>
-              <label className={"b4-searchField"}>
-                <Search size={22} aria-hidden="true" />
-                <span className={"b4-srOnly"}>Cari nama alumni</span>
-                <input type="search" value={query} placeholder="Cari nama alumni" onChange={(event) => changeFilter(setQuery)(event.target.value)} />
-              </label>
-              <FilterSelect label="Perguruan Tinggi" value={university} options={universities} onChange={changeFilter(setUniversity)} />
-              <FilterSelect label="Program Studi" value={program} options={studyPrograms} onChange={changeFilter(setProgram)} />
-              <FilterSelect label="Jalur Masuk" value={admission} options={admissionPaths} onChange={changeFilter(setAdmission)} />
-            </div>
-            {hasFilters && <button type="button" className={"b4-resetFilters"} onClick={resetFilters}>Reset Pencarian dan Filter <X size={14} /></button>}
-
-            <div className={"b4-tableFrame"}>
-              <div className={"b4-tableScroll"} tabIndex={0} role="region" aria-label="Tabel alumni, geser ke samping pada layar kecil">
-                <table className={"b4-table"}>
-                  <caption className={"b4-srOnly"}>Data penerimaan alumni dari sekolah</caption>
-                  <thead><tr>
-                    <th scope="col">Nama Alumni</th><th scope="col">Perguruan Tinggi</th>
-                    <th scope="col">Program Studi</th><th scope="col">Jalur Masuk</th>
-                    <th scope="col">Status Terakhir</th><th scope="col"><span className={"b4-srOnly"}>Aksi</span></th>
-                  </tr></thead>
-                  <tbody>
-                    {visibleRows.map((alumni) => (
-                      <tr key={alumni.id}>
-                        <td>{displayTitle(alumni.name)}</td><td>{displayTitle(alumni.university)}</td><td>{displayTitle(alumni.studyProgram)}</td>
-                        <td>{displayTitle(alumni.admissionPath ?? "-")}</td><td>{educationStatus(alumni.latestStatus)}</td>
-                        <td><Link href={`/admin/alumni-perguruan-tinggi/informasi-detail?id=${encodeURIComponent(String(alumni.id))}`} className={"b4-detailButton"}
-                          aria-label={`Lihat detail ${displayTitle(alumni.name)}`}>Lihat Detail</Link></td>
-                      </tr>
-                    ))}
-                    {!allowed ? <tr><td colSpan={6} className="b4-emptyState">{authStatus === "loading" ? "Memeriksa sesi akun…" : <>Data alumni sekolah hanya tersedia untuk admin atau Guru BK yang berwenang. <Link href="/login">Masuk</Link></>}</td></tr>
-                      : !current ? <tr><td colSpan={6} className="b4-emptyState" role="status">Memuat data alumni sekolah…</td></tr>
-                      : current.error ? <tr><td colSpan={6} className="b4-emptyState"><p role="alert">{current.error}</p><button type="button" onClick={() => setRetry((value) => value + 1)}>Coba Lagi</button></td></tr>
-                      : visibleRows.length === 0 && <tr><td colSpan={6} className="b4-emptyState">Tidak ada data penerimaan yang cocok dengan pencarian dan filter.<button type="button" onClick={resetFilters}>Reset Filter</button></td></tr>}
-                  </tbody>
-                </table>
-              </div>
-              <div className={"b4-tableFooter"}>
-                <p role="status">Menampilkan {visibleRows.length ? start + 1 : 0} - {visibleRows.length ? start + visibleRows.length : 0} dari {total} catatan penerimaan alumni</p>
-                <nav className={"b4-pagination"} aria-label="Halaman daftar alumni">
-                  <button type="button" aria-label="Halaman sebelumnya" disabled={!data || currentPage <= 1} onClick={() => setPage(currentPage - 1)}><ChevronLeft size={20} /></button>
-                  {pageNumbers.map((number, index) => <span key={number} className={"b4-pageNumberGroup"}>
-                    {index > 0 && number - pageNumbers[index - 1] > 1 && <span aria-hidden="true">…</span>}
-                    <button type="button" aria-label={`Halaman ${number}`} aria-current={currentPage === number ? "page" : undefined} onClick={() => setPage(number)}>{number}</button>
-                  </span>)}
-                  <button type="button" aria-label="Halaman selanjutnya" disabled={!data || currentPage >= pageCount} onClick={() => setPage(currentPage + 1)}><ChevronRight size={20} /></button>
-                </nav>
-              </div>
-            </div>
-          </section>
+  return <B4Shell title="Alumni di Perguruan Tinggi" active="alumni" description="Kelola progres alumni selama menempuh pendidikan di Perguruan Tinggi berdasarkan periode.">
+    <section className={"b4-directory"} aria-label="Daftar alumni di perguruan tinggi">
+      <div className="bc4-adminHead">
+        <div className="bc4-adminHeadMain">
+          <h2>Daftar Alumni</h2>
+          <p>Cari berdasarkan nama, perguruan tinggi, program studi, atau jalur masuk. Buka detail untuk memperbarui progres kuliah alumni.</p>
         </div>
-      </main>
+        <p className="bc4-adminHeadMeta" role="status">{data ? <><strong>{total}</strong> alumni tercatat</> : current?.error ? "Data belum tersedia" : "Memuat data alumni…"}</p>
+      </div>
 
+      <div className={"b4-filters"}>
+        <label className={"b4-searchField"}>
+          <Search size={22} aria-hidden="true" />
+          <span className={"b4-srOnly"}>Cari nama alumni</span>
+          <input type="search" value={query} placeholder="Cari nama alumni" onChange={(event) => changeFilter(setQuery)(event.target.value)} />
+        </label>
+        <FilterSelect label="Perguruan Tinggi" value={university} options={universities} onChange={changeFilter(setUniversity)} />
+        <FilterSelect label="Program Studi" value={program} options={studyPrograms} onChange={changeFilter(setProgram)} />
+        <FilterSelect label="Jalur Masuk" value={admission} options={admissionPaths} onChange={changeFilter(setAdmission)} />
+      </div>
+      {hasFilters && <button type="button" className={"b4-resetFilters"} onClick={resetFilters}>Reset Pencarian dan Filter <X size={14} aria-hidden="true" /></button>}
 
-    </div>
-  );
+      <div className={"b4-tableFrame"}>
+        <div className={"b4-tableScroll"} tabIndex={0} role="region" aria-label="Tabel alumni, geser ke samping pada layar kecil">
+          <table className={"b4-table"}>
+            <caption className={"b4-srOnly"}>Data penerimaan alumni dari sekolah</caption>
+            <thead><tr>
+              <th scope="col">Nama Alumni</th><th scope="col">Perguruan Tinggi</th>
+              <th scope="col">Program Studi</th><th scope="col">Jalur Masuk</th>
+              <th scope="col">Status Terakhir</th><th scope="col"><span className={"b4-srOnly"}>Aksi</span></th>
+            </tr></thead>
+            <tbody>
+              {visibleRows.map((alumni) => (
+                <tr key={alumni.id}>
+                  <td>{displayTitle(alumni.name)}</td><td>{displayTitle(alumni.university)}</td><td>{displayTitle(alumni.studyProgram)}</td>
+                  <td>{displayTitle(alumni.admissionPath ?? "-")}</td><td>{educationStatus(alumni.latestStatus)}</td>
+                  <td><Link href={`/admin/alumni-perguruan-tinggi/informasi-detail?id=${encodeURIComponent(String(alumni.id))}`} className={"b4-detailButton"}
+                    aria-label={`Lihat detail ${displayTitle(alumni.name)}`}>Lihat Detail</Link></td>
+                </tr>
+              ))}
+              {!allowed ? <tr><td colSpan={6} className="b4-emptyState">{authStatus === "loading" ? "Memeriksa sesi akun…" : <>Data alumni sekolah hanya tersedia untuk admin atau Guru BK yang berwenang. <Link href="/login">Masuk</Link></>}</td></tr>
+                : !current ? <tr><td colSpan={6} className="b4-emptyState" role="status">Memuat data alumni sekolah…</td></tr>
+                : current.error ? <tr><td colSpan={6} className="b4-emptyState"><p role="alert">{current.error}</p><button type="button" onClick={() => setRetry((value) => value + 1)}>Coba Lagi</button></td></tr>
+                : visibleRows.length === 0 && <tr><td colSpan={6} className="b4-emptyState">Tidak ada data penerimaan yang cocok dengan pencarian dan filter.<button type="button" onClick={resetFilters}>Reset Filter</button></td></tr>}
+            </tbody>
+          </table>
+        </div>
+        <div className={"b4-tableFooter"}>
+          <p role="status">Menampilkan {visibleRows.length ? start + 1 : 0} - {visibleRows.length ? start + visibleRows.length : 0} dari {total} catatan penerimaan alumni</p>
+          <NumberPagination current={currentPage} last={pageCount} onChange={setPage} />
+        </div>
+      </div>
+    </section>
+  </B4Shell>;
 }
