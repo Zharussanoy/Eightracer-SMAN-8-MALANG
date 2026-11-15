@@ -63,3 +63,18 @@ test("keputusan terbaru menolak/proses tidak dicentang dari riwayat lama; mode e
  assert.deepEqual(api.newProgressForAlumni(alumni).awardIds,[]);
  assert.deepEqual(api.formFromProgress(older).awardIds,["5"]);
 });
+
+test("baris legacy tanpa periode bisa dilengkapi karena periodenya belum terkunci", () => {
+ const legacy={...row,period:null,semester:null,status:null};
+ const form=api.formFromProgress(legacy);
+ assert.equal(form.period,"");
+ assert.equal(api.periodLocked(legacy),false);
+ assert.equal(api.periodLocked(row),true);
+ assert.equal(api.progressNeedsCompletion(legacy),true);
+ assert.equal(api.progressNeedsCompletion(row),false);
+ assert.throws(()=>api.progressPayload(form,legacy,false));
+ const payload=api.progressPayload({...form,period:"Ganjil 2026/2027",semester:"1",status:"aktif"},legacy,false);
+ assert.equal(payload.periode,"Ganjil 2026/2027");
+ assert.equal(payload.semester,1);
+ assert.equal(payload.status_pendidikan,"aktif");
+});

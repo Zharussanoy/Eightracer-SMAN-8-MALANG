@@ -8,7 +8,7 @@ import { useUser } from "@/context/UserContext";
 import { ApiError } from "@/lib/eightracer-api";
 import { archiveAlumniProgress, getAlumniDetail, saveAlumniProgress } from "@/lib/b4-alumni-api";
 import type { AlumniDetail, AlumniProgressRow } from "@/lib/b4-alumni";
-import { blankProgress, newProgressForAlumni, progressScholarshipOptions, educationStatusLabels, formFromProgress, progressPayload, type ProgressForm } from "@/lib/b4-progress";
+import { blankProgress, newProgressForAlumni, progressScholarshipOptions, educationStatusLabels, formFromProgress, periodLocked, progressNeedsCompletion, progressPayload, type ProgressForm } from "@/lib/b4-progress";
 import B4Shell, { Avatar } from "./B4Shell";
 import { displayTitle } from "@/lib/display-copy";
 import { getAlumniTimeline } from "@/lib/b4-alumni-api";
@@ -87,6 +87,7 @@ export default function AdminAlumniDetailPage({ id }: { id?: string }) {
   </B4Shell>;
 
   const records = alumni.progress;
+  const editingRow = records.find((row) => row.id === form.id);
   const kipk = kipEvidenceLabel(alumni.scholarshipEvidence);
   const nisn = alumni.hasNisn ? "••••••••••" : missing;
   const catalogs = progressScholarshipOptions(alumni);
@@ -106,7 +107,7 @@ export default function AdminAlumniDetailPage({ id }: { id?: string }) {
         <section className="bc4-panel"><h2 className="bc4-underlined">{form.id ? "Edit Progress Kuliah" : "Update Progress Kuliah"}</h2>
           <form ref={editor} onSubmit={save}>
             <div className="bc4-grid2 bc4-progressFields">
-              <label className="bc4-field">Periode *<input required disabled={saving || !!form.id} maxLength={50} placeholder="Contoh format: Ganjil 2026/2027" value={form.period} onChange={(event) => field("period", event.target.value)} /></label>
+              <label className="bc4-field">Periode *<input required disabled={saving || periodLocked(editingRow)} maxLength={50} placeholder="Contoh format: Ganjil 2026/2027" value={form.period} onChange={(event) => field("period", event.target.value)} />{form.id !== null && !periodLocked(editingRow) && <small>Data lama belum memiliki periode. Lengkapi agar progres dapat disimpan.</small>}</label>
               <label className="bc4-field">Semester *<input required disabled={saving} type="number" min="1" max="40" step="1" placeholder="Isi semester saat ini" value={form.semester} onChange={(event) => field("semester", event.target.value)} /></label>
               <label className="bc4-field">Status Pendidikan *<select required disabled={saving} value={form.status} onChange={(event) => field("status", event.target.value)}><option value="">Pilih Status</option>{Object.entries(educationStatusLabels).map(([value, label]) => <option key={value} value={value}>{displayTitle(label)}</option>)}</select></label>
               <label className="bc4-field">Tanggal Pembaruan *<input required disabled={saving} type="date" value={form.date} onChange={(event) => field("date", event.target.value)} /></label>
@@ -125,15 +126,15 @@ export default function AdminAlumniDetailPage({ id }: { id?: string }) {
       {message && <p className="bc4-status" role="status">{message}</p>}
       <section className="bc4-panel" style={{ marginTop: 12 }}><h2 className="bc4-underlined">Riwayat Progres Perkuliahan</h2>
         <div className="b4-tableScroll"><table className="bc4-progressTable"><thead><tr>{["PERIODE SEMESTER", "IPK", "PENERIMA KIP-K", "BEASISWA TERDAFTAR", "UKT", "AKSI"].map((title) => <th key={title}>{displayTitle(title)}</th>)}</tr></thead><tbody>{records.map((row) => <tr key={row.id}>
-          <td>{row.period ?? missing} (Semester {row.semester ?? missing})</td><td>{row.gpa ?? missing}</td><td>{kipStatusLabel(row.kipk)}</td>
+          <td>{row.period ?? missing} (Semester {row.semester ?? missing}){progressNeedsCompletion(row) && <><br /><span className="bc4-statusChip bc4-statusChip-pending">Perlu dilengkapi</span></>}</td><td>{row.gpa ?? missing}</td><td>{kipStatusLabel(row.kipk)}</td>
           <td>{row.scholarships.map((award) => `${award.name ?? missing} (${award.status})`).join(", ") || missing}</td><td>{money(row.ukt)}</td>
-          <td><div className="bc4-actions"><button disabled={saving} type="button" aria-label={`Edit semester ${row.semester}`} onClick={() => edit(row)}><Pencil size={18} /></button><button disabled={saving} type="button" aria-label={`Arsipkan semester ${row.semester}`} onClick={() => { setDeleting(row); confirm.current?.showModal(); }}><Trash2 size={18} /></button></div></td>
+          <td><div className="bc4-actions"><button disabled={saving} type="button" aria-label={`Edit progres ${row.period ?? `tanpa periode (ID ${row.id})`}`} onClick={() => edit(row)}><Pencil size={18} /></button><button disabled={saving} type="button" aria-label={`Arsipkan progres ${row.period ?? `tanpa periode (ID ${row.id})`}`} onClick={() => { setDeleting(row); confirm.current?.showModal(); }}><Trash2 size={18} /></button></div></td>
         </tr>)}</tbody></table>{!records.length && <p className="bc4-empty">-</p>}</div>
       </section>
     </div>
     <section aria-label="Timeline individu alumni" style={{ marginTop: 24 }}>
       {timeline?.data ? <AlumniAcademicTimeline key={id} alumni={timeline.data} embedded /> : <p role={timeline?.error ? "alert" : "status"}>{timeline?.error ?? "Memuat timeline alumni…"}</p>}
     </section>
-    <dialog ref={confirm} className="bc4-dialog"><div className="bc4-dialogTitle"><h2>Arsipkan Riwayat {deleting?.period}?</h2></div><div className="bc4-dialogBody"><p>Riwayat tidak ditampilkan sebagai progres aktif; jejak datanya tetap disimpan.</p><div className="bc4-actions"><button disabled={saving} type="button" className="bc4-button" onClick={() => confirm.current?.close()}>Batal</button><button disabled={saving} type="button" className="bc4-button bc4-primary" onClick={() => void archive()}>Arsipkan</button></div></div></dialog>
+    <dialog ref={confirm} className="bc4-dialog"><div className="bc4-dialogTitle"><h2>Arsipkan Riwayat {deleting?.period ?? `progres ID ${deleting?.id ?? ""}`}?</h2></div><div className="bc4-dialogBody"><p>Riwayat tidak ditampilkan sebagai progres aktif; jejak datanya tetap disimpan.</p><div className="bc4-actions"><button disabled={saving} type="button" className="bc4-button" onClick={() => confirm.current?.close()}>Batal</button><button disabled={saving} type="button" className="bc4-button bc4-primary" onClick={() => void archive()}>Arsipkan</button></div></div></dialog>
   </B4Shell>;
 }
