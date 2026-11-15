@@ -132,7 +132,7 @@ export default function AdminAlumniDetailPage({ id }: { id?: string }) {
       </section>
     </div>
     <section aria-label="Timeline individu alumni" style={{ marginTop: 24 }}>
-      {timeline?.data ? <AlumniAcademicTimeline key={id} alumni={timeline.data} /> : <p role={timeline?.error ? "alert" : "status"}>{timeline?.error ?? "Memuat timeline alumni…"}</p>}
+      {timeline?.data ? <AlumniAcademicTimeline key={id} alumni={timeline.data} embedded /> : <p role={timeline?.error ? "alert" : "status"}>{timeline?.error ?? "Memuat timeline alumni…"}</p>}
     </section>
     <dialog ref={confirm} className="bc4-dialog"><div className="bc4-dialogTitle"><h2>Arsipkan Riwayat {deleting?.period}?</h2></div><div className="bc4-dialogBody"><p>Riwayat tidak ditampilkan sebagai progres aktif; jejak datanya tetap disimpan.</p><div className="bc4-actions"><button disabled={saving} type="button" className="bc4-button" onClick={() => confirm.current?.close()}>Batal</button><button disabled={saving} type="button" className="bc4-button bc4-primary" onClick={() => void archive()}>Arsipkan</button></div></div></dialog>
   </B4Shell>;

@@ -8,7 +8,7 @@ import { acceptedAwards, eventDate, timelineMoney, type AlumniTimelineDetail } f
 import { educationStatus } from "@/lib/b4-progress";
 import { displayTitle } from "@/lib/display-copy";
 
-export default function AlumniAcademicTimeline({ alumni }: { alumni: AlumniTimelineDetail }) {
+export default function AlumniAcademicTimeline({ alumni, embedded = false }: { alumni: AlumniTimelineDetail; embedded?: boolean }) {
   const records = alumni.progress;
   const [selectedId, setSelectedId] = useState(records[0]?.id);
   const selected = records.find((row) => row.id === selectedId) ?? records[0];
@@ -40,7 +40,7 @@ export default function AlumniAcademicTimeline({ alumni }: { alumni: AlumniTimel
         ["Biaya UKT", timelineMoney(selected?.ukt ?? null)], ["Status KIP-K", kipStatusLabel(selected?.kipk)],
       ].map(([label, value]) => <div className="bc4-yellowCard" key={label}><span>{displayTitle(label)}</span><strong>{value ?? "-"}</strong></div>)}</div>
         <div className="bc4-note" style={{ marginTop: 28 }}><div><strong>Pembaruan {selected?.updatedAt ?? "-"}</strong><p>Status pendidikan: {educationStatus(selected?.status ?? null)}. Periode: {selected?.period ?? "-"}.</p></div></div>
-        <div className="bc4-actions" style={{ marginTop: 22 }}><Link className="bc4-button bc4-primary" href={"/admin/alumni-perguruan-tinggi/informasi-detail?id=" + alumni.id}>Lihat &amp; Kelola progres</Link></div>
+        {!embedded && <div className="bc4-actions" style={{ marginTop: 22 }}><Link className="bc4-button bc4-primary" href={"/admin/alumni-perguruan-tinggi/informasi-detail?id=" + alumni.id}>Lihat &amp; Kelola progres</Link></div>}
       </div>
     </section>
   </>;

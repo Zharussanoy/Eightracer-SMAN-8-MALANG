@@ -25,4 +25,5 @@ test('analytics filters stay in tabs and timeline is embedded in alumni detail',
  const detail=fs.readFileSync('components/b4/AdminAlumniDetailPage.tsx','utf8');
  assert.match(detail,/aria-label="Timeline individu alumni"/);
  assert.match(detail,/<AlumniAcademicTimeline/);
+ assert.doesNotMatch(detail,/Sinkronkan Data|type="file"|previewAlumniProgress|commitAlumniProgress|downloadProgressTemplate/);
 });

@@ -66,6 +66,18 @@ for(const overview of [true,false])test(`chat ${overview?'calculates on explicit
  assert.equal(calls[0].init.body.siswa_id,undefined);assert.ok(updates.length>0);
 });
 const general={id:4,name:'Program Akademik',provider:'Penyelenggara Resmi',description:'Informasi umum program sekolah.',level:'Kuliah',opens:null,closes:null,period:null,duration:8,durationUnit:'semester',registrationUrl:'https://example.org/beasiswa',criteria:[{name:'Nilai Rapor Minimum',operator:'>=',required:'80'}],recipients:{total:1,data:[{admissionId:591,name:'Alumni Terdaftar',university:'Universitas Terdaftar',program:'Program Studi',cohort:'2026',evidence:'school_record'}]}};
+
+test('personal recommendation detail reads vertically with information first and reasoning last',()=>{
+ const item={...harness()('lib/b4-recommendation-data.ts').parseStudentRecommendations(generated)[0],score:0};
+ const load=harness({data:[item],state:'ready'});
+ const Detail=load('components/b4/StudentRecommendationsApi.tsx').StudentRecommendationDetailApi;
+ const html=renderToStaticMarkup(React.createElement(Detail,{id:item.key}));
+ assert.match(html,/bc4-detailRecStack/);
+ assert.doesNotMatch(html,/bc4-detailRecGrid/);
+ assert.ok(html.indexOf('Informasi Beasiswa')<html.indexOf('Evaluasi Kriteria Siswa'));
+ assert.ok(html.indexOf('Alasan Rekomendasi')>html.indexOf('Referensi dari Jejak Alumni'));
+ assert.match(html,/0\/100/);
+});
 test('default student page lists general scholarships and keeps the general AI entry below the cards',()=>{
  const load=harness(undefined,undefined,{'next/navigation':{useSearchParams:()=>new URLSearchParams('')},'./useStudentScholarshipCatalog':{useStudentScholarshipCatalog:()=>({data:{data:[general],currentPage:1,lastPage:1,total:1}})}});
  const Page=load('components/b4/StudentRecommendationsPage.tsx').default,html=renderToStaticMarkup(React.createElement(Page));

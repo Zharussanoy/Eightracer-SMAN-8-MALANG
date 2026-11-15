@@ -24,3 +24,11 @@ test('selected student gets optional Save, separate regeneration, and no publica
  assert.match(html,/Siswa Terpilih/);assert.match(html,/>Simpan<\/button>/);assert.match(html,/Generate Ulang/);
  assert.match(html,/bersifat opsional/);assert.doesNotMatch(html,/Publikasikan ke Siswa|Read Only/);
 });
+
+test('saved candidate gives Edit primary emphasis while Hide stays neutral and Delete stays destructive',()=>{
+ const candidate={id:4,detailId:4,name:'Program Sintetis',provider:null,complete:true,score:0,checklist:[],reason:'Alasan sintetis',period:null,opens:null,closes:null};
+ const html=renderToStaticMarkup(React.createElement(view(),{...base,student:{id:1,name:'Siswa Terpilih'},candidates:[candidate],draft:{id:1},canGenerate:true}));
+ assert.match(html,/<button[^>]*class="bc4-button bc4-primary"[^>]*>Edit<\/button>/);
+ assert.match(html,/<button[^>]*class="bc4-button bc4-danger"[^>]*>Hapus<\/button>/);
+ assert.doesNotMatch(html,/<button[^>]*class="bc4-button bc4-primary"[^>]*>[^<]*Sembunyikan/);
+});

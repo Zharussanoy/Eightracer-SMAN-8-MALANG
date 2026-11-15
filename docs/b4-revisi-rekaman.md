@@ -6,6 +6,7 @@ Dasar: catatan revisi yang terlihat dalam rekaman 3 menit 7 detik. Tidak memuat 
 
 - Timeline dihapus dari navigasi global: akses melalui detail alumni yang dipilih. Route lama tetap tersedia untuk kompatibilitas.
 - Timeline individu tampil langsung pada detail alumni admin, di bawah riwayat progres, dengan cakupan penerimaan yang sama dan tanpa mengulang profil. Route timeline lama tetap tersedia untuk kompatibilitas.
+- Bagian sinkronisasi spreadsheet di detail alumni dihapus: tombol, dialog, pemilihan file, unduhan template, serta pemanggilan preview/commit. Form progres manual dan riwayat tetap tersedia sesuai revisi.
 - Pratinjau rekomendasi admin tidak memilih siswa otomatis ketika halaman pertama dibuka.
 - Tombol detail rekomendasi siswa semuanya netral sebelum dihover/difokuskan; tombol pertanyaan pertama chat juga netral.
 - Kartu beasiswa siswa memiliki pembatas judul dan penanda skor tertinggi dalam data contoh, tanpa klaim peluang lolos.
