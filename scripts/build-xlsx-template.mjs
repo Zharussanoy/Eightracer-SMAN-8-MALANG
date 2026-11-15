@@ -18,9 +18,9 @@ const KRITERIA_COLS = [
   'Jenis Kriteria', 'Operator', 'Nilai Syarat', 'Bobot',
 ];
 
-// Drop-down lists
-const JENJANG_VALUES = ['SMA', 'SMK', 'D3', 'D4', 'S1', 'S2'];
-const SATUAN_DURASI_VALUES = ['Bulan', 'Tahun', 'Semester'];
+// Drop-down lists — nilai harus cocok dengan yang diterima backend
+const JENJANG_VALUES = ['SMA', 'Kuliah', 'Keduanya'];
+const SATUAN_DURASI_VALUES = ['bulan', 'tahun', 'semester'];
 const JENIS_KRITERIA_VALUES = [
   'Nilai TKA', 'Rata-rata Rapor', 'Rapor Kelas 12',
   'Penghasilan Orang Tua', 'Kehadiran (%)',
@@ -67,7 +67,7 @@ const PANDUAN_ROWS = [
   ['', ''],
   ['1. Isi Beasiswa', 'Satu baris untuk satu program. Isi maksimal 20 beasiswa per unggahan.'],
   ['Kolom wajib', 'Nama Beasiswa dan Jenjang wajib diisi. Data yang belum diketahui boleh dikosongkan.'],
-  ['Pilihan isian', 'Pilih Jenjang dan Satuan Durasi dari daftar pilihan pada sel.'],
+  ['Pilihan isian', 'Pilih Jenjang (SMA / Kuliah / Keduanya) dan Satuan Durasi (bulan / tahun / semester) dari daftar pilihan pada sel.'],
   ['Tanggal', 'Gunakan tanggal lengkap, contoh 2026-07-01. Jangan mengisi perkiraan jika belum pasti.'],
   ['', ''],
   ['2. Isi Kriteria', 'Satu baris untuk satu syarat. Ulangi Nama Beasiswa dan Jenjang persis seperti pada tab Beasiswa.'],
@@ -399,3 +399,4 @@ fs.writeFileSync(outPath, zipBuf);
 console.log(`Written ${zipBuf.length} bytes → ${outPath}`);
 console.log('Sheets: Beasiswa (' + BEASISWA_COLS.length + ' cols), Kriteria (' + KRITERIA_COLS.length + ' cols), Panduan');
 console.log('Purple header fill: #6B21A8  (fillId=2, fontId=1 white bold)');
+

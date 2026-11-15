@@ -546,6 +546,14 @@
   padding: 22px;
   border-radius: var(--bc4-admin-radius);
 }
+/* Keep catalog cards tinted instead of plain white so they read as one set. */
+.bc4-adminShell .bc4-programCard {
+  border-color: #e3d1f1;
+  background: linear-gradient(165deg, #fdf9ff 0%, #f7f0fd 58%, #f2e8fb 100%);
+}
+.bc4-adminShell .bc4-programCard .bc4-metrics {
+  background: #efe3fa;
+}
 .bc4-adminShell .bc4-programCard .bc4-programCardHead h3 {
   font-size: 18px;
   font-weight: 700;

@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
 import Link from "next/link";
-import {ArrowLeft,CheckCircle2,CircleAlert,GraduationCap,Pencil,Plus,Save,Search,Sparkles,X} from "lucide-react";
+import {ArrowLeft,CheckCircle2,CircleAlert,GraduationCap,Pencil,Save,Search,Sparkles,X} from "lucide-react";
 import {useUser} from "@/context/UserContext";
 import {recommendationRequest} from "@/lib/b4-recommendation-data";
 import {recommendationCriterionLabel,recommendationEligibility} from "@/lib/b4-recommendations";
@@ -132,7 +132,6 @@ export default function AdminProgramRecommendationsApi(){
    <div><h2>Pilihan Beasiswa</h2><p>Buka detail untuk melihat informasi, kriteria, penerima, dan analisis kecocokan siswa.</p></div>
    <div className="bc4-programCatalogActions">
     {catalog&&catalog.total>0&&<p className="bc4-programCount"><strong>{catalog.total}</strong> beasiswa aktif</p>}
-    <Link className="bc4-button bc4-primary" href={`${EDITOR}/tambah`}><Plus size={18} aria-hidden="true"/>Tambah Beasiswa</Link>
    </div>
   </div>
   {error?<div className="bc4-empty" role="alert"><p>{error}</p></div>:!catalog||catalog.currentPage!==page?<p className="bc4-status" role="status">Memuat beasiswa…</p>:<>
@@ -276,7 +275,6 @@ export default function AdminProgramRecommendationsApi(){
     <p>Data ini dipakai bersama oleh katalog dan rekomendasi siswa.</p>
     <div className="bc4-programButtons">
      <Link className="bc4-button bc4-primary" href={`${EDITOR}/edit?id=${program.id}`}><Pencil size={18} aria-hidden="true"/>Edit Informasi &amp; Kriteria</Link>
-     <Link className="bc4-button" href={`${EDITOR}/tambah`}><Plus size={18} aria-hidden="true"/>Tambah Beasiswa</Link>
     </div>
     <p className="bc4-programManageNote">Hasil rekomendasi siswa yang sudah tersimpan akan ditandai perlu diperbarui, lalu dihitung ulang saat siswa meminta.</p>
    </aside>

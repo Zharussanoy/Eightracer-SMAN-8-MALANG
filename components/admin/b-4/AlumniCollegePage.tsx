@@ -80,14 +80,6 @@ export default function AlumniCollegePage() {
 
   return <B4Shell title="Alumni di Perguruan Tinggi" active="alumni" description="Kelola progres alumni selama menempuh pendidikan di Perguruan Tinggi berdasarkan periode.">
     <section className={"b4-directory"} aria-label="Daftar alumni di perguruan tinggi">
-      <div className="bc4-adminHead">
-        <div className="bc4-adminHeadMain">
-          <h2>Daftar Alumni</h2>
-          <p>Cari berdasarkan nama, perguruan tinggi, program studi, atau jalur masuk. Buka detail untuk memperbarui progres kuliah alumni.</p>
-        </div>
-        <p className="bc4-adminHeadMeta" role="status">{data ? <><strong>{total}</strong> alumni tercatat</> : current?.error ? "Data belum tersedia" : "Memuat data alumni…"}</p>
-      </div>
-
       <div className={"b4-filters"}>
         <label className={"b4-searchField"}>
           <Search size={22} aria-hidden="true" />
