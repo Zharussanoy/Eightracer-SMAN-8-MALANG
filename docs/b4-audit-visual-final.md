@@ -48,3 +48,7 @@ Sinkronisasi progres sempat terbawa kembali saat penggabungan update rekan. Bagi
 Koreksi 15 November: tautan Lihat & Kelola progres disembunyikan hanya saat timeline berada di detail yang sama; route lama tetap dapat menuju detail. Verifikasi browser dengan data sintetis: tab Timeline=false, timeline di detail=true, sinkronisasi=false, input file=0, tautan kelola berulang=false. Build dan lint lulus; 123 tes lokal lulus. Tidak menekan Simpan atau mengarsipkan data sekolah.
 
 Sebelum push koreksi, update rekan sampai 3cca845 digabung. Penghapusan sinkronisasi dan mode timeline embedded tetap dipertahankan. Build gabungan serta 142 tes lokal lulus.
+
+## Koreksi rekomendasi setelah audit lanjutan
+
+Detail hasil rekomendasi personal siswa memakai satu kolom pada desktop maupun layar kecil: informasi program, evaluasi, referensi alumni, ajakan percakapan; alasan tetap di akhir. Tombol Edit kandidat admin memakai penekanan utama, Sembunyikan netral, Hapus merah. Izin dan syarat aktivasi tombol tidak berubah. Pemeriksaan browser sintetis membuktikan satu kolom dan tanpa overflow; tes render memeriksa urutan bagian, skor nol dan penekanan tombol. Build, lint dan 144 tes lokal lulus. Tidak memanggil BE sekolah atau mengubah data.

@@ -251,6 +251,7 @@
 .b4-page .bc4-button.bc4-danger:hover:not(:disabled) { color: #fff; background: #b42318; border-color: #b42318; }
 .b4-page .bc4-formGrid > .bc4-panel { align-self: stretch; }
 .b4-page .bc4-recommendationHeader h3 { line-height: 1.35; }
+.b4-page .bc4-detailRecStack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; margin-top: 22px; }
 .b4-page .bc4-recBody p, .b4-page .bc4-note p, .b4-page .bc4-yellowCard p { overflow-wrap: anywhere; }
 @media (max-width: 640px) {
   .b4-page .bc4-chatFollowups { padding: 0 16px 20px; }
