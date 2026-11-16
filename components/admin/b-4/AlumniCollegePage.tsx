@@ -12,6 +12,7 @@ import { ChevronDown, ChevronLeft, ChevronRight, Search, X } from "lucide-react"
 import B4Tabs from "./B4Tabs";
 import "./college.css";
 import { displayTitle } from "@/lib/display-copy";
+import FigmaIcon from "@/components/b4/FigmaIcon";
 
 const PAGE_SIZE = 8;
 type Result = { key: string; page?: AlumniPage; error?: string };
@@ -85,8 +86,8 @@ export default function AlumniCollegePage() {
         <section className={"b4-hero"} aria-labelledby="b4-page-title">
           <div className={"b4-container"}>
             <nav aria-label="Breadcrumb" className={"b4-breadcrumb"}>
-              <Link href="/#layanan">Layanan</Link><ChevronRight size={14} aria-hidden="true" />
-              <span>Alumni dan Beasiswa</span><ChevronRight size={14} aria-hidden="true" />
+              <Link href="/#layanan">Layanan</Link><FigmaIcon name="breadcrumb" size={24} />
+              <span>Alumni dan Beasiswa</span><FigmaIcon name="breadcrumb" size={24} />
               <span aria-current="page">Alumni di PT</span>
             </nav>
             <h1 id="b4-page-title">Alumni di Perguruan Tinggi</h1>

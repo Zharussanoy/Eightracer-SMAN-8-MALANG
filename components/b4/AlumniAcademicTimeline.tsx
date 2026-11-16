@@ -3,7 +3,7 @@ import { kipStatusLabel } from "@/lib/b4-scholarship-evidence";
 
 import { useState } from "react";
 import Link from "next/link";
-import { Building2, GraduationCap, School } from "lucide-react";
+import FigmaIcon from "./FigmaIcon";
 import { acceptedAwards, eventDate, timelineMoney, type AlumniTimelineDetail } from "@/lib/b4-timeline";
 import { educationStatus } from "@/lib/b4-progress";
 import { displayTitle } from "@/lib/display-copy";
@@ -13,13 +13,12 @@ export default function AlumniAcademicTimeline({ alumni, embedded = false }: { a
   const [selectedId, setSelectedId] = useState(records[0]?.id);
   const selected = records.find((row) => row.id === selectedId) ?? records[0];
   const chronological = [...records].sort((a, b) => (a.semester ?? 0) - (b.semester ?? 0) || (a.updatedAt ?? "").localeCompare(b.updatedAt ?? "") || a.id - b.id);
-  const icons = { masuk_sekolah: School, lulus_sekolah: GraduationCap, masuk_pt: Building2 };
+  const icons = { masuk_sekolah: "school", lulus_sekolah: "graduate", masuk_pt: "university" } as const;
   const slotCount = chronological.length || 8;
   return <>
     <section className="bc4-section"><h2 className="bc4-sectionHeading">Perjalanan Pendidikan SMA</h2>
       <ol className="bc4-schoolTimeline">{alumni.educationEvents.map((event) => {
-        const Icon = icons[event.type];
-        return <li key={event.type}><span className="bc4-stageIcon"><Icon size={39} strokeWidth={1.8} /></span><h3>{displayTitle(event.label)}</h3><strong>{eventDate(event)}</strong>
+        return <li key={event.type}><span className="bc4-stageIcon"><FigmaIcon name={icons[event.type]} size={39} /></span><h3>{displayTitle(event.label)}</h3><strong>{eventDate(event)}</strong>
           <p>{event.type === "masuk_sekolah" ? "SMA Negeri 8 Malang" : event.type === "masuk_pt" ? displayTitle(alumni.university) + " · " + displayTitle(alumni.admissionPath ?? "-") : alumni.graduationYear === null ? "-" : "Tahun lulus " + alumni.graduationYear}</p>
         </li>;
       })}</ol>

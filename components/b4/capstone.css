@@ -21,6 +21,17 @@
 .b4-page .b4-container { max-width: 1280px; width: calc(100% - 80px); }
 .b4-page .b4-hero { padding: 18px 0 23px; min-height: 145px; background: #fff; color: #0b0b0b; box-shadow: 0 4px 4px #0000001a, 0 2px 2px #0000000f; }
 .b4-page .b4-breadcrumb { min-height: 24px; margin-bottom: 9px; gap: 0; font-size: 12px; line-height: 1.5; flex-wrap: wrap; }
+.b4-page .b4-breadcrumb > img { flex: 0 0 24px; object-fit: contain; }
+.b4-page .b4-scholarshipsTable td:nth-child(3) { white-space: nowrap; }
+.b4-page .bc4-studentDirectoryTable { width: 100%; min-width: 880px; border-collapse: collapse; font-size: 14px; }
+.b4-page .bc4-studentDirectoryTable thead { background: var(--b4-gradient); }
+.b4-page .bc4-studentDirectoryTable th { padding: 20px 16px; text-align: left; font-weight: 600; background: transparent; }
+.b4-page .bc4-studentDirectoryTable td { padding: 16px; border-bottom: 1px solid #ddd; vertical-align: middle; }
+.b4-page .bc4-studentDirectoryTable tbody tr:hover { background: #fffaee; }
+.b4-page .bc4-studentDirectoryTable .bc4-button { white-space: nowrap; }
+.b4-page .bc4-studentAlumniLive > .bc4-toggleRow { margin: 24px 0 0; flex-wrap: wrap; }
+.b4-page .bc4-recommendationHeader h2 { margin: 0 0 8px; font-size: 21px; line-height: 1.4; font-weight: 700; }
+.b4-page .bc4-note h2 { font-size: 18px; font-weight: 700; }
 .b4-page .b4-breadcrumb > :last-child { color: var(--b4-purple); font-weight: 400; }
 .b4-page .b4-hero h1 { margin-bottom: 9px; font-size: 24px; font-weight: 700; line-height: 1.2; letter-spacing: 0; }
 .b4-page .b4-hero p { font-size: 12px; line-height: 1.5; }
@@ -85,6 +96,7 @@
 .b4-page .bc4-avatar { flex-shrink: 0; }
 .b4-page .bc4-current { padding: 18px 25px; }
 .b4-page .bc4-current h3 { font-size: 20px; font-weight: 700; }
+.b4-page .bc4-current h2 { margin: 0 0 12px; font-size: 20px; font-weight: 700; }
 .b4-page .bc4-current:has(.bc4-metrics > div:nth-child(5)) .bc4-metrics { grid-template-columns: .7fr .7fr 1.5fr .9fr 1.3fr; }
 .b4-page .bc4-current:has(.bc4-metrics > div:nth-child(5)) .bc4-metrics dd { font-size: 11px; padding: 8px 4px; word-break: normal; }
 .b4-page .bc4-metrics { align-items: end; }

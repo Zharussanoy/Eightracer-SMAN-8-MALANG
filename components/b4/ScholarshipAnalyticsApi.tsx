@@ -118,7 +118,7 @@ function AnalyticsView({view}:{view:"analytics"|"summary"}){
   const measuredRanges=(modeRanges??data?.ranges??[]).filter(item=>item.stats.minimum!==null&&item.stats.maximum!==null);
   const rangeMax=Math.max(1,...measuredRanges.map(item=>item.stats.maximum??0));
   const visibleRanges=showAllTuition?measuredRanges:measuredRanges.slice(0,5);
-  return <B4Shell title={summary?"Ringkasan Pola Per-Angkatan":"Analitik Beasiswa"} active={summary?"summary":"analytics"} tabQuery={search} description="Lihat perjalanan pendidikan dan perkembangan kuliah alumni dari masa sekolah hingga kondisi terkini." dataNote="">
+  return <B4Shell title={summary?"Ringkasan Pola Per-Angkatan":"Analitik Beasiswa"} active={summary?"summary":"analytics"} tabQuery={search} description={summary?"Lihat ringkasan alumni dan pola historis bantuan pendidikan berdasarkan angkatan serta periode.":"Tinjau distribusi beasiswa, KIP-K, UKT, dan IPK berdasarkan catatan sekolah."} dataNote="">
     {authStatus==="loading"?<p role="status">Memeriksa sesi akun…</p>:authStatus!=="authenticated"||!currentUser.schoolStaff ? <p role="alert">Akun ini belum memiliki izin membaca analitik sekolah.</p> : <div className="b4-analyticsPage bc4-analyticsLive">
       <div className="b4-analyticsFilters" aria-label="Filter analitik beasiswa">
         <label className="b4-searchField"><span className="b4-srOnly">Angkatan</span><input placeholder="Angkatan" inputMode="numeric" maxLength={4} value={cohort} onChange={(e) => setCohort(e.target.value)} /></label>

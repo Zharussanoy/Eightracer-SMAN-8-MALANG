@@ -13,7 +13,7 @@ function harness(file,mocks={}){
   'next/navigation':{useRouter:()=>({replace:()=>{throw Error('Stale request redirected login');}}),useSearchParams:()=>new URLSearchParams()},
   'next/link':{__esModule:true,default:()=>null},
   '@/context/UserContext':{useUser:()=>({authStatus:'authenticated',currentUser:{id:12,role:'siswa',schoolStaff:true},refreshSession:()=>{throw Error('Stale request refreshed session');}})},
-  '@/lib/b4-scholarship-evidence':{},'@/lib/b4-progress':{blankProgress:()=>({})},
+  './FigmaIcon':{__esModule:true,default:()=>null},'@/lib/b4-timeline':{acceptedAwards:()=>'-'},'@/lib/b4-scholarship-evidence':{},'@/lib/b4-progress':{blankProgress:()=>({})},
   '@/lib/eightracer-api':{ApiError:class extends Error{}},'@/lib/display-copy':{displayTitle:v=>v},
   './B4Shell':{__esModule:true,default:()=>null},'./NumberPagination':{__esModule:true,default:()=>null},'./AlumniAcademicTimeline':{__esModule:true,default:()=>null},...mocks};
  const compiledModule={exports:{}};

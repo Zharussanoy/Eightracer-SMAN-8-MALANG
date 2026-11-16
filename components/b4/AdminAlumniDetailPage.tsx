@@ -14,6 +14,7 @@ import { displayTitle } from "@/lib/display-copy";
 import { getAlumniTimeline } from "@/lib/b4-alumni-api";
 import type { AlumniTimelineDetail } from "@/lib/b4-timeline";
 import AlumniAcademicTimeline from "./AlumniAcademicTimeline";
+import { acceptedAwards } from "@/lib/b4-timeline";
 
 const back = "/admin/alumni-perguruan-tinggi", missing = "-";
 const money = (value: number | null) => value === null ? missing : new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(value);
@@ -87,13 +88,19 @@ export default function AdminAlumniDetailPage({ id }: { id?: string }) {
   </B4Shell>;
 
   const records = alumni.progress;
+  const latest = [...records].sort((a, b) => (b.updatedAt ?? "").localeCompare(a.updatedAt ?? "") || (b.semester ?? 0) - (a.semester ?? 0) || b.id - a.id)[0];
   const kipk = kipEvidenceLabel(alumni.scholarshipEvidence);
   const nisn = alumni.hasNisn ? "••••••••••" : missing;
   const catalogs = progressScholarshipOptions(alumni);
   const mandiri = alumni.admissionPath === "Mandiri";
   return <B4Shell title="Informasi Detail Alumni" active="alumni" description="Kelola progres alumni selama menempuh pendidikan di Perguruan Tinggi berdasarkan periode." parent={{ label: "Alumni di PT", href: back }}>
     <div className="bc4-detailOuter">
-      <div className="bc4-profile" style={{ border: 0, padding: "0 0 24px", background: "transparent" }}><Avatar name={alumni.name} example={false} /><div><h2>{displayTitle(alumni.name)}</h2><p>NISN {nisn}</p></div></div>
+      <div className="bc4-profileRow">
+        <div className="bc4-profile"><Avatar name={alumni.name} example={false} /><div><h2>{displayTitle(alumni.name)}</h2><p>{displayTitle(alumni.university)} · {displayTitle(alumni.studyProgram)}</p><p>NISN {nisn}</p></div></div>
+        <section className="bc4-current"><h2>Progres Terakhir Tercatat</h2><dl className="bc4-metrics">{[
+          ["Semester", latest?.semester ?? missing], ["IPK", latest?.gpa ?? missing], ["Beasiswa", latest ? acceptedAwards(latest) : missing], ["Status KIP-K", kipStatusLabel(latest?.kipk)], ["UKT/Semester", money(latest?.ukt ?? null)],
+        ].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></section>
+      </div>
       <div className="bc4-grid2" style={{ marginTop: 24 }}>
         <section className="bc4-panel"><h2 className="bc4-underlined">Data Induk Alumni</h2>
           <dl className="bc4-infoList">{[

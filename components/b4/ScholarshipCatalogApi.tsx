@@ -65,6 +65,7 @@ export default function ScholarshipCatalogApi() {
       else await activateScholarship(action.id);
       confirmation.current?.close();
       setStatus(`${displayTitle(action.name)} berhasil ${action.active ? "diarsipkan" : "diaktifkan"}.`);
+      setPage(1);
       setRetry((value) => value + 1);
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) { void refreshSession(); router.replace("/login"); }
@@ -77,7 +78,7 @@ export default function ScholarshipCatalogApi() {
       <div className="b4-scholarshipsToolbar">
         <label className="b4-searchField"><FigmaIcon name="search" size={18} /><span className="b4-srOnly">Cari nama beasiswa</span><input type="search" maxLength={100} placeholder="Cari nama beasiswa" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} /></label>
         <label className="b4-selectField"><span className="b4-srOnly">Jenjang pendidikan</span><select aria-label="Jenjang pendidikan" value={level} onChange={(event) => { setLevel(event.target.value as ScholarshipLevel | ""); setPage(1); }}><option value="">Semua Jenjang</option><option>Kuliah</option><option>SMA</option><option value="Keduanya">Kuliah &amp; SMA</option></select><FigmaIcon name="caret" size={20} className="bc4-selectCaret" /></label>
-        <div className="bc4-catalogActions"><CatalogCsvImport onSaved={() => setRetry((value) => value + 1)} /><Link className="b4-addScholarship" href="/admin/basis-data-beasiswa/tambah"><Plus size={23} />Tambah Beasiswa</Link></div>
+        <div className="bc4-catalogActions"><CatalogCsvImport onSaved={() => { setPage(1); setRetry((value) => value + 1); }} /><Link className="b4-addScholarship" href="/admin/basis-data-beasiswa/tambah"><Plus size={23} />Tambah Beasiswa</Link></div>
       </div>
       {(search || level) && <button type="button" className="b4-resetFilters" onClick={reset}>Reset Pencarian dan Filter</button>}
       <div className="b4-scholarshipsFrame" aria-busy={!current}>

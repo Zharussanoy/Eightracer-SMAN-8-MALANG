@@ -39,7 +39,7 @@ test("alumni list reloads the school-published data on focus and drops data with
   "@/context/UserContext":{useUser:()=>({currentUser:{id:12,role:"siswa"},authStatus:"authenticated",refreshSession:()=>{}})},
   "@/lib/b4-scholarship-evidence":{},
   "@/lib/display-copy":copyModule.exports,
-  "./B4Shell":{__esModule:true,default:()=>null},"./NumberPagination":{__esModule:true,default:()=>null}
+  "./FigmaIcon":{__esModule:true,default:()=>null},"./B4Shell":{__esModule:true,default:()=>null},"./NumberPagination":{__esModule:true,default:()=>null}
  };
  const compiled=ts.transpileModule(fs.readFileSync("components/b4/StudentAlumniApi.tsx","utf8"),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText;
  const module={exports:{}},fetch=async path=>{assert.match(path,/^\/api\/b4\/student-alumni/);calls++;return calls===1?Response.json({data:[{id:1}],total:1}):Response.json({message:"Alumni tidak dipublikasikan."},{status:404});};

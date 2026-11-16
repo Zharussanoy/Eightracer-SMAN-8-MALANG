@@ -1,10 +1,11 @@
 "use client";
 import {useState} from "react";
 import Link from "next/link";
-import {GraduationCap,Sparkles} from "lucide-react";
+import {Sparkles} from "lucide-react";
 import type {GeneralScholarship,GeneralScholarshipPage} from "@/lib/b4-general-scholarships";
 import {recommendationPeriod} from "@/lib/b4-recommendation-copy";
 import {displayTitle} from "@/lib/display-copy";
+import FigmaIcon from "./FigmaIcon";
 import B4Shell,{Avatar} from "./B4Shell";
 import NumberPagination from "./NumberPagination";
 import {useStudentScholarshipCatalog} from "./useStudentScholarshipCatalog";
@@ -19,7 +20,7 @@ export default function StudentScholarshipCatalogApi(){
   <h2 className="bc4-listTitle">Pilihan Beasiswa</h2>
   {!catalog.data?<Loading error={catalog.error} retry={catalog.retry}/>:catalog.data.data.length?<>
    <div className="bc4-grid3 bc4-resultCards bc4-recommendationCards bc4-catalogCards">{catalog.data.data.map(program=><article className="bc4-panel bc4-scholarCard" key={program.id}>
-    <h3><GraduationCap size={25} aria-hidden="true"/>{displayTitle(program.name)}</h3>
+    <h3><FigmaIcon name="graduate" size={25}/>{displayTitle(program.name)}</h3>
     <dl className="bc4-metrics bc4-cardFacts"><div><dt>Jenjang</dt><dd>{displayTitle(program.level)}</dd></div><div><dt>Durasi</dt><dd>{duration(program)}</dd></div><div className="bc4-cardPeriod"><dt>Periode Pendaftaran</dt><dd>{recommendationPeriod(program)}</dd></div></dl>
     <p className="bc4-reason">{program.description?program.description.length>220?program.description.slice(0,217)+"…":program.description:"Informasi program dan persyaratan tersedia pada detail beasiswa."}</p>
     <Link className="bc4-button bc4-cardDetail" href={"/siswa/rekomendasi-beasiswa/catalog-"+program.id}>Lihat Detail Beasiswa</Link>
@@ -33,7 +34,7 @@ export function StudentScholarshipDetailApi({id}:{id:number}){
  const catalog=useStudentScholarshipCatalog<{data:GeneralScholarship}>("/api/b4/student-scholarships/"+id),program=catalog.data?.data;
  return <B4Shell student showDemoProfile={false} title="Detail Beasiswa" description="Pelajari informasi program, persyaratan, dan penerima beasiswa dari SMA 8." parent={{label:"Pilihan Beasiswa",href:"/siswa/rekomendasi-beasiswa"}} dataNote="">
   {!program?<Loading error={catalog.error} retry={catalog.retry}/>:<>
-   <section className="bc4-panel bc4-recommendationHeader"><GraduationCap size={40} aria-hidden="true"/><div><h3>{displayTitle(program.name)}</h3><p>{displayTitle(known(program.provider))} · {displayTitle(program.level)}</p></div></section>
+   <section className="bc4-panel bc4-recommendationHeader"><FigmaIcon name="graduate" size={40}/><div><h2>{displayTitle(program.name)}</h2><p>{displayTitle(known(program.provider))} · {displayTitle(program.level)}</p></div></section>
    <div className="bc4-detailRecGrid bc4-generalDetail"><div>
     <section className="bc4-panel"><h2>Tentang Beasiswa</h2><p>{known(program.description)}</p><h3>Persyaratan Umum</h3>{program.criteria?.length?<ul>{program.criteria.map((c,index)=><li key={index}><strong>{c.name}</strong>{c.required?": "+c.operator+" "+c.required:""}</li>)}</ul>:<p>Persyaratan mengikuti ketentuan resmi penyelenggara.</p>}</section>
     <section className="bc4-panel"><h2>Penerima dari SMA 8</h2>{program.recipients?.data.length?<div className="bc4-recipientList">{program.recipients.data.map(alumni=><article className="bc4-yellowCard" key={alumni.admissionId}><div className="bc4-profile" style={{padding:0,border:0}}><Avatar name={alumni.name} small example={false}/><div><h3>{displayTitle(alumni.name)}</h3><p>{displayTitle(known(alumni.university))} · {displayTitle(known(alumni.program))}</p>{alumni.cohort&&<p>Angkatan {alumni.cohort}</p>}</div></div><Link className="bc4-button" href={"/siswa/jejak-alumni/"+alumni.admissionId}>Lihat Jejak Alumni</Link></article>)}{program.recipients.total>program.recipients.data.length&&<p>Menampilkan {program.recipients.data.length} dari {program.recipients.total} penerima yang tersedia.</p>}</div>:<p>Data penerima belum tersedia untuk ditampilkan.</p>}</section>
