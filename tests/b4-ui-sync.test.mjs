@@ -6,7 +6,7 @@ import ts from 'typescript';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url),React=require('react'),{renderToStaticMarkup}=require('react-dom/server');
 const {NextRequest}=require('next/server');
-function load(file,mocks={}){const module={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText,{module,exports:module.exports,require:id=>mocks[id]??require(id),URLSearchParams});return module.exports;}
+function load(file,mocks={}){const testModule={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText,{module:testModule,exports:testModule.exports,require:id=>mocks[id]??require(id),URLSearchParams});return testModule.exports;}
 const AuthError=class extends Error{};
 const query=load('lib/server/school-analytics-query.ts',{'./backend-auth':{AuthError}}).schoolAnalyticsQuery;
 test('dashboard and PDF normalize the same selected scholarship, cohort and period filters',()=>{

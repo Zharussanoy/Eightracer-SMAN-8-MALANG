@@ -52,3 +52,28 @@ Sebelum push koreksi, update rekan sampai 3cca845 digabung. Penghapusan sinkroni
 ## Koreksi rekomendasi setelah audit lanjutan
 
 Detail hasil rekomendasi personal siswa memakai satu kolom pada desktop maupun layar kecil: informasi program, evaluasi, referensi alumni, ajakan percakapan; alasan tetap di akhir. Tombol Edit kandidat admin memakai penekanan utama, Sembunyikan netral, Hapus merah. Izin dan syarat aktivasi tombol tidak berubah. Pemeriksaan browser sintetis membuktikan satu kolom dan tanpa overflow; tes render memeriksa urutan bagian, skor nol dan penekanan tombol. Build, lint dan 144 tes lokal lulus. Tidak memanggil BE sekolah atau mengubah data.
+
+
+## Audit lanjutan 16 November 2026
+
+Pemeriksaan memakai server Next produksi dengan backend sintetis lokal terpisah. Tidak memakai akun sekolah atau mengirim operasi ke BE sekolah. Referensi: 15 frame halaman capstone baru dan catatan revisi rekaman; perubahan alur video diprioritaskan.
+
+| Halaman | Yang diperiksa | Hasil / koreksi |
+|---|---|---|
+| Alumni admin | Daftar, detail, profil, riwayat, timeline | Ringkasan progres terbaru di samping profil; satu profil; timeline tetap embedded; sinkronisasi tidak ada. Breadcrumb memakai shell bersama setelah gabungan. |
+| Katalog admin | Urutan semua record, nama panjang, status program/pendaftaran | Aktif A–Z lalu arsip A–Z; durasi tidak dipecah; muat ulang setelah perubahan kembali halaman pertama. |
+| Tambah/edit | Isian kosong, fokus validasi, footer, dialog arsip | Validasi kosong diuji tanpa POST; arsip dibuka dan dibatalkan; tombol utama dan batal tetap jelas. |
+| Impor katalog | Dialog dan panduan kolom | Dibuka tanpa mengunggah atau menyimpan. Pembaruan rekan membawa CSV/XLSX; format diuji secara lokal, bukan impor ke sekolah. |
+| Analitik | Grafik terisi, distribusi, UKT nol, dropdown | Dipisah dari Ringkasan; deskripsi sesuai isi; nol tidak diganti null; jumlah kelompok tidak dianggap total alumni unik. |
+| Ringkasan Pola | Kartu agregat dan pola periode | Data sintetis tampil sesuai respons; tidak mengisi sumber kosong dengan angka contoh produksi. |
+| Rekomendasi admin sebelum gabungan | Pilih siswa, kandidat, kandidat tersembunyi, modal Edit | Pemilihan eksplisit dan Batal modal diperiksa tanpa menyimpan. |
+| Rekomendasi admin terbaru | Katalog program lalu detail informasi/kriteria sebelum analisis | Ditemukan pemetaan ganda respons detail: proxy sudah mengembalikan ScholarshipRow, tetapi pembaca baru mengharapkan data mentah. Diganti memakai getScholarship; browser membuktikan status Dibuka dan kriteria tampil tanpa error. Ada tes regresi untuk ID salah/detail tidak lengkap. Analisis POST tidak dijalankan pada sekolah. |
+| Jejak Alumni siswa | Daftar, detail penerimaan, progres dan UKT Rp0 | Revisi yang sempat kembali saat gabungan dipulihkan: tabel dan pilihan Data Masuk PT/Progres Kuliah di bawah. Dua tes render menjaga alur ini. |
+| Beasiswa siswa | Katalog, detail umum, detail personal | Judul detail h2; detail personal tetap vertikal dan alasan paling akhir; waktu yang disarankan tidak dikarang dari tanggal buka. |
+| Chat siswa | Awal, konteks program, pertanyaan eksplisit, balasan, pertanyaan lanjutan | Jawaban berasal dari fixture bertanda sintetis, bukan hasil AI sekolah; ikon asli Figma dipakai. Tidak menguji Gemini. |
+
+Pemeriksaan layar kecil 390px: editor, detail alumni admin, progres siswa, detail rekomendasi personal dan chat; lebar dokumen sama dengan viewport, tanpa overflow halaman. Tabel/timeline dapat digeser dalam wadah. Screenshot yang berhasil disimpan di `.next/b4-full-audit/` dan tidak dipush. Satu pengambilan screenshot timeline tambahan macet pada alat browser; tidak dijadikan bukti lulus. Gambar SVG timeline ada dan tidak kosong; pemeriksaan naturalWidth pada gambar lazy di luar layar tidak dianggap sebagai bukti gambar rusak.
+
+Saat hendak push, origin/b4 telah bertambah sampai 642a0b8. Pembaruan digabung tanpa force push. Perbaikan periode progres kosong, impor Excel dan halaman analisis program dari rekan dipertahankan. Kesalahan perbandingan array lintas konteks pada tes impor diperbaiki pada tes; validasi produksi tidak dilonggarkan.
+
+Build produksi gabungan berhasil. Pemeriksaan lint file sumber yang diubah lulus. Seluruh tes lokal akhir dicatat saat push. Ini bukan sertifikasi seluruh fitur BE: koneksi lingkungan sekolah, analisis/generate, penyimpanan, impor dan provider AI tetap perlu uji terkoordinasi terpisah. Tidak ada data siswa/alumni, izin akun, atau konfigurasi BE yang diubah.

@@ -17,8 +17,8 @@ test("student views refresh on focus and while visible, withdraw old data, and c
   "@/lib/b4-recommendation-data":{recommendationRequest:async path=>{assert.equal(path,"/api/b4/rekomendasi?role=siswa");calls++;const value=values.shift();if(value instanceof Error)throw value;return value;}}
  };
  const compiled=ts.transpileModule(fs.readFileSync("components/b4/useStudentRecommendations.ts","utf8"),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
- const module={exports:{}};vm.runInNewContext(compiled,{module,exports:module.exports,require:id=>modules[id],AbortController,Error,document,window});
- module.exports.useStudentRecommendations();const cleanup=effect();await tick();
+ const testModule={exports:{}};vm.runInNewContext(compiled,{module:testModule,exports:testModule.exports,require:id=>modules[id],AbortController,Error,document,window});
+ testModule.exports.useStudentRecommendations();const cleanup=effect();await tick();
  assert.equal(state.value.data[0].key,"7-4");
  await events.get("focus")();await tick();assert.equal(state.value.data.length,0);
  document.visibilityState="hidden";intervals.get(1)();await tick();assert.equal(calls,2);
@@ -42,9 +42,9 @@ test("alumni list reloads the school-published data on focus and drops data with
   "./FigmaIcon":{__esModule:true,default:()=>null},"./B4Shell":{__esModule:true,default:()=>null},"./NumberPagination":{__esModule:true,default:()=>null}
  };
  const compiled=ts.transpileModule(fs.readFileSync("components/b4/StudentAlumniApi.tsx","utf8"),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText;
- const module={exports:{}},fetch=async path=>{assert.match(path,/^\/api\/b4\/student-alumni/);calls++;return calls===1?Response.json({data:[{id:1}],total:1}):Response.json({message:"Alumni tidak dipublikasikan."},{status:404});};
- vm.runInNewContext(compiled,{module,exports:module.exports,require:id=>modules[id]??require(id),AbortController,Error,document,window,fetch,console});
- module.exports.default();const cleanup=effect();await tick();
+ const testModule={exports:{}},fetch=async path=>{assert.match(path,/^\/api\/b4\/student-alumni/);calls++;return calls===1?Response.json({data:[{id:1}],total:1}):Response.json({message:"Alumni tidak dipublikasikan."},{status:404});};
+ vm.runInNewContext(compiled,{module:testModule,exports:testModule.exports,require:id=>modules[id]??require(id),AbortController,Error,document,window,fetch,console});
+ testModule.exports.default();const cleanup=effect();await tick();
  assert.equal(states[4].data.total,1);
  await events.get("focus")();await tick();
  assert.equal(states[4].data,undefined);assert.equal(states[4].error,"Alumni tidak dipublikasikan.");

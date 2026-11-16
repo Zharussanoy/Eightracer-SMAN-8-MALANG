@@ -8,7 +8,7 @@ import { useUser } from "@/context/UserContext";
 import { ApiError } from "@/lib/eightracer-api";
 import { archiveAlumniProgress, getAlumniDetail, saveAlumniProgress } from "@/lib/b4-alumni-api";
 import type { AlumniDetail, AlumniProgressRow } from "@/lib/b4-alumni";
-import { blankProgress, newProgressForAlumni, progressScholarshipOptions, educationStatus, educationStatusLabels, formFromProgress, periodLocked, progressNeedsCompletion, progressPayload, type ProgressForm } from "@/lib/b4-progress";
+import { blankProgress, newProgressForAlumni, progressScholarshipOptions, educationStatusLabels, formFromProgress, periodLocked, progressNeedsCompletion, progressPayload, type ProgressForm } from "@/lib/b4-progress";
 import B4Shell, { Avatar } from "./B4Shell";
 import { displayTitle } from "@/lib/display-copy";
 import { getAlumniTimeline } from "@/lib/b4-alumni-api";
