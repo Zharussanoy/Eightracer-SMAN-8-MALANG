@@ -36,6 +36,13 @@ export function formFromProgress(row: AlumniProgressRow): ProgressForm {
     ukt: row.ukt === null ? "" : String(row.ukt), ipi: row.ipi === null ? "" : String(row.ipi),
     awardIds: row.scholarships.filter((award) => award.status === "diterima").map((award) => String(award.id)) };
 }
+// Periode identifies an existing progress row; only legacy rows without one may still be completed.
+export function periodLocked(row: AlumniProgressRow | undefined): boolean {
+  return Boolean(row?.period);
+}
+export function progressNeedsCompletion(row: AlumniProgressRow): boolean {
+  return !row.period || row.semester === null || row.status === null;
+}
 export function progressPayload(form: ProgressForm, previous: AlumniProgressRow | undefined, mandiri: boolean) {
   if (!form.period.trim() || !/^[1-9]\d*$/.test(form.semester) || Number(form.semester) > 40 || !["aktif", "cuti", "lulus", "nonaktif"].includes(form.status) || !/^\d{4}-\d{2}-\d{2}$/.test(form.date)) throw new Error("Lengkapi periode, semester, status pendidikan, dan tanggal pembaruan.");
   const amount = (value: string, max: number) => {

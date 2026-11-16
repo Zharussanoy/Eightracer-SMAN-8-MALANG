@@ -37,7 +37,8 @@ export async function POST(request: NextRequest) {
       throw error;
     }
     const response = authResponse({ message: "Login berhasil.", user, expires_at: session.expires_at });
-    response.cookies.set(SESSION_COOKIE, session.token, { ...cookieOptions(request), expires: expiry });
+    const maxAge = Math.max(0, Math.floor((expiry.getTime() - Date.now()) / 1000));
+    response.cookies.set(SESSION_COOKIE, session.token, { ...cookieOptions(request), expires: expiry, maxAge });
     return response;
   } catch (error) {
     const response = authFailure(error);

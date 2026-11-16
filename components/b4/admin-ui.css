@@ -1,0 +1,854 @@
+/*
+ * Admin-only presentation layer for B4.
+ * Everything is scoped to .bc4-adminShell (added by B4Shell only for staff pages)
+ * so the student experience keeps its current styling.
+ *
+ * Typography scale: 24 hero title · 21 section title · 18 card/section heading
+ * · 14 body/table · 13 controls/buttons · 12 meta/chips.
+ */
+.bc4-adminShell {
+  --bc4-admin-stroke: #e7daf0;
+  --bc4-admin-stroke-strong: #d8c3ea;
+  --bc4-admin-muted: #655a70;
+  --bc4-admin-subtle: #6f6479;
+  --bc4-admin-heading: #2a2233;
+  --bc4-admin-body: #332a3c;
+  --bc4-admin-radius: 20px;
+  --bc4-admin-radius-sm: 14px;
+  --bc4-admin-radius-control: 12px;
+  --bc4-admin-surface: #ffffff;
+  --bc4-admin-tint: #faf6fd;
+  --bc4-admin-ease: cubic-bezier(.2, .7, .3, 1);
+  --bc4-admin-lift: 0 16px 28px -20px #3d1b5640;
+  color: var(--bc4-admin-body);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ---------------------------------------------------------------- Rhythm */
+.bc4-adminShell .bc4-content {
+  padding-top: 10px;
+  padding-bottom: 40px;
+}
+.bc4-adminShell .bc4-content > :is(.b4-directory, .b4-analyticsPage, .b4-scholarshipsDirectory, .bc4-analyticsLive) {
+  padding-top: 0;
+}
+.bc4-adminShell :is(.bc4-section, .bc4-panel, .b4-analyticsCard, .b4-scholarshipsFrame, .b4-tableFrame, .bc4-programTable) {
+  border-color: var(--bc4-admin-stroke);
+}
+.bc4-adminShell :is(.bc4-section, .bc4-panel, .b4-analyticsCard) {
+  border-radius: var(--bc4-admin-radius);
+}
+.bc4-adminShell :is(.b4-scholarshipsFrame, .b4-tableFrame) {
+  border-radius: var(--bc4-admin-radius);
+  box-shadow: 0 6px 16px -14px #2b0a4033;
+}
+
+/* ------------------------------------------------------------- Hero band */
+.bc4-adminShell .b4-hero {
+  box-shadow: 0 4px 10px -8px #2b0a4026;
+}
+.bc4-adminShell .b4-hero h1 {
+  color: #201a27;
+  font-size: 24px;
+  letter-spacing: -.01em;
+}
+.bc4-adminShell .b4-hero p {
+  max-width: 80ch;
+  color: #5f5569;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.bc4-adminShell .b4-breadcrumb {
+  color: #6d6278;
+  font-size: 12px;
+}
+.bc4-adminShell .b4-tabs {
+  gap: 32px;
+}
+.bc4-adminShell .b4-tabs > a {
+  font-size: 15px;
+  font-weight: 600;
+  padding-bottom: 11px;
+}
+
+/* ------------------------------------------------------------ Page header */
+.bc4-adminShell .bc4-adminHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px 24px;
+  margin: 0 0 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--bc4-admin-stroke);
+}
+.bc4-adminShell .bc4-adminHeadMain {
+  min-width: 0;
+}
+.bc4-adminShell .bc4-adminHead h2 {
+  margin: 0 0 5px;
+  color: var(--bc4-admin-heading);
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -.01em;
+}
+.bc4-adminShell .bc4-adminHead p {
+  margin: 0;
+  max-width: 66ch;
+  color: var(--bc4-admin-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.bc4-adminShell .bc4-adminHeadMeta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0;
+  padding: 7px 16px;
+  border: 1px solid var(--bc4-admin-stroke);
+  border-radius: 999px;
+  background: var(--bc4-admin-surface);
+  color: #4a4152;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.bc4-adminShell .bc4-adminHeadMeta strong {
+  color: var(--b4-purple);
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+/* The recommendations catalog uses its own head markup; align it with the rest. */
+.bc4-adminShell .bc4-programCatalogHead {
+  margin: 0 0 18px;
+  padding-bottom: 16px;
+}
+.bc4-adminShell .bc4-programCatalogHead h2 {
+  font-size: 21px;
+  letter-spacing: -.01em;
+}
+.bc4-adminShell .bc4-programCatalogHead p {
+  max-width: 66ch;
+  font-size: 13px;
+}
+.bc4-adminShell .bc4-programCatalogHead .bc4-programCount {
+  font-size: 12px;
+}
+.bc4-adminShell .bc4-programCatalogHead .bc4-programCount strong {
+  font-size: 15px;
+}
+
+/* --------------------------------------------------------------- Toolbars */
+.bc4-adminShell :is(.b4-filters, .b4-timelineFilters, .bc4-filterRow, .b4-scholarshipsToolbar, .b4-analyticsFilters) {
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.bc4-adminShell :is(.b4-searchField, .b4-selectField, .bc4-scholarshipFilter > summary) {
+  border-radius: var(--bc4-admin-radius-control);
+  border-color: var(--bc4-admin-stroke);
+  transition: border-color 160ms var(--bc4-admin-ease), box-shadow 160ms var(--bc4-admin-ease);
+}
+.bc4-adminShell :is(.b4-searchField, .b4-selectField, .bc4-scholarshipFilter > summary):hover {
+  border-color: var(--bc4-admin-stroke-strong);
+}
+.bc4-adminShell :is(.b4-searchField, .b4-selectField, .bc4-scholarshipFilter > summary):focus-within {
+  border-color: var(--b4-purple);
+  box-shadow: 0 0 0 3px #e7daf080;
+}
+.bc4-adminShell .b4-resetFilters {
+  margin: -4px 0 16px;
+  padding: 4px 2px;
+  border-radius: 8px;
+  font-size: 12px !important;
+  text-decoration-thickness: 1px;
+  transition: color 160ms var(--bc4-admin-ease), gap 160ms var(--bc4-admin-ease);
+}
+.bc4-adminShell .b4-resetFilters:hover {
+  gap: 9px;
+}
+.bc4-adminShell .bc4-adminSubbar {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  margin: 0 0 18px;
+}
+.bc4-adminShell .bc4-adminSubbar .bc4-alumniPicker {
+  flex: 1 1 300px;
+  max-width: 420px;
+  font-size: 12px;
+}
+.bc4-adminShell .bc4-adminSubbarMeta {
+  margin: 0 0 11px;
+  color: var(--bc4-admin-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.bc4-adminShell .bc4-adminSubbar .bc4-resetButton {
+  margin-left: auto;
+}
+.bc4-adminShell .bc4-adminSubbar .bc4-resetButton svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ------------------------------------------------------------------ Table */
+.bc4-adminShell :is(.b4-table, .b4-scholarshipsTable, .bc4-progressTable) {
+  font-size: 14px;
+}
+.bc4-adminShell :is(.b4-table, .b4-scholarshipsTable, .bc4-progressTable) thead {
+  background: linear-gradient(90deg, #f7f0ff 0%, #eadff7 100%);
+}
+.bc4-adminShell :is(.b4-table, .b4-scholarshipsTable, .bc4-progressTable) th {
+  height: 52px;
+  padding: 12px 16px;
+  background: transparent;
+  color: #4a3d56;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: .01em;
+  text-transform: none;
+  white-space: nowrap;
+}
+.bc4-adminShell :is(.b4-table, .b4-scholarshipsTable, .bc4-progressTable) td {
+  padding: 12px 16px;
+  color: var(--bc4-admin-body);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.bc4-adminShell :is(.b4-table, .b4-scholarshipsTable, .bc4-progressTable) tbody tr {
+  transition: background-color 150ms var(--bc4-admin-ease), box-shadow 150ms var(--bc4-admin-ease);
+}
+.bc4-adminShell :is(.b4-table, .b4-scholarshipsTable, .bc4-progressTable) tbody tr:is(:hover, :focus-within) {
+  background: var(--bc4-admin-tint);
+  box-shadow: inset 3px 0 0 var(--b4-purple);
+}
+.bc4-adminShell .b4-scholarshipsTable .b4-scholarshipArchived:is(:hover, :focus-within) {
+  background: #f4eff7;
+  box-shadow: inset 3px 0 0 #9c8aa8;
+}
+.bc4-adminShell .b4-tableFooter {
+  min-height: 72px;
+  padding: 16px 22px;
+  border-top: 1px solid var(--bc4-admin-stroke);
+  background: #fbf8fd;
+}
+.bc4-adminShell .b4-tableFooter p {
+  color: var(--bc4-admin-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+.bc4-adminShell .bc4-cellNote {
+  display: block;
+  margin-top: 2px;
+  color: var(--bc4-admin-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ------------------------------------------------------- Section & panels */
+.bc4-adminShell :is(.bc4-sectionHeading, .b4-analyticsSection > h2, .b4-analyticsSectionHeading) {
+  min-height: 56px;
+  padding: 15px 24px;
+  background: linear-gradient(90deg, #f8f2ff 0%, #ece1f8 100%);
+  color: var(--bc4-admin-heading);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -.01em;
+}
+.bc4-adminShell .bc4-sectionBody {
+  padding: 24px 26px;
+}
+.bc4-adminShell .bc4-panel {
+  padding: 22px 26px;
+}
+.bc4-adminShell :is(.bc4-panel > h2, .bc4-panel > h3, .b4-analyticsCard > h3) {
+  margin-bottom: 16px;
+  color: var(--bc4-admin-heading);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -.005em;
+}
+.bc4-adminShell :is(.bc4-panel, .bc4-section) .bc4-underlined {
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom-color: var(--bc4-admin-stroke);
+}
+.bc4-adminShell :is(.bc4-sectionBody, .bc4-panel) > p {
+  line-height: 1.7;
+}
+.bc4-adminShell .bc4-note {
+  padding: 20px 24px;
+  border-radius: var(--bc4-admin-radius-sm);
+}
+.bc4-adminShell .bc4-note h3 {
+  margin-bottom: 6px;
+  font-size: 15px;
+}
+.bc4-adminShell .bc4-note p {
+  color: var(--bc4-admin-subtle);
+  font-size: 13px;
+}
+.bc4-adminShell .bc4-empty {
+  padding: 36px 24px;
+  border-radius: 16px;
+  color: var(--bc4-admin-muted);
+  font-size: 14px;
+}
+.bc4-adminShell :is(.bc4-status, .bc4-demoNote) {
+  font-size: 13px;
+}
+
+/* ----------------------------------------------------------- Detail page */
+.bc4-adminShell .bc4-detailOuter {
+  display: grid;
+  gap: 20px;
+}
+.bc4-adminShell .bc4-detailHero {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 24px;
+  border: 1px solid var(--bc4-admin-stroke);
+  border-radius: var(--bc4-admin-radius);
+  background: linear-gradient(135deg, #fbf5ff 0%, #ffffff 72%);
+  box-shadow: 0 6px 16px -14px #2b0a4033;
+}
+.bc4-adminShell .bc4-detailHero .bc4-avatar {
+  width: 72px;
+  height: 72px;
+  flex: 0 0 72px;
+  border-radius: 18px;
+}
+.bc4-adminShell .bc4-detailHeroMain {
+  flex: 1;
+  min-width: 0;
+}
+.bc4-adminShell .bc4-detailHero h2 {
+  margin: 0 0 4px;
+  color: var(--bc4-admin-heading);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -.01em;
+  overflow-wrap: anywhere;
+}
+.bc4-adminShell .bc4-detailHero p {
+  margin: 0;
+  color: var(--bc4-admin-muted);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.bc4-adminShell .bc4-detailMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 12px;
+}
+.bc4-adminShell .bc4-detailMeta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 3px 11px;
+  border: 1px solid var(--bc4-admin-stroke);
+  border-radius: 999px;
+  background: var(--bc4-admin-surface);
+  color: #4a4152;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.bc4-adminShell .bc4-detailHero .bc4-backButton {
+  flex: 0 0 auto;
+  align-self: flex-start;
+}
+.bc4-adminShell .bc4-adminNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 15px 19px;
+  border: 1px solid var(--b4-gold);
+  border-radius: var(--bc4-admin-radius-sm);
+  background: #fffaee;
+  color: #4a4152;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.bc4-adminShell .bc4-adminNotice > svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: #92400e;
+}
+.bc4-adminShell .bc4-adminNotice p {
+  margin: 0;
+}
+.bc4-adminShell .bc4-adminNotice strong {
+  color: #6d3f0a;
+}
+.bc4-adminShell .bc4-adminNotice .bc4-button {
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+.bc4-adminShell .bc4-detailLayout {
+  display: grid;
+  grid-template-columns: minmax(0, .82fr) minmax(0, 1.35fr);
+  gap: 20px;
+  align-items: start;
+}
+.bc4-adminShell .bc4-detailLayout > .bc4-panel {
+  min-width: 0;
+}
+.bc4-adminShell .bc4-infoList > div {
+  display: contents;
+}
+.bc4-adminShell .bc4-infoList {
+  grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr);
+  gap: 12px 18px;
+  font-size: 13px;
+}
+.bc4-adminShell .bc4-infoList dt {
+  color: var(--bc4-admin-muted);
+}
+.bc4-adminShell .bc4-infoList dd {
+  color: #2d2635;
+  font-weight: 500;
+}
+.bc4-adminShell .bc4-progressFields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 20px;
+}
+.bc4-adminShell .bc4-progressFields .bc4-field {
+  font-size: 12px;
+  color: #4a3d56;
+}
+.bc4-adminShell .bc4-fieldWide {
+  grid-column: 1 / -1;
+}
+.bc4-adminShell .bc4-formActions {
+  margin-top: 20px;
+}
+.bc4-adminShell .bc4-historyPanel {
+  margin-top: 0;
+}
+.bc4-adminShell .bc4-progressTable {
+  min-width: 860px;
+  border-collapse: collapse;
+}
+.bc4-adminShell .bc4-progressTable th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.bc4-adminShell .bc4-progressTable td {
+  border-bottom: 1px solid #f0e8f7;
+  vertical-align: middle;
+}
+.bc4-adminShell .bc4-progressTable .bc4-actions {
+  flex-wrap: nowrap;
+}
+.bc4-adminShell .bc4-progressTable .bc4-actions button {
+  display: inline-grid;
+  width: 35px;
+  height: 35px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--bc4-admin-stroke);
+  border-radius: 50%;
+  background: var(--bc4-admin-surface);
+  color: var(--b4-purple);
+  transition: transform 160ms var(--bc4-admin-ease), background-color 160ms var(--bc4-admin-ease), color 160ms var(--bc4-admin-ease), box-shadow 160ms var(--bc4-admin-ease);
+}
+.bc4-adminShell .bc4-progressTable .bc4-actions button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: var(--b4-purple);
+  background: var(--b4-purple);
+  color: #fff;
+  box-shadow: 0 8px 14px -10px #5f089e66;
+}
+.bc4-adminShell .bc4-detailTimeline {
+  margin-top: 24px;
+}
+.bc4-adminShell .bc4-adminForm .bc4-sectionBody {
+  padding-top: 22px;
+}
+.bc4-adminShell .bc4-adminForm .bc4-formIntro {
+  margin: 0 0 20px;
+  max-width: 78ch;
+  color: var(--bc4-admin-muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+.bc4-adminShell .bc4-formIntro {
+  margin: 0 0 18px;
+  color: var(--bc4-admin-muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+/* ------------------------------------------------------------ Forms/chips */
+.bc4-adminShell :is(.bc4-field input, .bc4-field select, .bc4-field textarea, .bc4-moneyField, .bc4-criterionInput, .bc4-draftCriterion, .bc4-radioGroup label, .bc4-radios label) {
+  border-radius: var(--bc4-admin-radius-control);
+}
+.bc4-adminShell :is(.bc4-field, .bc4-progressFields .bc4-field) {
+  color: #4a3d56;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.bc4-adminShell .bc4-field :is(input, select, textarea) {
+  min-height: 42px;
+  font-size: 14px;
+  color: var(--bc4-admin-body);
+  transition: border-color 160ms var(--bc4-admin-ease), box-shadow 160ms var(--bc4-admin-ease), background-color 160ms var(--bc4-admin-ease);
+}
+.bc4-adminShell .bc4-field :is(input, select, textarea):focus-visible {
+  border-color: var(--b4-purple);
+  box-shadow: 0 0 0 3px #e7daf080;
+  outline: 0;
+}
+.bc4-adminShell .bc4-field > small,
+.bc4-adminShell .bc4-field small {
+  color: var(--bc4-admin-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.bc4-adminShell .bc4-fieldError {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.bc4-adminShell .bc4-radiusMeta,
+.bc4-adminShell .bc4-scholarCardMeta {
+  color: var(--bc4-admin-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.bc4-adminShell :is(.bc4-statusChip, .bc4-regChip, .bc4-tag) {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.bc4-adminShell .bc4-statusChip-pending {
+  background: #fff0d4;
+  color: #92400e;
+}
+
+/* --------------------------------------------------- Recommendations cards */
+.bc4-adminShell :is(.bc4-scholarCard, .bc4-programCard) {
+  padding: 22px;
+  border-radius: var(--bc4-admin-radius);
+}
+/* Keep catalog cards tinted instead of plain white so they read as one set. */
+.bc4-adminShell .bc4-programCard {
+  border-color: #e3d1f1;
+  background: linear-gradient(165deg, #fdf9ff 0%, #f7f0fd 58%, #f2e8fb 100%);
+}
+.bc4-adminShell .bc4-programCard .bc4-metrics {
+  background: #efe3fa;
+}
+.bc4-adminShell .bc4-programCard .bc4-programCardHead h3 {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+.bc4-adminShell .bc4-recommendationCards .bc4-scholarCard > h3 {
+  font-size: 18px;
+  line-height: 1.4;
+  min-height: 48px;
+}
+.bc4-adminShell .bc4-programCardHead h3 svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--b4-purple);
+}
+.bc4-adminShell .bc4-programCatalogActions .bc4-button {
+  font-size: 13px !important;
+}
+.bc4-adminShell .bc4-programToolbar {
+  margin-top: 18px;
+  gap: 12px;
+}
+.bc4-adminShell .bc4-programToolbarMeta {
+  font-size: 12px;
+}
+.bc4-adminShell .bc4-programHint {
+  margin: 8px 0 16px;
+  font-size: 12px;
+}
+.bc4-adminShell .bc4-programStatus {
+  font-size: 13px;
+}
+.bc4-adminShell .bc4-backLink {
+  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.bc4-adminShell .bc4-programHeader {
+  border-radius: var(--bc4-admin-radius);
+}
+.bc4-adminShell .bc4-programIdentity h2 {
+  font-size: 22px;
+  letter-spacing: -.01em;
+}
+.bc4-adminShell .bc4-programIdentity p {
+  font-size: 13px;
+}
+.bc4-adminShell .bc4-programAnalysisHead h2 {
+  font-size: 20px;
+  letter-spacing: -.01em;
+}
+.bc4-adminShell .bc4-programAnalysisHead p {
+  font-size: 12px;
+}
+.bc4-adminShell .bc4-studentDetail {
+  border-radius: var(--bc4-admin-radius);
+}
+.bc4-adminShell .bc4-studentDetailHead h2 {
+  font-size: 20px;
+  letter-spacing: -.01em;
+}
+.bc4-adminShell .bc4-studentDetailHead p,
+.bc4-adminShell .bc4-studentDetailBlock > p,
+.bc4-adminShell .bc4-studentPrep {
+  font-size: 13px;
+  line-height: 1.7;
+}
+.bc4-adminShell .bc4-studentDetailSource {
+  font-size: 12px;
+}
+.bc4-adminShell .bc4-studentDetailAside h3 {
+  font-size: 15px;
+}
+
+/* --------------------------------------------------------------- Analytics */
+.bc4-adminShell .b4-analyticsStats article {
+  border-radius: var(--bc4-admin-radius);
+  padding: 22px 24px;
+}
+.bc4-adminShell .b4-analyticsStats article > span {
+  color: var(--bc4-admin-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+.bc4-adminShell .b4-analyticsStats article > strong {
+  color: var(--bc4-admin-heading);
+  font-size: 26px;
+  letter-spacing: -.015em;
+}
+.bc4-adminShell .b4-analyticsStats article > small {
+  color: var(--bc4-admin-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.bc4-adminShell .b4-analyticsFilters {
+  margin-bottom: 18px;
+}
+
+/* --------------------------------------------------------- Timeline page */
+.bc4-adminShell .bc4-profileRow .bc4-profile,
+.bc4-adminShell .bc4-profileRow .bc4-current {
+  height: 100%;
+}
+.bc4-adminShell .bc4-profileRow .bc4-profile h2 {
+  font-size: 22px;
+}
+.bc4-adminShell .bc4-profileRow .bc4-profile p {
+  color: var(--bc4-admin-subtle);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.bc4-adminShell .bc4-current h3 {
+  font-size: 15px;
+}
+.bc4-adminShell .bc4-current .bc4-metrics dt {
+  font-size: 11px;
+}
+.bc4-adminShell .bc4-current .bc4-metrics dd {
+  font-size: 12px;
+}
+.bc4-adminShell .bc4-sectionHeading + .bc4-schoolTimeline,
+.bc4-adminShell .bc4-sectionHeading + .bc4-semesterScroll {
+  border-top: 0;
+}
+
+/* --------------------------------------------------------- Micro-interaction */
+.bc4-adminShell :is(.bc4-button, .b4-detailButton, .b4-addScholarship, .b4-editScholarship, .b4-scholarshipActions button, .b4-scholarshipActions a, .b4-pagination button, .bc4-iconButton, .bc4-backLink) {
+  transition: transform 160ms var(--bc4-admin-ease), background-color 160ms var(--bc4-admin-ease), color 160ms var(--bc4-admin-ease), border-color 160ms var(--bc4-admin-ease), box-shadow 160ms var(--bc4-admin-ease);
+}
+.bc4-adminShell :is(.bc4-button, .b4-detailButton, .b4-addScholarship, .b4-editScholarship, .b4-scholarshipActions button, .b4-scholarshipActions a, .b4-pagination button) {
+  font-size: 13px;
+}
+.bc4-adminShell :is(.bc4-button, .b4-detailButton, .b4-addScholarship, .b4-editScholarship, .b4-scholarshipActions button, .b4-scholarshipActions a, .b4-pagination button):hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px -12px #4b16724d;
+}
+.bc4-adminShell :is(.bc4-button, .b4-detailButton, .b4-addScholarship, .b4-scholarshipActions button, .b4-scholarshipActions a, .b4-pagination button):active:not(:disabled) {
+  transform: translateY(0) scale(.985);
+  box-shadow: none;
+}
+.bc4-adminShell :is(.b4-pagination button, .bc4-iconButton):hover:not(:disabled) {
+  box-shadow: 0 6px 12px -10px #4b16724d;
+}
+.bc4-adminShell .bc4-programCard {
+  transition: transform 200ms var(--bc4-admin-ease), box-shadow 200ms var(--bc4-admin-ease), border-color 200ms var(--bc4-admin-ease);
+}
+.bc4-adminShell .bc4-programCard:hover {
+  transform: translateY(-3px);
+  border-color: #d4bce8;
+  box-shadow: var(--bc4-admin-lift);
+}
+.bc4-adminShell :is(.bc4-extraInformation, .bc4-criterionSettings) > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--b4-purple);
+  font-size: 12px;
+  font-weight: 600;
+  transition: color 160ms var(--bc4-admin-ease);
+}
+.bc4-adminShell :is(.bc4-extraInformation, .bc4-criterionSettings) > summary::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  margin-left: auto;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 180ms var(--bc4-admin-ease);
+}
+.bc4-adminShell :is(.bc4-extraInformation, .bc4-criterionSettings)[open] > summary::after {
+  transform: rotate(-135deg) translateY(-2px);
+}
+.bc4-adminShell .bc4-scholarshipFilter > summary svg {
+  transition: transform 180ms var(--bc4-admin-ease);
+}
+.bc4-adminShell .bc4-scholarshipFilter[open] > summary svg {
+  transform: rotate(180deg);
+}
+.bc4-adminShell :is(a, button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid #b57ce2;
+  outline-offset: 3px;
+}
+.bc4-adminShell .bc4-moneyField {
+  transition: border-color 160ms var(--bc4-admin-ease), box-shadow 160ms var(--bc4-admin-ease);
+}
+.bc4-adminShell .bc4-moneyField:focus-within {
+  border-color: var(--b4-purple);
+  box-shadow: 0 0 0 3px #e7daf080;
+  outline: 0;
+}
+
+/* ----------------------------------------------------------- Responsive */
+@media (max-width: 1100px) {
+  .bc4-adminShell .bc4-detailLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 900px) {
+  .bc4-adminShell .bc4-adminHead {
+    align-items: flex-start;
+  }
+  .bc4-adminShell .bc4-adminHeadMeta {
+    white-space: normal;
+  }
+  .bc4-adminShell .b4-tabs {
+    gap: 26px;
+  }
+  .bc4-adminShell .b4-tabs > a {
+    font-size: 14px;
+  }
+  .bc4-adminShell .bc4-detailHero {
+    padding: 18px 20px;
+  }
+}
+@media (max-width: 640px) {
+  .bc4-adminShell .bc4-content {
+    padding-top: 6px;
+    padding-bottom: 28px;
+  }
+  .bc4-adminShell .bc4-adminHead {
+    margin-bottom: 16px;
+  }
+  .bc4-adminShell .bc4-adminHead h2 {
+    font-size: 19px;
+  }
+  .bc4-adminShell .bc4-detailHero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .bc4-adminShell .bc4-detailHero .bc4-avatar {
+    width: 60px;
+    height: 60px;
+    flex-basis: 60px;
+    border-radius: 16px;
+  }
+  .bc4-adminShell .bc4-detailHero h2 {
+    font-size: 19px;
+  }
+  .bc4-adminShell .bc4-detailHero .bc4-backButton {
+    align-self: stretch;
+    justify-content: center;
+  }
+  .bc4-adminShell .bc4-progressFields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .bc4-adminShell .bc4-infoList {
+    grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+    gap: 10px 14px;
+  }
+  .bc4-adminShell .bc4-adminSubbar {
+    align-items: stretch;
+  }
+  .bc4-adminShell .bc4-adminSubbar .bc4-alumniPicker {
+    flex-basis: 100%;
+    max-width: none;
+  }
+  .bc4-adminShell .bc4-adminSubbar .bc4-resetButton {
+    margin-left: 0;
+    width: 100%;
+  }
+  .bc4-adminShell .bc4-adminNotice {
+    flex-wrap: wrap;
+  }
+  .bc4-adminShell .bc4-adminNotice .bc4-button {
+    margin-left: 0;
+  }
+  .bc4-adminShell :is(.bc4-sectionHeading, .b4-analyticsSection > h2) {
+    min-height: 50px;
+    padding: 14px 18px;
+    font-size: 16px;
+  }
+  .bc4-adminShell :is(.bc4-sectionBody, .bc4-panel) {
+    padding: 18px 16px;
+  }
+  .bc4-adminShell :is(.b4-table, .b4-scholarshipsTable, .bc4-progressTable) th {
+    padding: 10px 12px;
+  }
+  .bc4-adminShell :is(.b4-table, .b4-scholarshipsTable, .bc4-progressTable) td {
+    padding: 10px 12px;
+  }
+}
+
+/* Respect the OS-level motion preference for every admin-only animation. */
+@media (prefers-reduced-motion: reduce) {
+  .bc4-adminShell *,
+  .bc4-adminShell *::before,
+  .bc4-adminShell *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .bc4-adminShell :is(.bc4-button, .b4-detailButton, .b4-addScholarship, .b4-editScholarship, .b4-scholarshipActions button, .b4-scholarshipActions a, .b4-pagination button, .bc4-iconButton, .bc4-programCard, .bc4-progressTable .bc4-actions button):hover:not(:disabled) {
+    transform: none !important;
+  }
+}

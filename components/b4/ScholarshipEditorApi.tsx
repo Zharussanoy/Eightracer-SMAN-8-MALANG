@@ -118,9 +118,10 @@ function Form({ initial, id }: { initial: ScholarshipInput; id?: number }) {
     finally { if (!finished) { submitting.current = false; setSaving(false); } }
   }
 
-  return <form ref={form} className="bc4-section" onSubmit={save} noValidate>
-    <h2 className="bc4-sectionHeading">{id ? "Edit" : "Tambah"} Basis Data Beasiswa</h2>
-    <div className="bc4-sectionBody"><div className="bc4-formGrid">
+  return <form ref={form} className="bc4-section bc4-adminForm" onSubmit={save} noValidate>
+    <div className="bc4-sectionBody">
+      <p className="bc4-formIntro">{id ? "Perbarui informasi program dan kriteria kelayakan. Perubahan akan langsung dipakai sistem rekomendasi siswa." : "Lengkapi informasi program dan kriteria kelayakan. Beasiswa yang disimpan akan aktif dan dapat dirujuk sistem rekomendasi siswa."}</p>
+      <div className="bc4-formGrid">
       <section className="bc4-panel"><h3 className="bc4-underlined">Informasi Beasiswa</h3><div className="bc4-fields">
         <Field name="nama_beasiswa" label="Nama Beasiswa *" errors={errors}><input {...field("nama_beasiswa")} disabled={saving} value={input.nama_beasiswa} onChange={(event) => set("nama_beasiswa", event.target.value)} /></Field>
         <div className="bc4-field">Durasi Pemberian *<div className="bc4-pair"><select aria-label="Jumlah durasi" disabled={saving} value={input.durasi ?? ""} onChange={(event) => set("durasi", Number(event.target.value))}><option value="" disabled>Pilih Durasi</option>{Array.from({ length: 16 }, (_, index) => <option key={index + 1}>{index + 1}</option>)}{Number(input.durasi) > 16 && <option>{input.durasi}</option>}</select><select aria-label="Satuan durasi" disabled={saving} value={input.satuan_durasi ?? ""} onChange={(event) => set("satuan_durasi", event.target.value)}><option value="" disabled>Pilih Satuan</option><option value="semester">Semester</option><option value="tahun">Tahun</option>{input.satuan_durasi && !["semester", "tahun"].includes(input.satuan_durasi) && <option>{input.satuan_durasi}</option>}</select></div>{errors.durasi?.map((value) => <span className="bc4-fieldError" key={value}>{value}</span>)}</div>

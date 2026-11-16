@@ -3,12 +3,12 @@
 import { scholarshipEvidenceLabel, kipEvidenceLabel, kipStatusLabel } from "@/lib/b4-scholarship-evidence";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, CircleAlert } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { ApiError } from "@/lib/eightracer-api";
 import { archiveAlumniProgress, getAlumniDetail, saveAlumniProgress } from "@/lib/b4-alumni-api";
 import type { AlumniDetail, AlumniProgressRow } from "@/lib/b4-alumni";
-import { blankProgress, newProgressForAlumni, progressScholarshipOptions, educationStatusLabels, formFromProgress, progressPayload, type ProgressForm } from "@/lib/b4-progress";
+import { blankProgress, newProgressForAlumni, progressScholarshipOptions, educationStatus, educationStatusLabels, formFromProgress, periodLocked, progressNeedsCompletion, progressPayload, type ProgressForm } from "@/lib/b4-progress";
 import B4Shell, { Avatar } from "./B4Shell";
 import { displayTitle } from "@/lib/display-copy";
 import { getAlumniTimeline } from "@/lib/b4-alumni-api";
@@ -89,10 +89,12 @@ export default function AdminAlumniDetailPage({ id }: { id?: string }) {
 
   const records = alumni.progress;
   const latest = [...records].sort((a, b) => (b.updatedAt ?? "").localeCompare(a.updatedAt ?? "") || (b.semester ?? 0) - (a.semester ?? 0) || b.id - a.id)[0];
+  const editingRow = records.find((row) => row.id === form.id);
   const kipk = kipEvidenceLabel(alumni.scholarshipEvidence);
   const nisn = alumni.hasNisn ? "••••••••••" : missing;
   const catalogs = progressScholarshipOptions(alumni);
   const mandiri = alumni.admissionPath === "Mandiri";
+  const incomplete = records.some(progressNeedsCompletion);
   return <B4Shell title="Informasi Detail Alumni" active="alumni" description="Kelola progres alumni selama menempuh pendidikan di Perguruan Tinggi berdasarkan periode." parent={{ label: "Alumni di PT", href: back }}>
     <div className="bc4-detailOuter">
       <div className="bc4-profileRow">
@@ -101,46 +103,52 @@ export default function AdminAlumniDetailPage({ id }: { id?: string }) {
           ["Semester", latest?.semester ?? missing], ["IPK", latest?.gpa ?? missing], ["Beasiswa", latest ? acceptedAwards(latest) : missing], ["Status KIP-K", kipStatusLabel(latest?.kipk)], ["UKT/Semester", money(latest?.ukt ?? null)],
         ].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></section>
       </div>
-      <div className="bc4-grid2" style={{ marginTop: 24 }}>
+      {incomplete && <div className="bc4-adminNotice" role="status">
+        <CircleAlert size={20} aria-hidden="true" />
+        <p><strong>Ada riwayat yang perlu dilengkapi.</strong> Lengkapi periode dan status pendidikan pada riwayat terkait agar progres dapat disimpan dengan benar.</p>
+      </div>}
+
+      <div className="bc4-detailLayout">
         <section className="bc4-panel"><h2 className="bc4-underlined">Data Induk Alumni</h2>
-          <dl className="bc4-infoList">{[
+          <dl className="bc4-infoList">{[ 
             ["Nama Lengkap", alumni.name], ["NISN", nisn],
             ["Kelas / Angkatan", `${alumni.classroom ?? missing} / ${alumni.graduationYear ?? missing}`],
             ["Status Penerima KIP-K", kipk], ["Beasiswa / Bantuan Tercatat", scholarshipEvidenceLabel(alumni.scholarshipEvidence)], ["Nama Perguruan Tinggi", alumni.university],
             ["Jenis Perguruan Tinggi", alumni.universityKind ?? missing], ["Program Studi", alumni.studyProgram], ["Jalur Masuk", alumni.admissionPath ?? missing],
-          ].map(([label, value]) => <div key={label} style={{ display: "contents" }}><dt>{displayTitle(label)}</dt><dd>{displayTitle(value ?? "-")}</dd></div>)}</dl>
+          ].map(([label, value]) => <div key={label}><dt>{displayTitle(label)}</dt><dd>{displayTitle(value ?? "-")}</dd></div>)}</dl>
         </section>
         <section className="bc4-panel"><h2 className="bc4-underlined">{form.id ? "Edit Progress Kuliah" : "Update Progress Kuliah"}</h2>
           <form ref={editor} onSubmit={save}>
+            <p className="bc4-formIntro">{form.id ? "Perbarui isian periode terpilih. Versi sebelumnya tetap dicatat sebagai riwayat." : "Isi data periode terbaru agar riwayat progres kuliah alumni tetap lengkap."}</p>
             <div className="bc4-grid2 bc4-progressFields">
-              <label className="bc4-field">Periode *<input required disabled={saving || !!form.id} maxLength={50} placeholder="Contoh format: Ganjil 2026/2027" value={form.period} onChange={(event) => field("period", event.target.value)} /></label>
+              <label className="bc4-field">Periode *<input required disabled={saving || periodLocked(editingRow)} maxLength={50} placeholder="Contoh format: Ganjil 2026/2027" value={form.period} onChange={(event) => field("period", event.target.value)} />{form.id !== null && !periodLocked(editingRow) && <small>Data lama belum memiliki periode. Lengkapi agar progres dapat disimpan.</small>}</label>
               <label className="bc4-field">Semester *<input required disabled={saving} type="number" min="1" max="40" step="1" placeholder="Isi semester saat ini" value={form.semester} onChange={(event) => field("semester", event.target.value)} /></label>
               <label className="bc4-field">Status Pendidikan *<select required disabled={saving} value={form.status} onChange={(event) => field("status", event.target.value)}><option value="">Pilih Status</option>{Object.entries(educationStatusLabels).map(([value, label]) => <option key={value} value={value}>{displayTitle(label)}</option>)}</select></label>
               <label className="bc4-field">Tanggal Pembaruan *<input required disabled={saving} type="date" value={form.date} onChange={(event) => field("date", event.target.value)} /></label>
-              <fieldset className="bc4-field" disabled={saving}><legend>Status Penerima KIP-K</legend><div className="bc4-radios">{[["", kipStatusLabel(null)], ["1", kipStatusLabel(true)], ["0", kipStatusLabel(false)]].map(([value, label]) => <label key={value}><input type="radio" name="kipk" checked={form.kipk === value} onChange={() => field("kipk", value)} />{displayTitle(label)}</label>)}</div></fieldset>
+              <fieldset className="bc4-field"><legend>Status Penerima KIP-K</legend><div className="bc4-radios">{[["", kipStatusLabel(null)], ["1", kipStatusLabel(true)], ["0", kipStatusLabel(false)]].map(([value, label]) => <label key={value}><input type="radio" name="kipk" disabled={saving} checked={form.kipk === value} onChange={() => field("kipk", value)} />{displayTitle(label)}</label>)}</div></fieldset>
               <label className="bc4-field">IP-Kumulatif<input disabled={saving} type="number" min="0" max="4" step="0.01" value={form.gpa} placeholder={missing} onChange={(event) => field("gpa", event.target.value)} /></label>
-              <fieldset className="bc4-field" disabled={saving || !catalogs.size}><legend>Beasiswa yang Diterima (Jika Ada)</legend><div className="bc4-progressAwards">{[...catalogs].map(([value,name])=><label key={value}><input type="checkbox" checked={form.awardIds.includes(String(value))} onChange={e=>field("awardIds",e.target.checked?[...form.awardIds,String(value)]:form.awardIds.filter(id=>id!==String(value)))}/><span>{displayTitle(name)}</span></label>)}{!catalogs.size&&<span>-</span>}</div><small>Pilihan mengikuti catatan terakhir; sesuaikan untuk periode yang diisi. Boleh lebih dari satu.</small></fieldset>
+              <fieldset className="bc4-field bc4-fieldWide" disabled={saving || !catalogs.size}><legend>Beasiswa yang Diterima (Jika Ada)</legend><div className="bc4-progressAwards">{[...catalogs].map(([value,name])=><label key={value}><input type="checkbox" checked={form.awardIds.includes(String(value))} onChange={e=>field("awardIds",e.target.checked?[...form.awardIds,String(value)]:form.awardIds.filter(id=>id!==String(value)))}/><span>{displayTitle(name)}</span></label>)}{!catalogs.size&&<span>-</span>}</div><small>Pilihan mengikuti catatan terakhir; sesuaikan untuk periode yang diisi. Boleh lebih dari satu.</small></fieldset>
               {(["ipi", "ukt"] as const).map((key) => <div className="bc4-field" key={key}><label htmlFor={`bc4-${key}`}>{key === "ukt" ? "UKT / Semester" : "IPI (Khusus Mandiri)"}</label>
                 <div className="bc4-moneyField"><span aria-hidden="true">Rp</span><input disabled={saving || (key === "ipi" && !mandiri)} id={`bc4-${key}`} type="number" min="0" step="0.01" value={form[key]} placeholder={missing} onChange={(event) => field(key, event.target.value)} /></div>
               </div>)}
             </div>
             {formError && <p className="bc4-status" role="alert">{formError}</p>}
-            <div className="bc4-actions" style={{ marginTop: 20 }}><button disabled={saving} className="bc4-button bc4-primary" type="submit">{saving ? "Menyimpan…" : "Simpan"}</button>{form.id && <button type="button" className="bc4-button" onClick={() => { setForm(newProgressForAlumni(alumni)); setFormError(""); }}>Batal Edit</button>}</div>
+            <div className="bc4-actions bc4-formActions"><button disabled={saving} className="bc4-button bc4-primary" type="submit">{saving ? "Menyimpan…" : "Simpan"}</button>{form.id && <button type="button" className="bc4-button" onClick={() => { setForm(newProgressForAlumni(alumni)); setFormError(""); }}>Batal Edit</button>}</div>
           </form>
         </section>
       </div>
       {message && <p className="bc4-status" role="status">{message}</p>}
-      <section className="bc4-panel" style={{ marginTop: 12 }}><h2 className="bc4-underlined">Riwayat Progres Perkuliahan</h2>
+      <section className="bc4-panel bc4-historyPanel"><h2 className="bc4-underlined">Riwayat Progres Perkuliahan</h2>
         <div className="b4-tableScroll"><table className="bc4-progressTable"><thead><tr>{["PERIODE SEMESTER", "IPK", "PENERIMA KIP-K", "BEASISWA TERDAFTAR", "UKT", "AKSI"].map((title) => <th key={title}>{displayTitle(title)}</th>)}</tr></thead><tbody>{records.map((row) => <tr key={row.id}>
-          <td>{row.period ?? missing} (Semester {row.semester ?? missing})</td><td>{row.gpa ?? missing}</td><td>{kipStatusLabel(row.kipk)}</td>
+          <td>{row.period ?? missing} (Semester {row.semester ?? missing}){progressNeedsCompletion(row) && <><br /><span className="bc4-statusChip bc4-statusChip-pending">Perlu dilengkapi</span></>}</td><td>{row.gpa ?? missing}</td><td>{kipStatusLabel(row.kipk)}</td>
           <td>{row.scholarships.map((award) => `${award.name ?? missing} (${award.status})`).join(", ") || missing}</td><td>{money(row.ukt)}</td>
-          <td><div className="bc4-actions"><button disabled={saving} type="button" aria-label={`Edit semester ${row.semester}`} onClick={() => edit(row)}><Pencil size={18} /></button><button disabled={saving} type="button" aria-label={`Arsipkan semester ${row.semester}`} onClick={() => { setDeleting(row); confirm.current?.showModal(); }}><Trash2 size={18} /></button></div></td>
-        </tr>)}</tbody></table>{!records.length && <p className="bc4-empty">-</p>}</div>
+          <td><div className="bc4-actions"><button disabled={saving} type="button" aria-label={`Edit progres ${row.period ?? `tanpa periode (ID ${row.id})`}`} onClick={() => edit(row)}><Pencil size={18} /></button><button disabled={saving} type="button" aria-label={`Arsipkan progres ${row.period ?? `tanpa periode (ID ${row.id})`}`} onClick={() => { setDeleting(row); confirm.current?.showModal(); }}><Trash2 size={18} /></button></div></td>
+        </tr>)}</tbody></table>{!records.length && <p className="bc4-empty">Belum ada riwayat progres untuk alumni ini.</p>}</div>
       </section>
     </div>
-    <section aria-label="Timeline individu alumni" style={{ marginTop: 24 }}>
+    <section aria-label="Timeline individu alumni" className="bc4-detailTimeline">
       {timeline?.data ? <AlumniAcademicTimeline key={id} alumni={timeline.data} embedded /> : <p role={timeline?.error ? "alert" : "status"}>{timeline?.error ?? "Memuat timeline alumni…"}</p>}
     </section>
-    <dialog ref={confirm} className="bc4-dialog"><div className="bc4-dialogTitle"><h2>Arsipkan Riwayat {deleting?.period}?</h2></div><div className="bc4-dialogBody"><p>Riwayat tidak ditampilkan sebagai progres aktif; jejak datanya tetap disimpan.</p><div className="bc4-actions"><button disabled={saving} type="button" className="bc4-button" onClick={() => confirm.current?.close()}>Batal</button><button disabled={saving} type="button" className="bc4-button bc4-primary" onClick={() => void archive()}>Arsipkan</button></div></div></dialog>
+    <dialog ref={confirm} className="bc4-dialog"><div className="bc4-dialogTitle"><h2>Arsipkan Riwayat {deleting?.period ?? `progres ID ${deleting?.id ?? ""}`}?</h2></div><div className="bc4-dialogBody"><p>Riwayat tidak ditampilkan sebagai progres aktif; jejak datanya tetap disimpan.</p><div className="bc4-actions"><button disabled={saving} type="button" className="bc4-button" onClick={() => confirm.current?.close()}>Batal</button><button disabled={saving} type="button" className="bc4-button bc4-primary" onClick={() => void archive()}>Arsipkan</button></div></div></dialog>
   </B4Shell>;
 }

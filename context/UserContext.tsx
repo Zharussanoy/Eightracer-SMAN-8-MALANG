@@ -87,20 +87,31 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export function UserProvider({ children }: { children: ReactNode }) {
     const [demoPreset, setDemoPreset] = useState<PresetKey>("siswa_aktif");
     const [sessionUser, setSessionUser] = useState<UserProfile | null>(null);
+    const sessionUserRef = useRef<UserProfile | null>(null);
+    useEffect(() => {
+        sessionUserRef.current = sessionUser;
+    }, [sessionUser]);
+
     const [authStatus, setAuthStatus] = useState<UserContextType["authStatus"]>("loading");
     const [authMessage, setAuthMessage] = useState("");
     const generation = useRef(0);
     const mutating = useRef(false);
     const knownSession = useRef(false);
+    const lastCheckTime = useRef<number>(0);
     const router = useRouter();
-    const isLoggedIn = authStatus === "authenticated" && sessionUser !== null;
+    const isLoggedIn = (authStatus === "authenticated" || (authStatus === "unavailable" && sessionUser !== null)) && sessionUser !== null;
     const currentUser = sessionUser ?? MOCK_USERS[demoPreset];
     const currentPreset: PresetKey = sessionUser
         ? sessionUser.role === "admin" ? "admin" : sessionUser.role === "guru" ? "guru" : "siswa_aktif"
         : demoPreset;
 
-    const refreshSession = useCallback(async (signal?: AbortSignal) => {
+    const refreshSession = useCallback(async (signal?: AbortSignal, force = false) => {
         if (mutating.current) return;
+        const now = Date.now();
+        if (!force && knownSession.current && now - lastCheckTime.current < 15_000) {
+            return;
+        }
+        lastCheckTime.current = now;
         const version = ++generation.current;
         try {
             const result = await api.me(signal);
@@ -119,7 +130,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 setAuthMessage(expired ? "Sesi telah berakhir. Silakan masuk lagi." : "");
                 if (expired) router.replace("/login");
             } else {
-                setAuthStatus("unavailable");
+                if (!sessionUserRef.current && !knownSession.current) {
+                    setAuthStatus("unavailable");
+                }
                 setAuthMessage(error instanceof Error ? error.message : "Sesi belum dapat diperiksa. Coba lagi.");
             }
         }
@@ -133,17 +146,29 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 const saved = localStorage.getItem("eightracer_user_role_preset") as PresetKey | null;
                 if (saved && MOCK_USERS[saved]) setDemoPreset(saved);
             } catch { /* Pilihan demo tidak wajib tersimpan. */ }
-            await refreshSession(controller.signal);
+            await refreshSession(controller.signal, true);
         }
         void restore();
         return () => controller.abort();
     }, [refreshSession]);
 
     useEffect(() => {
-        const check = () => { if (document.visibilityState === "visible") void refreshSession(); };
+        let timeoutId: ReturnType<typeof setTimeout> | null = null;
+        const check = () => {
+            if (document.visibilityState === "visible") {
+                if (timeoutId) clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => {
+                    void refreshSession();
+                }, 300);
+            }
+        };
         window.addEventListener("focus", check);
         document.addEventListener("visibilitychange", check);
-        return () => { window.removeEventListener("focus", check); document.removeEventListener("visibilitychange", check); };
+        return () => {
+            if (timeoutId) clearTimeout(timeoutId);
+            window.removeEventListener("focus", check);
+            document.removeEventListener("visibilitychange", check);
+        };
     }, [refreshSession]);
 
     const login = useCallback(async (credentials: LoginCredentials) => {
