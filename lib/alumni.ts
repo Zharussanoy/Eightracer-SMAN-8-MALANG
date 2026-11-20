@@ -51,7 +51,7 @@ export function mapApiAlumniToItem(api: ApiAlumni): AlumniItem {
     statusPdss: undefined,
     statusPenerimaan: api.status_penerimaan ?? "-",
     jenjang: api.strata ?? "-",
-    nilai: api.nilai_rapor ?? 0,
+    nilai: api.nilai_rapor ?? api.skor_utbk ?? 0,
     skorUtbk: api.skor_utbk,
     sertifikat: (api.sertifikat || []).map(
       (s) => s.nama_kompetisi || "-"
