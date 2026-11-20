@@ -10,9 +10,14 @@ import {
 } from "lucide-react";
 import { UploadedFileState } from "./types";
 
+export type ImportCategory = "auto" | "biodata" | "nilai_rapor" | "asesmen";
+
 interface AdminB1UploadSectionProps {
   uploadedFile: UploadedFileState | null;
   onFileChange: (newFile: UploadedFileState | null) => void;
+  onRawFileSelect?: (file: File | null) => void;
+  importCategory?: ImportCategory;
+  onImportCategoryChange?: (category: ImportCategory) => void;
   onSaveData: () => void;
   isSaving: boolean;
 }
@@ -20,6 +25,9 @@ interface AdminB1UploadSectionProps {
 export default function AdminB1UploadSection({
   uploadedFile,
   onFileChange,
+  onRawFileSelect,
+  importCategory = "auto",
+  onImportCategoryChange,
   onSaveData,
   isSaving,
 }: AdminB1UploadSectionProps) {
@@ -53,12 +61,16 @@ export default function AdminB1UploadSection({
   };
 
   const processFile = (file: File) => {
-    const sizeInMB = (file.size / (1024 * 1024)).toFixed(1);
-    const fakeCount = Math.floor(Math.random() * 80) + 320; // 320 - 400 siswa
+    const sizeKB = file.size / 1024;
+    const sizeLabel =
+      sizeKB >= 1024
+        ? `${(sizeKB / 1024).toFixed(1)} MB`
+        : `${Math.max(1, Math.round(sizeKB))} KB`;
+    onRawFileSelect?.(file);
     onFileChange({
       name: file.name,
-      size: `${sizeInMB} MB`,
-      readCount: fakeCount,
+      size: sizeLabel,
+      readCount: 0,
       status: "Siap Dipetakan",
     });
   };
@@ -68,6 +80,7 @@ export default function AdminB1UploadSection({
   };
 
   const handleCancel = () => {
+    onRawFileSelect?.(null);
     onFileChange(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -86,18 +99,38 @@ export default function AdminB1UploadSection({
       />
 
       {/* Header */}
-      <div className="flex items-center gap-3 pb-4 border-b border-purple-100 mb-4">
-        <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
-          <FileText className="w-5 h-5 text-[#5F089E]" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-purple-100 mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
+            <FileText className="w-5 h-5 text-[#5F089E]" />
+          </div>
+          <div className="flex flex-col">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 leading-[1.2]">
+              Unggah Berkas
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
+              Sistem memproses data siswa SMAN 8 Malang secara otomatis dan terstruktur.
+            </p>
+          </div>
         </div>
-        <div className="flex flex-col">
-          <h2 className="text-lg sm:text-xl font-bold text-slate-900 leading-[1.2]">
-            Unggah Berkas
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
-            Sistem memproses data siswa SMAN 8 Malang secara otomatis dan terstruktur.
-          </p>
-        </div>
+
+        {onImportCategoryChange && (
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-semibold text-slate-600 whitespace-nowrap">
+              Jenis Berkas:
+            </label>
+            <select
+              value={importCategory}
+              onChange={(e) => onImportCategoryChange(e.target.value as ImportCategory)}
+              className="px-3 py-1.5 rounded-xl border border-purple-200 bg-purple-50/50 text-xs font-semibold text-[#5F089E] focus:outline-none focus:ring-2 focus:ring-[#5F089E]/20 cursor-pointer"
+            >
+              <option value="auto">Otomatis Deteksi Format</option>
+              <option value="biodata">Biodata Siswa</option>
+              <option value="nilai_rapor">Nilai Rapor Semester 1</option>
+              <option value="asesmen">Asesmen RIASEC &amp; MI</option>
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Drag & Drop Area */}
@@ -112,12 +145,10 @@ export default function AdminB1UploadSection({
         }`}
         onClick={handleBrowseClick}
       >
-        {/* Upload Icon Circle */}
         <div className="w-16 h-16 rounded-2xl bg-purple-100 flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-115 group-hover:rotate-3 shadow-2xs">
           <UploadCloud className="w-8 h-8 text-[#5F089E]" />
         </div>
 
-        {/* Text Area */}
         <p className="text-sm sm:text-base font-semibold text-slate-800 text-center leading-[150%]">
           Tarik &amp; letakkan berkas Excel/CSV di sini, atau{" "}
           <span className="text-[#5F089E] underline underline-offset-2 hover:text-[#4d0680]">
@@ -125,20 +156,18 @@ export default function AdminB1UploadSection({
           </span>
         </p>
         <p className="text-xs text-slate-500 text-center mt-1">
-          Unggah data dengan mudah dan cepat.
+          Mendukung berkas Biodata Siswa, Nilai Rapor Semester 1, dan Asesmen RIASEC/MI (.xlsx, .xls, .csv).
         </p>
       </div>
 
-      {/* Uploaded File Preview Card (Overlay + Border) */}
+      {/* Uploaded File Preview Card */}
       {uploadedFile && (
         <div className="mt-4 w-full bg-purple-50/50 border border-purple-100 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all">
           <div className="flex items-center gap-3.5">
-            {/* Purple Icon Box */}
             <div className="w-11 h-11 rounded-xl bg-[#5F089E] flex items-center justify-center shrink-0 shadow-sm">
               <FileSpreadsheet className="w-5 h-5 text-white" />
             </div>
 
-            {/* File Info & Badges */}
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center flex-wrap gap-2">
                 <span className="text-sm font-semibold text-slate-900 break-all">
@@ -147,13 +176,14 @@ export default function AdminB1UploadSection({
                 <span className="bg-white border border-slate-200 text-slate-600 text-[10px] sm:text-xs font-medium px-2 py-0.5 rounded-full">
                   {uploadedFile.size}
                 </span>
-                <span className="bg-emerald-50 text-emerald-700 text-[10px] sm:text-xs font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1.5 border border-emerald-150">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                  <span>{uploadedFile.readCount} siswa terbaca</span>
-                </span>
+                {uploadedFile.readCount > 0 && (
+                  <span className="bg-emerald-50 text-emerald-700 text-[10px] sm:text-xs font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1.5 border border-emerald-150">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                    <span>{uploadedFile.readCount} baris data diproses</span>
+                  </span>
+                )}
               </div>
 
-              {/* Status Row */}
               <div className="flex items-center gap-1.5 text-xs text-slate-500">
                 <span>Status:</span>
                 <span className="bg-purple-100 text-[#5F089E] text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-md">
@@ -183,7 +213,7 @@ export default function AdminB1UploadSection({
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-[#5F089E] text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs active:scale-95 cursor-pointer border border-purple-100"
         >
           <RotateCcw className="w-3.5 h-3.5 text-[#5F089E]" />
-          <span>Ganti Berkas</span>
+          <span>Pilih Berkas</span>
         </button>
 
         <button
@@ -195,12 +225,12 @@ export default function AdminB1UploadSection({
           {isSaving ? (
             <>
               <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              <span>Menyimpan...</span>
+              <span>Memproses Impor...</span>
             </>
           ) : (
             <>
               <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-              <span>Simpan Data</span>
+              <span>Simpan &amp; Impor Data</span>
             </>
           )}
         </button>

@@ -1,4 +1,17 @@
-export type StatusRapor = "Antrean Cek" | "Tervalidasi Rapor Fisik" | "Perlu Koreksi Fisik";
+export type StatusRapor = "Antrean Cek" | "Tervalidasi Rapor Fisik" | "Perlu Koreksi Fisik" | "Belum Diisi";
+
+export interface MapelNilaiValidationItem {
+  id?: number | string;
+  mataPelajaranId?: number;
+  namaMapel: string;
+  inputMandiri: number;
+  bukuRapor: number;
+  selisih: number;
+  adaSelisih?: boolean;
+  statusValidasi?: string;
+  tanggalInput?: string;
+  catatanWaliKelas?: string | null;
+}
 
 export interface StudentB1WaliKelas {
   id: string;
@@ -8,18 +21,14 @@ export interface StudentB1WaliKelas {
   initial: string;
   kelas: string;
   semester: string;
+  daftarSemesterTerisi?: number[];
   kelengkapanProfil: number; // e.g. 100
   mapelPilihanCount: string; // e.g. "4/4 Mapel"
   rataRata: number; // e.g. 85.25
   statusRapor: StatusRapor;
   hasDiscrepancy?: boolean;
-  mapelDiscrepancy?: {
-    namaMapel: string;
-    inputMandiri: number;
-    bukuRapor: number;
-    selisih: number;
-    tanggalInput: string;
-  };
+  mapelDiscrepancy?: MapelNilaiValidationItem;
+  daftarNilaiPilihan?: MapelNilaiValidationItem[];
   profilDetail?: {
     mapelPilihan: string[];
     riasec: {

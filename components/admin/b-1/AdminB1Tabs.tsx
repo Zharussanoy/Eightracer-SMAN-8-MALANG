@@ -16,12 +16,13 @@ export default function AdminB1Tabs({
     "Dashboard Konseling",
     "Validasi & Surat Rekomendasi",
     "Feedback Strategi & Direktori BK",
+    "Mengelola Wali Kelas",
   ];
 
   return (
-    <div className="w-full border-b border-slate-200 mb-8 sm:mb-10 font-sans overflow-x-auto no-scrollbar">
+    <div className="w-full border-b border-slate-200 mb-8 sm:mb-9 font-sans overflow-x-auto no-scrollbar">
       <nav
-        className="flex items-center justify-between w-full min-w-max pb-0 gap-6 sm:gap-8"
+        className="flex items-center justify-between max-w-6xl mx-auto px-2 sm:px-6 min-w-max gap-6"
         aria-label="Tabs Peminatan B1"
       >
         {tabs.map((tab) => {
@@ -31,13 +32,13 @@ export default function AdminB1Tabs({
               key={tab}
               type="button"
               onClick={() => onTabChange(tab)}
-              className={`pb-3 px-1 transition-all duration-200 cursor-pointer relative text-sm active:scale-95 whitespace-nowrap ${
+              className={`py-3.5 px-2 text-sm transition-all duration-200 relative cursor-pointer flex items-center gap-2 active:scale-95 whitespace-nowrap ${
                 isActive
                   ? "text-[#5F089E] font-bold"
                   : "text-slate-600 font-medium hover:text-[#5F089E] hover:-translate-y-0.5"
               }`}
             >
-              {tab}
+              <span>{tab}</span>
               {isActive && (
                 <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#5F089E] rounded-full animate-in fade-in zoom-in-95 duration-200" />
               )}

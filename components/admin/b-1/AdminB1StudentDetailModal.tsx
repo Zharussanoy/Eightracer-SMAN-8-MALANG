@@ -30,26 +30,26 @@ export default function AdminB1StudentDetailModal({
       ? `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase()
       : student.nama.slice(0, 2).toUpperCase();
 
-  // Fallbacks matching Figma CSS values if not provided
-  const namaPanggilan = student.namaPanggilan || nameParts[0];
-  const bahasa = student.bahasaKeseharian || "Bahasa Indonesia & Bahasa Jawa";
-  const citaCita = student.citaCita || "Software Engineer & AI Researcher";
-  const hobi = student.hobi || "Desain UI/UX, Membaca Buku Teknologi, Fotografi";
-  const warna = student.warnaFavorit || "Ungu";
-  const makanan = student.makananFavorit || "Nasi Goreng";
-  const gameOnline = student.permainanOnline || "Roblox, Mobile Legends";
-  const gameOffline = student.permainanOffline || "Catur & Monopoli";
+  // Fallbacks jika kolom opsional belum diisi pada berkas impor
+  const namaPanggilan = student.namaPanggilan || nameParts[0] || "-";
+  const bahasa = student.bahasaKeseharian || "-";
+  const citaCita = student.citaCita || "-";
+  const hobi = student.hobi || "-";
+  const warna = student.warnaFavorit || "-";
+  const makanan = student.makananFavorit || "-";
+  const gameOnline = student.permainanOnline || "-";
+  const gameOffline = student.permainanOffline || "-";
 
-  const kondisiOrtu = student.kondisiOrtu || "Lengkap";
-  const ayahPekerjaan = student.ayahPekerjaan || "Bambang S. (Karyawan Swasta )";
-  const ibuPekerjaan = student.ibuPekerjaan || "Sri Wahyuni (Ibu Rumah Tangga)";
-  const penghasilan = student.penghasilanGabungan || "Rp 6.500.000/ bln";
-  const kontak = student.kontakOrtu || "+62 812–3456–7890";
+  const kondisiOrtu = student.kondisiOrtu || "-";
+  const ayahPekerjaan = student.ayahPekerjaan || "-";
+  const ibuPekerjaan = student.ibuPekerjaan || "-";
+  const penghasilan = student.penghasilanGabungan || "-";
+  const kontak = student.kontakOrtu || "-";
 
   const pip = student.bansos?.pip || "Tidak Terdaftar";
   const pkh = student.bansos?.pkh || "Tidak Terdaftar";
-  const kisBpjs = student.bansos?.kisBpjs || "Mandiri Kelas 2";
-  const kip = student.bansos?.kip || "Tidak Memiliki";
+  const kisBpjs = student.bansos?.kisBpjs || "Tidak Terdaftar";
+  const kip = student.bansos?.kip || "Tidak Terdaftar";
 
   return (
     <div
@@ -104,7 +104,7 @@ export default function AdminB1StudentDetailModal({
                   {student.nama}
                 </h3>
                 <div className="flex items-center flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-slate-500 mt-1">
-                  <span>NISN: <span className="font-mono text-slate-700">{student.nisn}</span></span>
+                  <span>NISN: <span className="font-medium text-slate-700">{student.nisn}</span></span>
                   <span className="hidden sm:inline text-slate-300">&bull;</span>
                   <span>Kelas: <span className="font-semibold text-slate-700">{student.kelas}</span></span>
                 </div>
@@ -133,7 +133,7 @@ export default function AdminB1StudentDetailModal({
                 </div>
                 <div className="flex items-center justify-between text-slate-500">
                   <span>NISN:</span>
-                  <span className="font-medium text-slate-900 font-mono">{student.nisn}</span>
+                  <span className="font-medium text-slate-900">{student.nisn}</span>
                 </div>
                 <div className="flex items-start justify-between text-slate-500 pt-0.5">
                   <span className="shrink-0">Bahasa Keseharian:</span>

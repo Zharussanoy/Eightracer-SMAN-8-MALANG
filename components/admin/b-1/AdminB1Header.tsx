@@ -25,6 +25,10 @@ export default function AdminB1Header({
     title = "Feedback Strategi & Direktori BK";
     description =
       "Evaluasi tren capaian nilai mapel peminatan dan direktori kontak guru BK pembimbing.";
+  } else if (activeTab === "Mengelola Wali Kelas") {
+    title = "Mengelola Wali Kelas";
+    description =
+      "Kelola identitas, penugasan kelas yang diampu, serta akun login wali kelas untuk memvalidasi nilai rapor dan profil siswa.";
   }
 
   return (

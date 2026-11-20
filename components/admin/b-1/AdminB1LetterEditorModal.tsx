@@ -446,7 +446,7 @@ export const AdminB1LetterEditorModal: React.FC<AdminB1LetterEditorModalProps> =
                 <h3 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide underline underline-offset-4">
                   SURAT REKOMENDASI PEMINATAN
                 </h3>
-                <p className="text-xs text-slate-600 font-mono">
+                <p className="text-xs text-slate-600 font-medium">
                   Nomor: {formData.nomorSurat}
                 </p>
               </div>
@@ -457,18 +457,19 @@ export const AdminB1LetterEditorModal: React.FC<AdminB1LetterEditorModalProps> =
               </p>
 
               {/* Student Metadata */}
-              <div className="space-y-1.5 text-xs sm:text-sm text-slate-900 bg-slate-50/70 p-4 rounded-xl border border-slate-100">
-                <div className="grid grid-cols-12 gap-2">
-                  <span className="col-span-3 sm:col-span-2 text-slate-500">Nama Lengkap</span>
-                  <span className="col-span-9 sm:col-span-10 font-semibold">: {formData.namaSiswa}</span>
-                </div>
-                <div className="grid grid-cols-12 gap-2">
-                  <span className="col-span-3 sm:col-span-2 text-slate-500">NISN</span>
-                  <span className="col-span-9 sm:col-span-10 font-medium font-mono">: {formData.nisn}</span>
-                </div>
-                <div className="grid grid-cols-12 gap-2">
-                  <span className="col-span-3 sm:col-span-2 text-slate-500">Kelas</span>
-                  <span className="col-span-9 sm:col-span-10 font-semibold">: {formData.kelas}</span>
+              <div className="text-xs sm:text-sm text-slate-900 bg-slate-50/70 p-4 rounded-xl border border-slate-100 font-sans">
+                <div className="grid grid-cols-[110px_16px_1fr] sm:grid-cols-[130px_16px_1fr] items-center gap-y-1.5">
+                  <span className="text-slate-500">Nama Lengkap</span>
+                  <span className="text-slate-700 font-semibold">:</span>
+                  <span className="font-semibold text-slate-900">{formData.namaSiswa}</span>
+
+                  <span className="text-slate-500">NISN</span>
+                  <span className="text-slate-700 font-semibold">:</span>
+                  <span className="font-medium text-slate-900">{formData.nisn}</span>
+
+                  <span className="text-slate-500">Kelas</span>
+                  <span className="text-slate-700 font-semibold">:</span>
+                  <span className="font-semibold text-slate-900">{formData.kelas}</span>
                 </div>
               </div>
 
@@ -507,7 +508,7 @@ export const AdminB1LetterEditorModal: React.FC<AdminB1LetterEditorModalProps> =
                   <p>Malang, {formData.tanggalSurat}</p>
                   <p className="font-semibold">{formData.jabatanPenandatangan}</p>
                   <div className="h-16 flex items-center">
-                    <span className="text-xs italic text-slate-400 font-serif">
+                    <span className="text-xs italic text-slate-400">
                       (Telah Ditandatangani Secara Elektronik)
                     </span>
                   </div>

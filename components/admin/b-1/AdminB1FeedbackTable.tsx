@@ -1,4 +1,6 @@
-import React, { useState, useMemo } from "react";
+"use client";
+
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Search,
   ChevronDown,
@@ -11,101 +13,30 @@ import {
   Minus,
   AlertTriangle,
   CheckCircle2,
-  AlertCircle,
+  Eye,
+  X,
+  BookOpen,
+  Clock,
 } from "lucide-react";
 import { StudentB1 } from "./types";
-import { MOCK_STUDENTS_B1 } from "./mockData";
+import { apiRequest } from "@/lib/api";
 
-// Enrichment for Monitoring Mapel Peminatan & Tingkat Keberhasilan
-const ENRICHED_MONITORING_DATA: Record<
-  string,
-  {
-    mapelPilihanUtama: string;
-    nilaiMapelPilihan: number;
-    trenNilaiMapel: "naik" | "stabil" | "menurun";
-    persentaseKeberhasilan: number;
-    statusKesesuaian: "Sesuai" | "Perlu Penyesuaian" | "Perlu Peninjauan";
-    keteranganTren: string;
-  }
-> = {
-  "std-1": {
-    mapelPilihanUtama: "Informatika & Data Science",
-    nilaiMapelPilihan: 91.5,
-    trenNilaiMapel: "naik",
-    persentaseKeberhasilan: 94.8,
-    statusKesesuaian: "Sesuai",
-    keteranganTren: "Nilai meningkat stabil (+3.5 poin)",
-  },
-  "std-2": {
-    mapelPilihanUtama: "Biologi Lanjut & Kimia",
-    nilaiMapelPilihan: 92.0,
-    trenNilaiMapel: "stabil",
-    persentaseKeberhasilan: 93.2,
-    statusKesesuaian: "Sesuai",
-    keteranganTren: "Konsisten di atas ambang kompetensi",
-  },
-  "std-3": {
-    mapelPilihanUtama: "Sosiologi & Bahasa Asing Lanjut",
-    nilaiMapelPilihan: 76.5,
-    trenNilaiMapel: "menurun",
-    persentaseKeberhasilan: 68.4,
-    statusKesesuaian: "Perlu Penyesuaian",
-    keteranganTren: "Menurun (-6.2 poin pada UTS Semester 2)",
-  },
-  "std-4": {
-    mapelPilihanUtama: "Seni Rupa & Desain Grafis",
-    nilaiMapelPilihan: 71.0,
-    trenNilaiMapel: "menurun",
-    persentaseKeberhasilan: 59.5,
-    statusKesesuaian: "Perlu Peninjauan",
-    keteranganTren: "Di bawah target kelulusan SNBP DKV (-9.0 poin)",
-  },
-  "std-5": {
-    mapelPilihanUtama: "Fisika Lanjut & Matematika TL",
-    nilaiMapelPilihan: 88.0,
-    trenNilaiMapel: "stabil",
-    persentaseKeberhasilan: 89.5,
-    statusKesesuaian: "Sesuai",
-    keteranganTren: "Sesuai dengan target prodi Teknik Mesin",
-  },
-  "std-6": {
-    mapelPilihanUtama: "Matematika Tingkat Lanjut",
-    nilaiMapelPilihan: 93.5,
-    trenNilaiMapel: "naik",
-    persentaseKeberhasilan: 95.0,
-    statusKesesuaian: "Sesuai",
-    keteranganTren: "Peningkatan signifikan di aljabar & kalkulus",
-  },
-  "std-7": {
-    mapelPilihanUtama: "Sosiologi & Psikologi Sosial",
-    nilaiMapelPilihan: 74.0,
-    trenNilaiMapel: "menurun",
-    persentaseKeberhasilan: 64.2,
-    statusKesesuaian: "Perlu Penyesuaian",
-    keteranganTren: "Terdapat penurunan pada materi statistika sosial",
-  },
-  "std-8": {
-    mapelPilihanUtama: "Ekonomi Bisnis & Akuntansi",
-    nilaiMapelPilihan: 69.5,
-    trenNilaiMapel: "menurun",
-    persentaseKeberhasilan: 54.0,
-    statusKesesuaian: "Perlu Peninjauan",
-    keteranganTren: "Penurunan konsistensi nilai akuntansi & kuantitatif",
-  },
-};
-
-const MAPEL_OPTIONS = [
+const DEFAULT_MAPEL_OPTIONS = [
   "Semua Mapel Peminatan",
-  "Informatika & Data Science",
-  "Biologi Lanjut & Kimia",
-  "Fisika Lanjut & Matematika TL",
   "Matematika Tingkat Lanjut",
-  "Sosiologi & Bahasa Asing Lanjut",
-  "Seni Rupa & Desain Grafis",
-  "Ekonomi Bisnis & Akuntansi",
+  "Fisika",
+  "Informatika",
+  "Bahasa Jepang",
+  "Biologi",
+  "Kimia",
+  "Bahasa Inggris Tingkat Lanjut",
+  "Ekonomi",
+  "Sosiologi",
+  "Geografi",
+  "Bahasa Indonesia Tingkat Lanjut",
 ];
 
-const KELAS_OPTIONS = ["Semua Kelas", "X-1", "X-2", "X-3", "X-4", "X-5"];
+const DEFAULT_KELAS_OPTIONS = ["Semua Kelas", "X-1", "X-2", "X-3", "X-4", "X-5"];
 
 const STATUS_KESESUAIAN_OPTIONS = [
   "Semua Status Keberhasilan",
@@ -115,30 +46,180 @@ const STATUS_KESESUAIAN_OPTIONS = [
 ];
 
 interface AdminB1FeedbackTableProps {
+  students?: StudentB1[];
   onSelectStudentFeedback?: (student: StudentB1) => void;
   savedFeedbackStudentIds?: Set<string>;
+  onShowToast?: (msg: string) => void;
 }
 
 export const AdminB1FeedbackTable: React.FC<AdminB1FeedbackTableProps> = ({
+  students: propStudents = [],
   onSelectStudentFeedback,
   savedFeedbackStudentIds,
 }) => {
-  const [baseStudents] = useState<StudentB1[]>(() => {
-    return MOCK_STUDENTS_B1.map((student) => {
-      const enrichment = ENRICHED_MONITORING_DATA[student.id] || {
-        mapelPilihanUtama: "Mata Pelajaran Pilihan Terpilih",
-        nilaiMapelPilihan: student.nilaiRapor,
-        trenNilaiMapel: "stabil" as const,
-        persentaseKeberhasilan: Math.round(student.nilaiRapor * 0.95),
-        statusKesesuaian: "Sesuai" as const,
-        keteranganTren: "Nilai relatif stabil sesuai target",
-      };
+  const [backendEnrichment, setBackendEnrichment] = useState<
+    Record<
+      string,
+      {
+        mapelPilihanUtama: string;
+        paket4Mapel: string[];
+        nilaiMapelPilihan: number | null;
+        sudahInputNilai: boolean;
+        semesterAktif?: number;
+        daftarSemesterTerisi?: number[];
+        trenNilaiMapel: "naik" | "stabil" | "menurun" | null;
+        persentaseKeberhasilan: number | null;
+        statusKesesuaian: "Sesuai" | "Perlu Penyesuaian" | "Perlu Peninjauan" | "Menunggu Input Nilai";
+        detailNilai4Mapel?: Array<{
+          urutan?: number;
+          mataPelajaranId?: number;
+          namaMapel: string;
+          nilai: number | null;
+          nilai_formatted?: string;
+          statusValidasi?: string;
+          labelValidasi?: string;
+          sudahDiinput?: boolean;
+        }>;
+      }
+    >
+  >({});
+
+  const [selectedSemesterFilter, setSelectedSemesterFilter] = useState<number>(3);
+  const [selectedStudentForScoreModal, setSelectedStudentForScoreModal] = useState<StudentB1 | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const semParam = `&semester=${selectedSemesterFilter}`;
+        const res = await apiRequest<{
+          daftar_peserta_didik?: Array<{
+            siswa_id: number;
+            semester_aktif?: number;
+            daftar_semester_terisi?: number[];
+            paket_4_mapel?: string[];
+            nilai_mapel?: number | null;
+            rata_rata_nilai?: number | null;
+            sudah_input_nilai?: boolean;
+            tren?: string | null;
+            persentase_keberhasilan?: number | null;
+            status_kesesuaian?: string;
+            detail_nilai_4_mapel?: Array<{
+              urutan?: number;
+              mata_pelajaran_id?: number;
+              nama_mapel: string;
+              nilai: number | null;
+              nilai_formatted?: string;
+              status_validasi?: string;
+              label_validasi?: string;
+              sudah_diinput?: boolean;
+            }>;
+          }>;
+        }>(`/admin/feedback-strategi?per_page=500${semParam}`);
+
+        if (!active || !res?.daftar_peserta_didik) return;
+        const map: typeof backendEnrichment = {};
+        for (const item of res.daftar_peserta_didik) {
+          const id = String(item.siswa_id);
+          const sudahInput = Boolean(
+            item.sudah_input_nilai ||
+            (item.rata_rata_nilai !== null && item.rata_rata_nilai !== undefined && item.rata_rata_nilai > 0)
+          );
+          const pct = sudahInput ? (item.persentase_keberhasilan ?? 85) : null;
+          const trenRaw = (item.tren || "").toLowerCase();
+          const tren: "naik" | "stabil" | "menurun" | null =
+            !sudahInput
+              ? null
+              : trenRaw === "naik"
+              ? "naik"
+              : trenRaw === "menurun" || trenRaw === "turun"
+              ? "menurun"
+              : trenRaw === "stabil"
+              ? "stabil"
+              : null;
+
+          const status: "Sesuai" | "Perlu Penyesuaian" | "Perlu Peninjauan" | "Menunggu Input Nilai" =
+            !sudahInput
+              ? "Menunggu Input Nilai"
+              : pct && pct >= 80
+              ? "Sesuai"
+              : pct && pct >= 65
+              ? "Perlu Penyesuaian"
+              : "Perlu Peninjauan";
+
+          const paket4 = item.paket_4_mapel || [];
+          const mapelStr = paket4.length > 0 ? paket4.join(", ") : "Belum Ada Rekomendasi";
+
+          map[id] = {
+            mapelPilihanUtama: mapelStr,
+            paket4Mapel: paket4,
+            nilaiMapelPilihan: sudahInput ? (item.rata_rata_nilai ?? item.nilai_mapel ?? null) : null,
+            sudahInputNilai: sudahInput,
+            semesterAktif: item.semester_aktif || 3,
+            daftarSemesterTerisi: item.daftar_semester_terisi || [],
+            trenNilaiMapel: tren,
+            persentaseKeberhasilan: pct,
+            statusKesesuaian: status,
+            detailNilai4Mapel: item.detail_nilai_4_mapel?.map((d) => ({
+              urutan: d.urutan,
+              mataPelajaranId: d.mata_pelajaran_id,
+              namaMapel: d.nama_mapel,
+              nilai: d.nilai !== null && d.nilai !== undefined ? Number(d.nilai) : null,
+              nilai_formatted: d.nilai_formatted,
+              statusValidasi: d.status_validasi,
+              labelValidasi: d.label_validasi,
+              sudahDiinput: Boolean(d.sudah_diinput),
+            })),
+          };
+        }
+        setBackendEnrichment(map);
+      } catch {
+        // Ignore if empty
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [propStudents.length, selectedSemesterFilter]);
+
+  const baseStudents = useMemo<StudentB1[]>(() => {
+    return propStudents.map((student) => {
+      const enrich = backendEnrichment[student.id];
+      const sudahInput = enrich ? enrich.sudahInputNilai : Boolean(student.sudahInputNilai);
+      const nilaiMapel = sudahInput ? (enrich?.nilaiMapelPilihan ?? student.nilaiMapelPilihan ?? null) : null;
+      const pct = sudahInput ? (enrich?.persentaseKeberhasilan ?? student.persentaseKeberhasilan ?? 85) : null;
+      const status: "Sesuai" | "Perlu Penyesuaian" | "Perlu Peninjauan" | "Menunggu Input Nilai" =
+        !sudahInput
+          ? "Menunggu Input Nilai"
+          : enrich?.statusKesesuaian ??
+            (pct && pct >= 80 ? "Sesuai" : pct && pct >= 65 ? "Perlu Penyesuaian" : "Perlu Peninjauan");
+      const tren: "naik" | "stabil" | "menurun" | null =
+        sudahInput
+          ? enrich !== undefined
+            ? (enrich.trenNilaiMapel ?? null)
+            : (student.trenNilaiMapel ?? null)
+          : null;
+
+      const paket4 = enrich?.paket4Mapel || student.paket4Mapel || [];
+      const mapelUtama = paket4.length > 0
+        ? paket4.join(", ")
+        : enrich?.mapelPilihanUtama || student.mapelPilihanUtama || "Belum Ada Rekomendasi";
+
       return {
         ...student,
-        ...enrichment,
+        mapelPilihanUtama: mapelUtama,
+        paket4Mapel: paket4,
+        nilaiMapelPilihan: nilaiMapel,
+        sudahInputNilai: sudahInput,
+        semesterAktif: enrich?.semesterAktif ?? student.semesterAktif ?? 3,
+        daftarSemesterTerisi: enrich?.daftarSemesterTerisi ?? student.daftarSemesterTerisi ?? [],
+        trenNilaiMapel: tren,
+        persentaseKeberhasilan: pct ?? undefined,
+        statusKesesuaian: status,
+        detailNilai4Mapel: enrich?.detailNilai4Mapel || student.detailNilai4Mapel || [],
       };
     });
-  });
+  }, [propStudents, backendEnrichment]);
 
   const [filterState, setFilterState] = useState({
     search: "",
@@ -148,6 +229,26 @@ export const AdminB1FeedbackTable: React.FC<AdminB1FeedbackTableProps> = ({
   });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
+
+  const kelasOptions = useMemo(() => {
+    const dynamicKelas = Array.from(
+      new Set(baseStudents.map((s) => s.kelas).filter((k) => k && k !== "-"))
+    ).sort();
+    return dynamicKelas.length > 0 ? ["Semua Kelas", ...dynamicKelas] : DEFAULT_KELAS_OPTIONS;
+  }, [baseStudents]);
+
+  const mapelOptions = useMemo(() => {
+    const dynamicMapel = Array.from(
+      new Set(
+        baseStudents
+          .flatMap((s) => (s.paket4Mapel && s.paket4Mapel.length > 0 ? s.paket4Mapel : (s.mapelPilihanUtama ? s.mapelPilihanUtama.split(", ") : [])))
+          .filter((m): m is string => Boolean(m && m !== "Belum Ada Rekomendasi" && m !== "Mata Pelajaran Pilihan Terpilih"))
+      )
+    ).sort();
+    return dynamicMapel.length > 0
+      ? ["Semua Mapel Peminatan", ...dynamicMapel]
+      : DEFAULT_MAPEL_OPTIONS;
+  }, [baseStudents]);
 
   // Filter students
   const filteredStudents = useMemo(() => {
@@ -161,7 +262,8 @@ export const AdminB1FeedbackTable: React.FC<AdminB1FeedbackTableProps> = ({
 
       const matchesMapel =
         filterState.mapel === "Semua Mapel Peminatan" ||
-        student.mapelPilihanUtama === filterState.mapel;
+        (student.mapelPilihanUtama || "").includes(filterState.mapel) ||
+        (student.paket4Mapel || []).includes(filterState.mapel);
 
       const matchesKelas =
         filterState.kelas === "Semua Kelas" ||
@@ -185,8 +287,8 @@ export const AdminB1FeedbackTable: React.FC<AdminB1FeedbackTableProps> = ({
     let perluAtensi = 0;
     let menurun = 0;
     baseStudents.forEach((s) => {
-      if (s.statusKesesuaian !== "Sesuai") perluAtensi++;
-      if (s.trenNilaiMapel === "menurun") menurun++;
+      if (s.sudahInputNilai && s.statusKesesuaian !== "Sesuai") perluAtensi++;
+      if (s.sudahInputNilai && s.trenNilaiMapel === "menurun") menurun++;
     });
     return { perluAtensi, menurun, total: baseStudents.length };
   }, [baseStudents]);
@@ -239,6 +341,36 @@ export const AdminB1FeedbackTable: React.FC<AdminB1FeedbackTableProps> = ({
         </div>
       </div>
 
+      {/* Pemilih Semester (Sama persis dengan tampilan Siswa) */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center gap-1.5 bg-white p-1.5 rounded-xl border border-purple-200/90 shadow-2xs self-start md:self-auto">
+          <span className="text-[11px] font-bold text-slate-500 px-2 hidden sm:inline">Pilih Semester:</span>
+          {[3, 4, 5, 6].map((sem) => (
+            <button
+              key={sem}
+              type="button"
+              onClick={() => {
+                setSelectedSemesterFilter(sem);
+                setCurrentPage(1);
+              }}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                selectedSemesterFilter === sem
+                  ? "bg-[#5F089E] text-white shadow-xs scale-102"
+                  : "text-slate-600 hover:text-[#5F089E] hover:bg-purple-50"
+              }`}
+            >
+              Semester {sem}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <span className="text-xs font-semibold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+            Menampilkan data: <strong className="text-[#5F089E]">Semester {selectedSemesterFilter}</strong>
+          </span>
+        </div>
+      </div>
+
       {/* Search & Filter Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
         {/* Search Input */}
@@ -281,7 +413,7 @@ export const AdminB1FeedbackTable: React.FC<AdminB1FeedbackTableProps> = ({
                 : "text-slate-800 font-medium"
             }`}
           >
-            {MAPEL_OPTIONS.map((opt) => (
+            {mapelOptions.map((opt) => (
               <option key={opt} value={opt} className="text-slate-800">
                 {opt}
               </option>
@@ -327,7 +459,7 @@ export const AdminB1FeedbackTable: React.FC<AdminB1FeedbackTableProps> = ({
                 : "text-slate-800 font-medium"
             }`}
           >
-            {KELAS_OPTIONS.map((opt) => (
+            {kelasOptions.map((opt) => (
               <option key={opt} value={opt} className="text-slate-800">
                 {opt}
               </option>
@@ -381,7 +513,7 @@ export const AdminB1FeedbackTable: React.FC<AdminB1FeedbackTableProps> = ({
                     onClick={() => onSelectStudentFeedback?.(student)}
                   >
                     {/* NISN */}
-                    <td className="py-3.5 px-3 text-sm font-mono text-slate-600 whitespace-nowrap">
+                    <td className="py-3.5 px-3 text-sm font-medium text-slate-600 whitespace-nowrap">
                       {student.nisn}
                     </td>
 
@@ -407,36 +539,69 @@ export const AdminB1FeedbackTable: React.FC<AdminB1FeedbackTableProps> = ({
                     </td>
 
                     {/* MAPEL PEMINATAN */}
-                    <td className="py-3.5 px-3 text-sm text-slate-800 max-w-[210px]">
-                      <span className="font-medium">{student.mapelPilihanUtama}</span>
+                    <td className="py-3.5 px-3 text-sm text-slate-800 max-w-[260px]">
+                      <span className="font-medium text-xs sm:text-sm leading-snug line-clamp-2" title={student.mapelPilihanUtama}>
+                        {student.mapelPilihanUtama}
+                      </span>
                     </td>
 
                     {/* NILAI & PERKEMBANGAN MAPEL */}
                     <td className="py-3.5 px-3 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-slate-900 font-mono">
-                          {student.nilaiMapelPilihan}
-                        </span>
+                      {student.sudahInputNilai && typeof student.nilaiMapelPilihan === "number" && student.nilaiMapelPilihan > 0 ? (
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedStudentForScoreModal(student);
+                            }}
+                            title={`Klik untuk melihat rincian 4 nilai mata pelajaran pilihan siswa`}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-[#5F089E] border border-purple-200 hover:border-purple-300 transition-all hover:scale-105 cursor-pointer group/score shadow-2xs"
+                          >
+                            <span className="text-sm font-bold">
+                              {student.nilaiMapelPilihan}
+                            </span>
+                            <Eye className="w-3.5 h-3.5 text-purple-600 group-hover/score:text-[#5F089E]" />
+                          </button>
 
-                        {student.trenNilaiMapel === "naik" && (
-                          <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
-                            <TrendingUp className="w-3.5 h-3.5" />
-                            Naik
-                          </span>
-                        )}
-                        {student.trenNilaiMapel === "stabil" && (
-                          <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-md">
-                            <Minus className="w-3.5 h-3.5" />
-                            Stabil
-                          </span>
-                        )}
-                        {student.trenNilaiMapel === "menurun" && (
-                          <span className="inline-flex items-center gap-0.5 text-xs font-bold text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded-md animate-pulse">
-                            <TrendingDown className="w-3.5 h-3.5 text-rose-600" />
-                            Menurun
-                          </span>
-                        )}
-                      </div>
+                          {/* Tren hanya ditampilkan di semester berikutnya (Semester >= 4) */}
+                          {(selectedSemesterFilter >= 4 && (student.semesterAktif ?? 3) >= 4) && (
+                            <>
+                              {student.trenNilaiMapel === "naik" && (
+                                <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
+                                  <TrendingUp className="w-3.5 h-3.5" />
+                                  Naik
+                                </span>
+                              )}
+                              {student.trenNilaiMapel === "stabil" && (
+                                <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-md">
+                                  <Minus className="w-3.5 h-3.5" />
+                                  Stabil
+                                </span>
+                              )}
+                              {student.trenNilaiMapel === "menurun" && (
+                                <span className="inline-flex items-center gap-0.5 text-xs font-bold text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded-md animate-pulse">
+                                  <TrendingDown className="w-3.5 h-3.5 text-rose-600" />
+                                  Menurun
+                                </span>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedStudentForScoreModal(student);
+                          }}
+                          title="Nilai belum divalidasi oleh wali kelas. Klik untuk melihat rincian."
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-600 border border-slate-200 transition-colors cursor-pointer text-xs"
+                        >
+                          <span className="font-bold">-</span>
+                          <Eye className="w-3 h-3 text-slate-400" />
+                        </button>
+                      )}
                     </td>
 
                     {/* AKSI BUTTON */}
@@ -514,20 +679,42 @@ export const AdminB1FeedbackTable: React.FC<AdminB1FeedbackTableProps> = ({
             <ChevronLeft className="w-4 h-4" />
           </button>
 
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <button
-              key={page}
-              type="button"
-              onClick={() => setCurrentPage(page)}
-              className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-                currentPage === page
-                  ? "bg-[#5F089E] text-white"
-                  : "border border-slate-200 text-slate-600 hover:bg-slate-50"
-              }`}
-            >
-              {page}
-            </button>
-          ))}
+          {(() => {
+            const pages: (number | "ellipsis")[] = [];
+            if (totalPages <= 5) {
+              for (let i = 1; i <= totalPages; i++) pages.push(i);
+            } else if (currentPage <= 3) {
+              pages.push(1, 2, 3, "ellipsis", totalPages);
+            } else if (currentPage >= totalPages - 2) {
+              pages.push(1, "ellipsis", totalPages - 2, totalPages - 1, totalPages);
+            } else {
+              pages.push(1, "ellipsis", currentPage - 1, currentPage, currentPage + 1, "ellipsis", totalPages);
+            }
+
+            return pages.map((page, idx) => {
+              if (page === "ellipsis") {
+                return (
+                  <span key={`ellipsis-${idx}`} className="px-1 text-sm text-slate-400">
+                    &hellip;
+                  </span>
+                );
+              }
+              return (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    currentPage === page
+                      ? "bg-[#5F089E] text-white"
+                      : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  {page}
+                </button>
+              );
+            });
+          })()}
 
           <button
             type="button"
@@ -539,6 +726,174 @@ export const AdminB1FeedbackTable: React.FC<AdminB1FeedbackTableProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Pop-up Modal: Rincian 4 Nilai Mapel Pilihan Hasil Validasi Wali Kelas */}
+      {selectedStudentForScoreModal && (
+        <div
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => setSelectedStudentForScoreModal(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl border border-purple-100 max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="bg-[#5F089E] p-4 text-white flex items-start justify-between">
+              <div>
+                <h4 className="text-base font-bold leading-snug">Rincian 4 Nilai Mapel Pilihan</h4>
+                <p className="text-xs text-purple-200 mt-0.5">
+                  {selectedStudentForScoreModal.nama} • Kelas {selectedStudentForScoreModal.kelas} • NISN: {selectedStudentForScoreModal.nisn}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedStudentForScoreModal(null)}
+                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer shrink-0 ml-2"
+                aria-label="Tutup modal"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-4 space-y-3.5">
+              {/* Summary Stats: Rata-rata 4 Mapel */}
+              <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-purple-50/70 border border-purple-100">
+                <span className="text-xs font-bold text-purple-900 uppercase tracking-wide">
+                  Rata-rata 4 Mapel Rekomendasi
+                </span>
+                <div className="flex items-baseline gap-1">
+                  {selectedStudentForScoreModal.sudahInputNilai &&
+                  typeof selectedStudentForScoreModal.nilaiMapelPilihan === "number" &&
+                  selectedStudentForScoreModal.nilaiMapelPilihan > 0 ? (
+                    <>
+                      <span className="text-2xl font-black text-[#5F089E]">
+                        {selectedStudentForScoreModal.nilaiMapelPilihan}
+                      </span>
+                      <span className="text-xs text-purple-600 font-semibold">/ 100</span>
+                    </>
+                  ) : (
+                    <span className="text-xs font-semibold text-slate-400 italic">
+                      Kosong (Menunggu Input Siswa)
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* List of 4 Elective Subjects */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h5 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <BookOpen className="w-3.5 h-3.5 text-[#5F089E]" />
+                    Daftar 4 Mata Pelajaran Rekomendasi
+                  </h5>
+                  <span className="text-[11px] font-bold text-[#5F089E] bg-purple-100/80 px-2 py-0.5 rounded-full border border-purple-200">
+                    Semester {selectedStudentForScoreModal.semesterAktif || 3}
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  {(() => {
+                    const rawList = selectedStudentForScoreModal.detailNilai4Mapel;
+                    const fallbackNames =
+                      selectedStudentForScoreModal.paket4Mapel && selectedStudentForScoreModal.paket4Mapel.length > 0
+                        ? selectedStudentForScoreModal.paket4Mapel
+                        : selectedStudentForScoreModal.mapelPilihanUtama &&
+                          selectedStudentForScoreModal.mapelPilihanUtama !== "Belum Ada Rekomendasi" &&
+                          selectedStudentForScoreModal.mapelPilihanUtama !== "Mata Pelajaran Pilihan Terpilih"
+                        ? selectedStudentForScoreModal.mapelPilihanUtama.split(", ").filter(Boolean)
+                        : [];
+
+                    const list =
+                      rawList && rawList.length > 0
+                        ? rawList
+                        : fallbackNames.map((name, idx) => ({
+                            urutan: idx + 1,
+                            namaMapel: name,
+                            nilai: null,
+                            labelValidasi: "Menunggu Input Siswa",
+                            sudahDiinput: false,
+                          }));
+
+                    return list.map((item, idx) => {
+                      const adaNilai = item.nilai !== null && item.nilai !== undefined && item.sudahDiinput;
+
+                      return (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-slate-50 hover:bg-purple-50/40 border border-slate-100 transition-colors"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <span className="w-6 h-6 rounded-full bg-purple-100 text-[#5F089E] font-bold text-xs flex items-center justify-center shrink-0">
+                              {item.urutan ?? idx + 1}
+                            </span>
+                            <div>
+                              <p className="text-sm font-semibold text-slate-900 leading-snug">
+                                {item.namaMapel}
+                              </p>
+                              {adaNilai ? (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700">
+                                  <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                                  {item.labelValidasi || "Tervalidasi Rapor Fisik"}
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                                  <Clock className="w-3 h-3 text-amber-600 shrink-0" />
+                                  {item.labelValidasi || "Menunggu Validasi Wali Kelas"}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="text-right">
+                            {adaNilai ? (
+                              <>
+                                <span className="text-base font-bold text-slate-900">
+                                  {item.nilai}
+                                </span>
+                                <span className="text-[11px] text-slate-400 block -mt-0.5">/ 100</span>
+                              </>
+                            ) : (
+                              <span className="text-sm text-slate-400 font-semibold">
+                                -
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setSelectedStudentForScoreModal(null)}
+                className="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200/70 transition-colors cursor-pointer"
+              >
+                Tutup
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const s = selectedStudentForScoreModal;
+                  setSelectedStudentForScoreModal(null);
+                  onSelectStudentFeedback?.(s);
+                }}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[#5F089E] hover:bg-[#4d0680] text-white transition-colors shadow-xs cursor-pointer"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>Beri Catatan Feedback</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
+export default AdminB1FeedbackTable;

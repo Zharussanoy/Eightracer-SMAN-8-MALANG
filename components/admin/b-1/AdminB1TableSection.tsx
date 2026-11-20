@@ -237,7 +237,7 @@ export default function AdminB1TableSection({
                   className="hover:bg-purple-50/30 transition-colors group"
                 >
                   {/* NISN */}
-                  <td className="py-3.5 px-3 text-sm font-mono text-slate-600 whitespace-nowrap">
+                  <td className="py-3.5 px-3 text-sm font-medium text-slate-600 whitespace-nowrap">
                     {student.nisn}
                   </td>
 
@@ -253,14 +253,18 @@ export default function AdminB1TableSection({
 
                   {/* NILAI RAPOR */}
                   <td className="py-3.5 px-3 text-sm font-semibold text-slate-900 whitespace-nowrap">
-                    {student.nilaiRapor}
+                    {student.nilaiRapor > 0 ? student.nilaiRapor : "-"}
                   </td>
 
                   {/* RIASEC BADGE */}
                   <td className="py-3.5 px-3 whitespace-nowrap">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-purple-100 text-[#5F089E] text-xs font-bold tracking-wide">
-                      {student.riasec}
-                    </span>
+                    {student.riasec && student.riasec !== "-" ? (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-purple-100 text-[#5F089E] text-xs font-bold tracking-wide">
+                        {student.riasec}
+                      </span>
+                    ) : (
+                      <span className="text-sm text-slate-500">-</span>
+                    )}
                   </td>
 
                   {/* KECERDASAN MAJEMUK */}
@@ -292,18 +296,24 @@ export default function AdminB1TableSection({
                   <div className="flex flex-col items-center justify-center space-y-2">
                     <FilterX className="w-8 h-8 text-slate-300" />
                     <p className="text-sm font-semibold text-slate-800">
-                      Tidak ada data siswa yang cocok dengan filter
+                      {students.length === 0
+                        ? "Belum ada data siswa yang diimpor"
+                        : "Tidak ada data siswa yang cocok dengan filter"}
                     </p>
                     <p className="text-xs text-slate-500">
-                      Coba ubah kata kunci pencarian atau sesuaikan opsi filter
+                      {students.length === 0
+                        ? "Silakan unggah berkas Excel/CSV terlebih dahulu pada bagian Unggah Berkas di atas."
+                        : "Coba ubah kata kunci pencarian atau sesuaikan opsi filter"}
                     </p>
-                    <button
-                      type="button"
-                      onClick={handleResetFilter}
-                      className="mt-2 text-xs font-semibold text-[#5F089E] hover:underline cursor-pointer"
-                    >
-                      Reset Filter
-                    </button>
+                    {students.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleResetFilter}
+                        className="mt-2 text-xs font-semibold text-[#5F089E] hover:underline cursor-pointer"
+                      >
+                        Reset Filter
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -332,37 +342,44 @@ export default function AdminB1TableSection({
             <ChevronLeft className="w-4 h-4" />
           </button>
 
-          {/* Page Numbers */}
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
-            const isActive = currentPage === pageNum;
-            return (
-              <button
-                key={pageNum}
-                type="button"
-                onClick={() => setCurrentPage(pageNum)}
-                className={`w-8 h-8 rounded-lg text-xs font-bold flex items-center justify-center transition-all cursor-pointer ${
-                  isActive
-                    ? "bg-[#5F089E] text-white shadow-sm"
-                    : "bg-slate-100 hover:bg-slate-200 text-slate-800"
-                }`}
-              >
-                {pageNum}
-              </button>
-            );
-          })}
+          {/* Page Numbers (Compact with Ellipsis) */}
+          {(() => {
+            const pages: (number | "ellipsis")[] = [];
+            if (totalPages <= 5) {
+              for (let i = 1; i <= totalPages; i++) pages.push(i);
+            } else if (currentPage <= 3) {
+              pages.push(1, 2, 3, "ellipsis", totalPages);
+            } else if (currentPage >= totalPages - 2) {
+              pages.push(1, "ellipsis", totalPages - 2, totalPages - 1, totalPages);
+            } else {
+              pages.push(1, "ellipsis", currentPage - 1, currentPage, currentPage + 1, "ellipsis", totalPages);
+            }
 
-          {totalPages > 3 && currentPage < totalPages - 2 && (
-            <>
-              <span className="px-1 text-sm text-slate-400">&hellip;</span>
-              <button
-                type="button"
-                onClick={() => setCurrentPage(10)}
-                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center justify-center transition-all cursor-pointer"
-              >
-                10
-              </button>
-            </>
-          )}
+            return pages.map((item, idx) => {
+              if (item === "ellipsis") {
+                return (
+                  <span key={`ellipsis-${idx}`} className="px-1 text-sm text-slate-400">
+                    &hellip;
+                  </span>
+                );
+              }
+              const isActive = currentPage === item;
+              return (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => setCurrentPage(item)}
+                  className={`w-8 h-8 rounded-lg text-xs font-bold flex items-center justify-center transition-all cursor-pointer ${
+                    isActive
+                      ? "bg-[#5F089E] text-white shadow-sm"
+                      : "bg-slate-100 hover:bg-slate-200 text-slate-800"
+                  }`}
+                >
+                  {item}
+                </button>
+              );
+            });
+          })()}
 
           {/* Next Button */}
           <button

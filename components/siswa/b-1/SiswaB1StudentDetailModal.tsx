@@ -1,18 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  X,
-  ExternalLink,
-  Mail,
-  GraduationCap,
-  Award,
-  Sparkles,
-  BookOpen,
-  School,
-  Building2,
-  CheckCircle2,
-} from "lucide-react";
+import { X, Mail, Sparkles, School, Award, CheckCircle2, Quote } from "lucide-react";
 import { DirektoriSiswaItem } from "./types";
 
 interface SiswaB1StudentDetailModalProps {
@@ -29,186 +18,134 @@ export const SiswaB1StudentDetailModal: React.FC<SiswaB1StudentDetailModalProps>
   if (!isOpen || !student) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans animate-in fade-in duration-200">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans animate-in fade-in duration-200"
+      onClick={onClose}
+    >
       <div
-        className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
+        className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-purple-100 overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]"
         role="dialog"
         aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Header Banner */}
-        <div className="relative bg-gradient-to-r from-[#410070] via-[#5F089E] to-[#7B1FA2] p-6 text-white shrink-0">
+        {/* Modal Header: Konsisten dengan pop-up rincian nilai */}
+        <div className="bg-[#5F089E] p-4 text-white flex items-start justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/20 border border-white/30 text-white font-bold text-sm flex items-center justify-center shrink-0">
+              {student.avatarInitials}
+            </div>
+            <div>
+              <h4 className="text-base font-bold leading-snug text-white">
+                {student.nama}
+              </h4>
+              <p className="text-xs text-purple-200 mt-0.5 font-medium">
+                {student.kelas}
+              </p>
+            </div>
+          </div>
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-all duration-200 hover:rotate-90 hover:scale-110 active:scale-95 cursor-pointer"
+            className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer shrink-0 ml-2"
             aria-label="Tutup modal"
           >
             <X className="w-4 h-4" />
           </button>
-
-          <div className="flex items-start gap-4 pr-10">
-            <div className="w-16 h-16 rounded-2xl bg-white/20 border-2 border-white/30 text-white text-xl font-extrabold flex items-center justify-center shrink-0 shadow-md">
-              {student.avatarInitials}
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-xl sm:text-2xl font-bold text-white leading-tight">
-                  {student.nama}
-                </h3>
-                <span className="px-2.5 py-0.5 rounded-full bg-white/20 border border-white/30 text-[11px] font-semibold text-white">
-                  {student.kelas}
-                </span>
-              </div>
-              <p className="text-xs text-purple-100 font-medium">
-                {student.peranEkskul}
-              </p>
-              <p className="text-[11px] text-purple-200">
-                NISN: <span className="font-mono">{student.nisn}</span> &bull; {student.fase} &bull; Angkatan {student.tahunMasuk}
-              </p>
-            </div>
-          </div>
         </div>
 
-        {/* Modal Scrollable Body */}
-        <div className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-140px)] text-[#1E1E1E]">
-          {/* Section: Peminatan & Target PTN */}
-          <div className="rounded-2xl border border-purple-100 bg-[#FAF5FF] p-4.5 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-bold text-[#5F089E] uppercase tracking-wider">
-              <Sparkles className="w-4 h-4" />
-              <span>Peminatan &amp; Target Studi Lanjut</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="p-3 rounded-xl bg-white border border-purple-100 shadow-2xs space-y-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                  RUMPUN PEMINATAN
-                </span>
-                <p className="font-bold text-slate-900">{student.rumpunPeminatan}</p>
-              </div>
-
-              <div className="p-3 rounded-xl bg-white border border-purple-100 shadow-2xs space-y-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                  TARGET PROGRAM STUDI
-                </span>
-                <p className="font-bold text-[#5F089E]">{student.targetStudi}</p>
-              </div>
-            </div>
-
-            <div className="p-3 rounded-xl bg-white border border-purple-100 shadow-2xs flex items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-2 text-slate-700">
-                <Building2 className="w-4 h-4 text-[#5F089E] shrink-0" />
-                <span className="font-medium">Rekomendasi PTN Impian:</span>
-              </div>
-              <span className="font-bold text-slate-900 text-right">
-                {student.rekomendasiPtn}
+        {/* Modal Body: Scrollable, ringkas, dan proporsional */}
+        <div className="p-4 sm:p-5 space-y-3.5 text-slate-800 overflow-y-auto max-h-[calc(90vh-130px)]">
+          {/* Info Kelas & Email */}
+          <div className="p-3.5 rounded-xl bg-purple-50/70 border border-purple-100 space-y-2.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-purple-900 uppercase tracking-wide flex items-center gap-1.5">
+                <School className="w-3.5 h-3.5 text-[#5F089E]" />
+                <span>Kelas</span>
               </span>
+              <span className="font-extrabold text-[#5F089E]">{student.kelas}</span>
+            </div>
+
+            <div className="pt-2 border-t border-purple-200/50 flex items-center justify-between text-xs">
+              <span className="font-bold text-purple-900 uppercase tracking-wide flex items-center gap-1.5">
+                <Mail className="w-3.5 h-3.5 text-[#5F089E]" />
+                <span>Email Akademik</span>
+              </span>
+              <a
+                href={`mailto:${student.email}`}
+                className="text-xs font-semibold text-slate-700 hover:text-[#5F089E] hover:underline"
+              >
+                {student.email}
+              </a>
             </div>
           </div>
 
-          {/* Section: Mata Pelajaran Pilihan yang Diambil */}
-          <div className="space-y-2.5">
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-900 uppercase tracking-wider">
-              <BookOpen className="w-4 h-4 text-[#5F089E]" />
-              <span>Paket Rekomendasi Mapel Pilihan (Fase F)</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {(student.mapelPilihanList || [
-                "Matematika Tingkat Lanjut",
-                "Fisika Terapan",
-                "Informatika",
-                "Bahasa Inggris Lanjut",
-              ]).map((mapel, idx) => (
-                <div
-                  key={idx}
-                  className="p-3 rounded-xl border border-slate-200 bg-slate-50 flex items-center gap-2.5 text-xs"
-                >
-                  <span className="w-5 h-5 rounded-md bg-[#5F089E] text-white text-[10px] font-bold flex items-center justify-center shrink-0">
-                    {idx + 1}
+          {/* Keahlian & Minat Siswa */}
+          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+            <span className="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#5F089E]" />
+              <span>Keahlian &amp; Minat Siswa</span>
+            </span>
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {student.keahlian && student.keahlian.length > 0 ? (
+                student.keahlian.map((item, idx) => (
+                  <span
+                    key={idx}
+                    className="px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-purple-900 border border-purple-200/70 shadow-2xs"
+                  >
+                    {item}
                   </span>
-                  <span className="font-semibold text-slate-800">{mapel}</span>
-                </div>
-              ))}
+                ))
+              ) : student.targetStudi && student.targetStudi !== "-" ? (
+                <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-purple-900 border border-purple-200/70 shadow-2xs">
+                  {student.targetStudi}
+                </span>
+              ) : (
+                <span className="text-xs text-slate-400 italic">Belum ada data keahlian/minat</span>
+              )}
             </div>
           </div>
 
-          {/* Section: Biografi */}
+          {/* Biografi & Motivasi */}
           {student.biografi && (
-            <div className="space-y-1.5">
-              <span className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
-                Biografi &amp; Motivasi Belajar
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5">
+              <span className="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1.5">
+                <Quote className="w-3.5 h-3.5 text-[#5F089E]" />
+                <span>Biografi &amp; Motivasi Belajar</span>
               </span>
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-200/80">
+              <p className="text-xs text-slate-600 leading-relaxed italic bg-white p-2.5 rounded-lg border border-slate-100">
                 &ldquo;{student.biografi}&rdquo;
               </p>
             </div>
           )}
 
-          {/* Section: Prestasi & Penghargaan */}
+          {/* Prestasi Unggulan */}
           {student.prestasi && student.prestasi.length > 0 && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-900 uppercase tracking-wider">
-                <Award className="w-4 h-4 text-amber-500" />
+            <div className="p-3.5 rounded-xl bg-amber-50/50 border border-amber-200/70 space-y-2">
+              <span className="text-xs font-bold text-amber-900 uppercase tracking-wide flex items-center gap-1.5">
+                <Award className="w-3.5 h-3.5 text-amber-600" />
                 <span>Prestasi &amp; Rekam Jejak Unggulan</span>
-              </div>
-              <div className="space-y-2">
+              </span>
+              <div className="space-y-1.5 pt-0.5">
                 {student.prestasi.map((item, idx) => (
                   <div
                     key={idx}
-                    className="p-2.5 rounded-xl border border-amber-200/70 bg-amber-50/40 text-xs flex items-center gap-2.5 text-slate-800"
+                    className="p-2 rounded-lg bg-white border border-amber-200/50 text-xs flex items-center gap-2 text-slate-800 shadow-2xs"
                   >
-                    <CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                     <span className="font-medium">{item}</span>
                   </div>
                 ))}
               </div>
             </div>
           )}
-
-          {/* Section: Keahlian & Minat */}
-          {student.keahlian && student.keahlian.length > 0 && (
-            <div className="space-y-2">
-              <span className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
-                Keahlian &amp; Minat Akademik
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {student.keahlian.map((skill, idx) => (
-                  <span
-                    key={idx}
-                    className="px-3 py-1 rounded-lg text-xs font-semibold bg-purple-50 text-[#5F089E] border border-purple-200/70"
-                  >
-                    {skill}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Section: Kontak Akademik Siswa */}
-          <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-600">
-            <div className="flex items-center gap-2">
-              <Mail className="w-4 h-4 text-slate-400" />
-              <span>Email Resmi:</span>
-              <a
-                href={`mailto:${student.email}`}
-                className="font-medium text-[#5F089E] hover:underline"
-              >
-                {student.email}
-              </a>
-            </div>
-            <div className="flex items-center gap-1.5 text-slate-400 text-[11px]">
-              <School className="w-3.5 h-3.5" />
-              <span>SMA Negeri 8 Malang &bull; SMARIHASTA</span>
-            </div>
-          </div>
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end shrink-0">
+        <div className="p-3 bg-slate-50 border-t border-slate-100 flex justify-end shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-800 text-xs sm:text-sm font-semibold transition-all duration-150 cursor-pointer"
+            className="px-4 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-700 text-xs font-semibold transition-all cursor-pointer"
           >
             Tutup
           </button>
@@ -217,4 +154,3 @@ export const SiswaB1StudentDetailModal: React.FC<SiswaB1StudentDetailModalProps>
     </div>
   );
 };
-

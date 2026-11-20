@@ -238,6 +238,7 @@ export default function AdminNavbar({
                   src={currentUser.avatar}
                   alt={currentUser.name}
                   fill
+                  unoptimized
                   className="object-cover"
                 />
               </div>
@@ -272,6 +273,7 @@ export default function AdminNavbar({
                   src={currentUser.avatar}
                   alt={currentUser.name}
                   fill
+                  unoptimized
                   className="object-cover"
                 />
               </div>

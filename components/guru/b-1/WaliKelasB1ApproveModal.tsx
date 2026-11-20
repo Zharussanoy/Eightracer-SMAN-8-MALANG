@@ -2,12 +2,15 @@
 
 import { X, CheckCircle2, ShieldCheck } from "lucide-react";
 import { StudentB1WaliKelas } from "./types";
+import { useUser } from "@/context/UserContext";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   student: StudentB1WaliKelas;
   onConfirm: () => void;
+  waliName?: string;
+  waliNip?: string;
 }
 
 export default function WaliKelasB1ApproveModal({
@@ -15,8 +18,24 @@ export default function WaliKelasB1ApproveModal({
   onClose,
   student,
   onConfirm,
+  waliName,
+  waliNip,
 }: Props) {
+  const { authUser, currentUser } = useUser();
   if (!isOpen) return null;
+
+  const currentWaliName =
+    waliName ||
+    authUser?.profil?.nama_lengkap ||
+    authUser?.nama_lengkap ||
+    currentUser?.name ||
+    "Wali Kelas";
+
+  const currentWaliNip =
+    waliNip ||
+    authUser?.profil?.nip ||
+    (currentUser as { nip?: string })?.nip ||
+    "";
 
   const discrepancy = student.mapelDiscrepancy || {
     namaMapel: "KIMIA",
@@ -75,20 +94,35 @@ export default function WaliKelasB1ApproveModal({
               <span className="font-bold text-slate-900">{student.nama}</span>
             </div>
             <div className="flex justify-between items-center py-1 border-b border-slate-200">
-              <span className="text-slate-500 font-medium">Mata Pelajaran</span>
-              <span className="font-bold text-slate-900">{discrepancy.namaMapel}</span>
+              <span className="text-slate-500 font-medium">Kelas / Semester</span>
+              <span className="font-bold text-slate-900">{student.kelas} • {student.semester}</span>
             </div>
-            <div className="flex justify-between items-center py-1 border-b border-slate-200">
-              <span className="text-slate-500 font-medium">Nilai Final Disetujui</span>
-              <span className="font-extrabold text-[#5F089E] text-sm">
-                {discrepancy.bukuRapor.toFixed(1)} / 100
-              </span>
+            
+            <div className="py-1 border-b border-slate-200">
+              <span className="text-slate-500 font-medium block mb-2">4 Nilai Mapel Pilihan yang Disahkan:</span>
+              <div className="space-y-1.5">
+                {(student.daftarNilaiPilihan && student.daftarNilaiPilihan.length > 0
+                  ? student.daftarNilaiPilihan
+                  : [discrepancy]
+                ).map((m, idx) => (
+                  <div key={idx} className="flex justify-between items-center px-2.5 py-1.5 rounded-lg bg-white border border-slate-200">
+                    <span className="font-semibold text-slate-700">{idx + 1}. {m.namaMapel}</span>
+                    <span className="font-extrabold text-[#5F089E]">{m.bukuRapor.toFixed(1)} / 100</span>
+                  </div>
+                ))}
+              </div>
             </div>
+
             <div className="flex justify-between items-center py-1">
               <span className="text-slate-500 font-medium">Wali Kelas Pengesah</span>
               <span className="font-bold text-slate-700 text-right">
-                Drs. H. Subagyo <br />
-                <span className="text-[10px] text-slate-400 font-normal">NIP: 196804151994031002</span>
+                {currentWaliName}
+                {currentWaliNip ? (
+                  <>
+                    <br />
+                    <span className="text-[10px] text-slate-400 font-normal">NIP: {currentWaliNip}</span>
+                  </>
+                ) : null}
               </span>
             </div>
           </div>

@@ -1,34 +1,56 @@
 "use client";
 
-import React, { useState } from "react";
-import { X, ArrowRight } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { X, ArrowRight, Save } from "lucide-react";
 import { PenghargaanSiswaItem } from "./types";
 
 interface SiswaB1AddAwardModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (award: PenghargaanSiswaItem) => void;
+  initialAward?: PenghargaanSiswaItem | null;
 }
 
 export const SiswaB1AddAwardModal: React.FC<SiswaB1AddAwardModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
+  initialAward,
 }) => {
-  const [judul, setJudul] = useState(
-    "Juara 2 OSN Informatika Kota Malang 2024"
-  );
-  const [penyelenggara, setPenyelenggara] = useState(
-    "Pusat Prestasi Nasional (Puspresnas) - Kemendikbudristek"
-  );
+  const isEdit = !!initialAward;
+
+  const [judul, setJudul] = useState("");
+  const [penyelenggara, setPenyelenggara] = useState("");
   const [bulan, setBulan] = useState("November");
-  const [tahun, setTahun] = useState("2024");
+  const [tahun, setTahun] = useState(String(new Date().getFullYear()));
   const [tingkat, setTingkat] = useState<
     "Kota/Kabupaten" | "Provinsi" | "Nasional" | "Internasional"
   >("Kota/Kabupaten");
-  const [deskripsi, setDeskripsi] = useState(
-    "Kompetisi pemrograman algoritma dan penalaran logika tingkat SMA se-Kota Malang."
-  );
+  const [deskripsi, setDeskripsi] = useState("");
+
+  useEffect(() => {
+    if (initialAward) {
+      setJudul(initialAward.judul || "");
+      setPenyelenggara(initialAward.penyelenggara || "");
+      setBulan(initialAward.waktuBulan || "November");
+      setTahun(initialAward.tahun || String(new Date().getFullYear()));
+      setTingkat(
+        (initialAward.tingkat as
+          | "Kota/Kabupaten"
+          | "Provinsi"
+          | "Nasional"
+          | "Internasional") || "Kota/Kabupaten"
+      );
+      setDeskripsi(initialAward.deskripsi || "");
+    } else {
+      setJudul("");
+      setPenyelenggara("");
+      setBulan("November");
+      setTahun(String(new Date().getFullYear()));
+      setTingkat("Kota/Kabupaten");
+      setDeskripsi("");
+    }
+  }, [initialAward, isOpen]);
 
   if (!isOpen) return null;
 
@@ -36,19 +58,19 @@ export const SiswaB1AddAwardModal: React.FC<SiswaB1AddAwardModalProps> = ({
     e.preventDefault();
     if (!judul.trim() || !penyelenggara.trim()) return;
 
-    const newAward: PenghargaanSiswaItem = {
-      id: `awd-${Date.now()}`,
+    const updatedAward: PenghargaanSiswaItem = {
+      id: initialAward ? initialAward.id : `awd-${Date.now()}`,
       judul: judul.trim(),
       penyelenggara: penyelenggara.trim(),
       waktuBulan: bulan,
       tahun: tahun.trim(),
       tingkat: tingkat,
-      kategori: "Akademik",
+      kategori: initialAward?.kategori || "Akademik",
       deskripsi: deskripsi.trim(),
-      isUtama: false,
+      isUtama: initialAward ? initialAward.isUtama : false,
     };
 
-    onSubmit(newAward);
+    onSubmit(updatedAward);
     onClose();
   };
 
@@ -69,10 +91,12 @@ export const SiswaB1AddAwardModal: React.FC<SiswaB1AddAwardModalProps> = ({
         <div className="px-6 py-5 flex items-start justify-between border-b border-slate-100 shadow-[0_1px_2px_rgba(0,0,0,0.05)] bg-white">
           <div className="space-y-1">
             <h2 className="text-xl sm:text-2xl font-bold text-[#1F1A22] tracking-tight">
-              Tambah Prestasi &amp; Penghargaan
+              {isEdit ? "Edit Prestasi & Penghargaan" : "Tambah Prestasi & Penghargaan"}
             </h2>
             <p className="text-xs sm:text-sm text-[#4C4452]">
-              Cantumkan rekam jejak capaian akademik, kompetisi, atau karya ilmiah.
+              {isEdit
+                ? "Perbarui rincian capaian prestasi dan portofolio akademik Anda."
+                : "Cantumkan rekam jejak capaian akademik, kompetisi, atau karya ilmiah."}
             </p>
           </div>
 
@@ -244,8 +268,8 @@ export const SiswaB1AddAwardModal: React.FC<SiswaB1AddAwardModalProps> = ({
               type="submit"
               className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#5F089E] hover:bg-[#4d0680] text-white text-xs sm:text-sm font-semibold shadow-xs transition-all cursor-pointer"
             >
-              <span>Simpan</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <span>{isEdit ? "Simpan Perubahan" : "Simpan"}</span>
+              {isEdit ? <Save className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
             </button>
           </div>
         </form>
@@ -253,4 +277,5 @@ export const SiswaB1AddAwardModal: React.FC<SiswaB1AddAwardModalProps> = ({
     </div>
   );
 };
+
 

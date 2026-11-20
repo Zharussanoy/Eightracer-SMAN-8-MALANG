@@ -104,6 +104,7 @@ export type StatusValidasiNilai =
 
 export interface EvaluasiNilaiRowItem {
   id: string;
+  mataPelajaranId?: number;
   mataPelajaran: string;
   semester: number;
   nilaiInputSiswa: string;

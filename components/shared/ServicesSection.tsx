@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useUser, getHomeRoute } from "@/context/UserContext";
 import {
   UserCircle2,
   ChartPie,
@@ -51,6 +54,17 @@ const services: ServiceItem[] = [
 ];
 
 export default function ServicesSection() {
+  const { authUser, isLoggedIn, currentUser } = useUser();
+  const b1Route = authUser
+    ? getHomeRoute(authUser)
+    : isLoggedIn
+    ? currentUser.role === "guru"
+      ? "/guru/b-1"
+      : currentUser.role === "siswa"
+      ? "/siswa/b-1"
+      : "/admin/b-1"
+    : "/login";
+
   return (
     <section id="layanan" className="py-20 sm:py-24 bg-white relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -90,7 +104,7 @@ export default function ServicesSection() {
 
               {/* Tombol Aksi */}
               <Link
-                href={service.link}
+                href={service.id === "pemetaan-profil" ? b1Route : service.link}
                 className="w-full py-2.5 px-4 rounded-xl bg-[#5F089E] hover:bg-[#4d0680] active:bg-[#3d0566] text-white font-semibold text-xs sm:text-sm shadow-sm hover:shadow-md flex items-center justify-center gap-1.5 transition-all group-hover:gap-2"
               >
                 <span>Lihat Layanan</span>
