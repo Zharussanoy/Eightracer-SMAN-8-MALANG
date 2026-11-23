@@ -17,8 +17,8 @@ export async function GET(request: NextRequest) {
     if (!upstream.ok) throw new AuthError(upstream.status >= 500 ? 503 : upstream.status,
       upstream.status === 401 ? "Sesi berakhir. Silakan masuk lagi." : upstream.status === 403 ? "Akun ini tidak diizinkan mengunduh laporan." : upstream.status === 422 ? "Cakupan laporan belum diterima. Persempit filter dan coba lagi." : upstream.status === 429 ? "Unduhan dibatasi. Tunggu sebelum mencoba lagi." : "Laporan PDF belum tersedia. Silakan coba beberapa saat lagi.");
     const bytes = new Uint8Array(await upstream.arrayBuffer());
-    if (!upstream.headers.get("content-type")?.toLowerCase().includes("application/pdf") || new TextDecoder().decode(bytes.slice(0, 5)) !== "%PDF-") throw new AuthError(502, "Laporan PDF belum dapat dibaca. Silakan coba lagi.");
-    return new Response(bytes, { headers: { "Content-Type": "application/pdf", "Content-Disposition": 'attachment; filename="eightracer-buku-alumni.pdf"', "Cache-Control": "no-store, private", Pragma: "no-cache", Vary: "Cookie", "X-Content-Type-Options": "nosniff" } });
+    if (bytes.length > 10 * 1024 * 1024 || !upstream.headers.get("content-type")?.toLowerCase().includes("application/pdf") || new TextDecoder().decode(bytes.slice(0, 5)) !== "%PDF-") throw new AuthError(502, "Laporan PDF belum dapat dibaca. Silakan coba lagi.");
+    return new Response(bytes, { headers: { "Content-Type": "application/pdf", "Content-Disposition": 'attachment; filename="eightracer-analitik-beasiswa.pdf"', "Cache-Control": "no-store, private", Pragma: "no-cache", Vary: "Cookie", "X-Content-Type-Options": "nosniff" } });
   } catch (error) {
     const status = error instanceof AuthError ? error.status : 503;
     const response = authResponse({ message: error instanceof AuthError ? error.message : "Laporan belum dapat diunduh.", ...(status === 401 ? { session_expired: true } : {}) }, status);

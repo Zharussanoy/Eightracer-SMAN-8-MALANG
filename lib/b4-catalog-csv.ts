@@ -138,6 +138,7 @@ export function parseCatalogCsvRows(values: Record<string, unknown>[]): CatalogC
     }
 
     if (!row.nama_beasiswa) errors.push("Nama beasiswa wajib diisi.");
+    if (row.nama_beasiswa && /ganti sebelum disimpan/i.test(row.nama_beasiswa)) errors.push("Ganti baris contoh template dengan data beasiswa sebenarnya.");
     if (!["SMA", "Kuliah", "Keduanya"].includes(row.jenjang)) errors.push("Jenjang harus SMA, Kuliah atau Keduanya.");
     const duration = Number(row.durasi);
     if (row.durasi && (!/^\d+$/.test(row.durasi) || !Number.isSafeInteger(duration) || duration < 1 || duration > 100)) errors.push("Durasi harus bilangan bulat positif.");

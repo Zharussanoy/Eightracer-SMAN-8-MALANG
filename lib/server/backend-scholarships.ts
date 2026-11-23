@@ -2,6 +2,9 @@ import "server-only";
 import { NextRequest } from "next/server";
 import { AuthError, authResponse, clearSession } from "./backend-auth";
 
+const CATALOG_FIELD = "(?:nama_beasiswa|jenjang|durasi|satuan_durasi|periode_apply|is_active|penyelenggara|deskripsi|link_pendaftaran|tanggal_buka|tanggal_tutup|program_eligibilitas_id|kriteria(?:\\.\\d+(?:\\.(?:nama_kriteria|tipe_kriteria|operator|nilai_kriteria|bobot))?)?)";
+const CATALOG_ERROR_FIELD = new RegExp(`^(?:${CATALOG_FIELD}|rows(?:\\.\\d+)?(?:\\.${CATALOG_FIELD})?)$`);
+
 export async function backendScholarships(path: string, token: string, method = "GET", body?: unknown) {
   const configured = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL;
   let base: URL;
@@ -20,7 +23,7 @@ export async function backendScholarships(path: string, token: string, method = 
     const errors: Record<string, string[]> = {};
     if (response.status === 422 && data.errors && typeof data.errors === "object") {
       for (const [field, value] of Object.entries(data.errors)) {
-        if (/^(nama_beasiswa|jenjang|durasi|satuan_durasi|periode_apply|is_active|penyelenggara|deskripsi|link_pendaftaran|tanggal_buka|tanggal_tutup|program_eligibilitas_id|kriteria(?:\.\d+(?:\.(?:nama_kriteria|tipe_kriteria|operator|nilai_kriteria|bobot))?)?)$/.test(field) && Array.isArray(value)) {
+        if (CATALOG_ERROR_FIELD.test(field) && Array.isArray(value)) {
           errors[field] = value.filter((message): message is string => typeof message === "string");
         }
       }
@@ -61,4 +64,13 @@ export function scholarshipInput(value: unknown) {
     }
   }
   return data;
+}
+
+export function scholarshipsBulkInput(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new AuthError(422, "Format impor beasiswa tidak valid.");
+  const data = value as Record<string, unknown>;
+  if (Object.keys(data).length !== 1 || !Array.isArray(data.rows) || data.rows.length < 1 || data.rows.length > 20) {
+    throw new AuthError(422, "Impor harus berisi 1 sampai 20 beasiswa.");
+  }
+  return { rows: data.rows.map((row) => scholarshipInput(row)) };
 }

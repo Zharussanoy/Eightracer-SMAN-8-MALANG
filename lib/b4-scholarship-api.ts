@@ -28,6 +28,9 @@ export async function getScholarships(options: { search: string; level: Scholars
 export async function saveScholarship(input: ScholarshipInput, id?: number) {
   return mutateScholarship(id ? `/${id}` : "", id ? "PUT" : "POST", input);
 }
+export async function saveScholarshipsBulk(inputs: ScholarshipInput[]) {
+  return mutateScholarship("/bulk", "POST", { rows: inputs });
+}
 export async function activateScholarship(id: number) { return mutateScholarship(`/${id}/activate`, "POST", {}); }
 export async function archiveScholarship(id: number) { return mutateScholarship(`/${id}`, "DELETE", {}); }
 
@@ -40,5 +43,5 @@ async function mutateScholarship(path: string, method: string, body: unknown) {
   } catch { throw new ApiError(0, "Respons penyimpanan belum diterima. Periksa katalog sebelum mencoba lagi agar tidak membuat data ganda."); }
   const payload = await response.json().catch(() => null);
   if (!response.ok) throw new ApiError(response.status, payload?.message ?? "Perubahan belum dapat disimpan.", payload?.errors ?? {}, false, payload?.session_expired === true);
-  return payload as { message: string };
+  return payload as { message: string; data?: ScholarshipRow[] };
 }

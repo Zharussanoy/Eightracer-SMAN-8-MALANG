@@ -85,15 +85,17 @@ function AnalyticsView({view}:{view:"analytics"|"summary"}){
     if (pdfLock.current || invalidYear) return;
     pdfLock.current = true; setPdfBusy(true); setPdfError("");
     try {
-      const response = await fetch(`/api/b4/reports/alumni-pdf?${search}`, { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/pdf, application/json" } });
+      const response = await fetch(`/api/b4/reports/alumni-pdf?${search}`, { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/pdf, application/json" }, signal: AbortSignal.timeout(60_000) });
       if (!response.ok) {
         const payload = await response.json().catch(() => null);
         if (response.status === 401) { void refreshSession(); router.replace("/login"); }
         throw new Error(payload?.message ?? "PDF belum dapat diunduh.");
       }
       if (!response.headers.get("content-type")?.includes("application/pdf")) throw new Error("Respons belum berupa PDF.");
-      const url = URL.createObjectURL(await response.blob());
-      const link = document.createElement("a"); link.href = url; link.download = "eightracer-buku-alumni.pdf"; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+      const blob = await response.blob();
+      if (!blob.size || blob.size > 10 * 1024 * 1024 || await blob.slice(0, 5).text() !== "%PDF-") throw new Error("File PDF belum valid. Coba unduh kembali.");
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a"); link.href = url; link.download = "eightracer-analitik-beasiswa.pdf"; document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (error) { setPdfError(error instanceof Error ? error.message : "PDF belum dapat diunduh."); }
     finally { pdfLock.current = false; setPdfBusy(false); }
   }

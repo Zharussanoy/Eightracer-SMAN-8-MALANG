@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { ApiError } from "@/lib/eightracer-api";
-import { saveScholarship } from "@/lib/b4-scholarship-api";
+import { saveScholarshipsBulk } from "@/lib/b4-scholarship-api";
 import { catalogCsvTemplate, parseCatalogCsvRows, type CatalogCsvRow } from "@/lib/b4-catalog-csv";
 import { parseCatalogExcelRows, PROGRAM_COLUMNS, CRITERIA_COLUMNS } from "@/lib/b4-catalog-excel";
 import { displayTitle } from "@/lib/display-copy";
@@ -78,21 +78,27 @@ export default function CatalogCsvImport({ onSaved }: { onSaved: () => void }) {
     lock.current = true; setBusy(true); setMessage("");
     let saved = 0;
     try {
-      for (const row of rows) {
-        setStates((current) => ({ ...current, [row.line]: "Menyimpan…" }));
-        try { await saveScholarship(row.input!); saved++; setStates((current) => ({ ...current, [row.line]: "Tersimpan" })); }
-        catch (error) {
-          setStates((current) => ({ ...current, [row.line]: "Perlu diperiksa" }));
-          if (error instanceof ApiError && error.status === 401) { void refreshSession(); router.replace("/login"); }
-          throw error;
-        }
-      }
+      setStates(Object.fromEntries(rows.map((row) => [row.line, "Menyimpan…"])));
+      await saveScholarshipsBulk(rows.map((row) => row.input!));
+      saved = rows.length;
+      setStates(Object.fromEntries(rows.map((row) => [row.line, "Tersimpan"])));
       setMessage(`${saved} beasiswa berhasil ditambahkan ke katalog.`);
     } catch (error) {
-      const errDetail = error instanceof ApiError && error.errors && Object.keys(error.errors).length
-        ? Object.values(error.errors).flat().join("; ")
-        : error instanceof Error ? error.message : "Penyimpanan belum dapat dipastikan.";
-      setMessage(`${saved} baris telah berhasil disimpan. Proses dihentikan: ${errDetail} Periksa katalog sebelum mengunggah ulang agar tidak ganda.`);
+      if (error instanceof ApiError && error.status === 401) { void refreshSession(); router.replace("/login"); }
+      const failures = error instanceof ApiError ? error.errors : {};
+      const next: Record<number, string> = {};
+      rows.forEach((row, index) => {
+        const prefix = `rows.${index}`;
+        next[row.line] = Object.keys(failures).some((key) => key === prefix || key.startsWith(`${prefix}.`)) ? "Perlu diperiksa" : "Tidak tersimpan";
+      });
+      setStates(next);
+      const detail = Object.entries(failures).map(([field, messages]) => {
+        const match = /^rows\.(\d+)/.exec(field);
+        const row = match ? rows[Number(match[1])] : undefined;
+        return row ? `Baris ${row.line}: ${messages.join(" ")}` : messages.join(" ");
+      }).join(" ");
+      const fallback = error instanceof Error ? error.message : "Penyimpanan belum dapat dipastikan.";
+      setMessage(`Tidak ada baris yang disimpan karena impor bersifat all-or-nothing. ${detail || fallback}`);
     }
     finally { if (saved) onSaved(); setFinished(true); setConfirmed(false); lock.current = false; setBusy(false); }
   }
@@ -117,7 +123,7 @@ export default function CatalogCsvImport({ onSaved }: { onSaved: () => void }) {
         {!!rows.length && <div className="b4-tableScroll"><table className="bc4-progressTable"><thead><tr><th>Baris</th><th>Nama Beasiswa</th><th>Jenjang</th><th>Durasi</th><th>Hasil Pemeriksaan</th></tr></thead><tbody>{rows.map((row) => <tr key={row.line}><td>{row.line}</td><td>{row.input?.nama_beasiswa ?? "Periksa Isian"}</td><td>{row.input?.jenjang ?? "–"}</td><td>{row.input ? (row.input.durasi ? `${row.input.durasi} ${row.input.satuan_durasi}` : "–") : "–"}</td><td>{states[row.line] ?? (row.errors.length ? row.errors.join(" ") : "Siap ditambahkan")}</td></tr>)}</tbody></table></div>}
         {!!rows.length && !finished && <label><input type="checkbox" checked={confirmed} disabled={busy || rows.some((row) => row.errors.length)} onChange={(e) => setConfirmed(e.target.checked)} /> Saya sudah memeriksa seluruh baris dan menyetujui penambahan beasiswa baru berstatus aktif ke database.</label>}
         {message && <p role="status" className="bc4-status">{message}</p>}
-        <p className="bc4-demoNote">Jika impor terhenti, periksa baris yang sudah tersimpan sebelum melanjutkan agar tidak terjadi duplikasi.</p>
+        <p className="bc4-demoNote">Impor bersifat all-or-nothing: bila satu baris ditolak, tidak ada baris yang disimpan. Nama dan jenjang yang sudah ada di katalog juga ditolak agar data tidak ganda.</p>
         <div className="bc4-actions"><button className="bc4-button" disabled={busy} onClick={() => dialog.current?.close()}>Tutup</button><button type="button" className="bc4-button bc4-primary" disabled={busy || finished || !confirmed || !rows.length || rows.some((row) => row.errors.length)} onClick={() => void save()}>Tambah {rows.length || ""} Beasiswa ke Database</button></div>
       </div>
     </dialog>

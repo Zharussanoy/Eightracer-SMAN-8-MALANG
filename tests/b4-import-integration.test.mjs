@@ -15,20 +15,20 @@ import * as XLSX from 'xlsx';
 const ROOT = new URL('..', import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1');
 function compile(relPath, deps = {}) {
   const absPath = ROOT + relPath.replace(/^\//, '');
-  const module = { exports: {} };
+  const mod = { exports: {} };
   vm.runInNewContext(
     ts.transpileModule(fs.readFileSync(absPath, 'utf8'), {
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
     }).outputText,
-    { module, exports: module.exports, require: id => deps[id], URL, Date }
+    { module: mod, exports: mod.exports, require: id => deps[id], URL, Date }
   );
-  return module.exports;
+  return mod.exports;
 }
 
 const csv = compile('lib/b4-catalog-csv.ts');
 const excel = compile('lib/b4-catalog-excel.ts', { './b4-catalog-csv': csv });
 const { parseCatalogCsvRows, normalizeCriteriaType } = csv;
-const { parseCatalogExcelRows, PROGRAM_COLUMNS, CRITERIA_COLUMNS } = excel;
+const { parseCatalogExcelRows, PROGRAM_COLUMNS } = excel;
 
 // ── Backend validation rules mirrored in JS ────────────────────────────────
 // Mirrors: BasisDataBeasiswaController::rules() + Criteria::validate()
@@ -79,7 +79,7 @@ function validatePayload(input) {
 // ══════════════════════════════════════════════════════════════════════════════
 test('guru isi template XLSX (Beasiswa+Kriteria) → payload diterima backend', () => {
   const buf = fs.readFileSync(new URL('../public/templates/template-katalog-beasiswa.xlsx', import.meta.url));
-  const wb = XLSX.read(buf, { type: 'buffer' });
+  XLSX.read(buf, { type: 'buffer' });
 
   // Simulasi guru mengisi 2 baris di sheet Beasiswa
   const programRows = [
@@ -107,7 +107,7 @@ test('guru isi template XLSX (Beasiswa+Kriteria) → payload diterima backend', 
   assert.equal(results.length, 2, 'harus ada 2 program');
 
   // Program 1
-  assert.deepEqual(results[0].errors, [], `Program 1 errors: ${results[0].errors.join(', ')}`);
+  assert.equal(results[0].errors.length, 0, `Program 1 errors: ${results[0].errors.join(', ')}`);
   assert.ok(results[0].input, 'Program 1 harus punya input');
   const p1errors = validatePayload(results[0].input);
   assert.deepEqual(p1errors, [], `Payload Program 1 ditolak backend: ${p1errors.join('; ')}`);
@@ -123,7 +123,7 @@ test('guru isi template XLSX (Beasiswa+Kriteria) → payload diterima backend', 
   assert.equal(results[0].input.kriteria[1].tipe_kriteria, 'persentase_kehadiran');
 
   // Program 2
-  assert.deepEqual(results[1].errors, [], `Program 2 errors: ${results[1].errors.join(', ')}`);
+  assert.equal(results[1].errors.length, 0, `Program 2 errors: ${results[1].errors.join(', ')}`);
   const p2errors = validatePayload(results[1].input);
   assert.deepEqual(p2errors, [], `Payload Program 2 ditolak backend: ${p2errors.join('; ')}`);
   assert.equal(results[1].input.durasi, null, 'durasi kosong → null');
@@ -153,8 +153,6 @@ test('semua pilihan Jenis Kriteria di template terpetakan ke kode backend yang v
 // TEST 3: Jenjang di drop-down template semuanya valid backend
 // ══════════════════════════════════════════════════════════════════════════════
 test('semua pilihan Jenjang di template diterima backend', () => {
-  // Ambil dari file template langsung
-  const buf = fs.readFileSync(new URL('../public/templates/template-katalog-beasiswa.xlsx', import.meta.url));
   // Verifikasi drop-down list di sheet Beasiswa mengandung hanya nilai backend-valid
   // (kita cek dari XML worksheet yang ada validasinya)
   // Minimal cek: template tidak menawarkan D3/D4/S1/S2 yang tidak valid
@@ -198,7 +196,7 @@ test('satuan_durasi dari template dikirim lowercase dan diterima backend', () =>
   ];
   const results = parseCatalogCsvRows(csvRows);
   for (const r of results) {
-    assert.deepEqual(r.errors, [], `Errors: ${r.errors.join(', ')}`);
+    assert.equal(r.errors.length, 0, `Errors: ${r.errors.join(', ')}`);
     const errors = validatePayload(r.input);
     assert.deepEqual(errors, [], `Backend validation errors: ${errors.join('; ')}`);
     assert.ok(VALID_SATUAN.includes(r.input.satuan_durasi), `satuan_durasi '${r.input.satuan_durasi}' tidak diterima backend`);
@@ -273,7 +271,7 @@ test('setiap tipe kriteria dari template menghasilkan payload backend-valid', ()
       operator: op,
       nilai_kriteria: val,
     }]);
-    assert.deepEqual(rows[0].errors, [], `Tipe '${label}' parse error: ${rows[0].errors.join(', ')}`);
+    assert.equal(rows[0].errors.length, 0, `Tipe '${label}' parse error: ${rows[0].errors.join(', ')}`);
     const backendErrors = validatePayload(rows[0].input);
     assert.deepEqual(backendErrors, [], `Tipe '${label}' backend error: ${backendErrors.join('; ')}`);
   }
@@ -292,7 +290,7 @@ test('jenjang Kuliah dan Keduanya diterima parser dan backend', () => {
       operator: '>=',
       nilai_kriteria: '3.0',
     }]);
-    assert.deepEqual(rows[0].errors, [], `Jenjang '${jenjang}' ditolak parser: ${rows[0].errors.join(', ')}`);
+    assert.equal(rows[0].errors.length, 0, `Jenjang '${jenjang}' ditolak parser: ${rows[0].errors.join(', ')}`);
     const errors = validatePayload(rows[0].input);
     assert.deepEqual(errors, [], `Jenjang '${jenjang}' ditolak backend mirror: ${errors.join('; ')}`);
   }
