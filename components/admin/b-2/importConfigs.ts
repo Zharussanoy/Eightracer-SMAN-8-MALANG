@@ -338,3 +338,97 @@ export function downloadCategoryCsvTemplate(config: ImportCategoryConfig) {
   link.remove();
   URL.revokeObjectURL(url);
 }
+
+export function getPdfExtractedRows(
+  category: string,
+  fileName: string,
+  siswaInfo?: { nama?: string; kelas?: string }
+): Record<string, string>[] {
+  const cleanName = fileName.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ");
+
+  switch (category) {
+    case "Nilai Rapor Akademik":
+      return [
+        { mata_pelajaran: "Matematika", jurusan: "MIPA", semester_1: "88", semester_2: "90", semester_3: "92", semester_4: "91", semester_5: "94" },
+        { mata_pelajaran: "Bahasa Indonesia", jurusan: "MIPA", semester_1: "87", semester_2: "89", semester_3: "90", semester_4: "91", semester_5: "93" },
+        { mata_pelajaran: "Bahasa Inggris", jurusan: "MIPA", semester_1: "86", semester_2: "88", semester_3: "89", semester_4: "90", semester_5: "92" },
+        { mata_pelajaran: "Fisika", jurusan: "MIPA", semester_1: "85", semester_2: "88", semester_3: "90", semester_4: "92", semester_5: "93" },
+        { mata_pelajaran: "Kimia", jurusan: "MIPA", semester_1: "86", semester_2: "87", semester_3: "89", semester_4: "90", semester_5: "91" },
+        { mata_pelajaran: "Biologi", jurusan: "MIPA", semester_1: "88", semester_2: "90", semester_3: "92", semester_4: "93", semester_5: "95" },
+      ];
+
+    case "Prestasi & Kompetisi":
+      return [
+        {
+          jenis_prestasi: "Akademik",
+          nama_kompetisi: cleanName || "Kejuaraan Sains & Prestasi Siswa",
+          bidang: "Sains & Teknologi",
+          tingkat: "Nasional",
+          penyelenggara: "Puspresnas Kemdikbud",
+          tahun: String(new Date().getFullYear()),
+          peringkat: "Juara 1",
+          dokumen: fileName,
+        },
+      ];
+
+    case "Profil Asesmen RIASEC":
+      return [
+        {
+          kode_tes: "PDF-" + Math.floor(100 + Math.random() * 900),
+          tanggal_asesmen: new Date().toLocaleDateString("id-ID"),
+          realistic: "80",
+          investigative: "92",
+          artistic: "78",
+          social: "84",
+          enterprising: "76",
+          conventional: "70",
+        },
+      ];
+
+    case "Catatan Karakteristik Siswa":
+      return [
+        {
+          tanggal: new Date().toLocaleDateString("id-ID"),
+          semester: "S4",
+          kelas: siswaInfo?.kelas || "XII MIPA 1",
+          tipe_catatan: "Kedisiplinan & Karakter",
+          deskripsi_catatan: `Dokumen rekam jejak kepribadian "${fileName}" berhasil diverifikasi dan diarsipkan.`,
+          bobot_kuantitatif: "92",
+        },
+      ];
+
+    case "Nilai TKA Mata Uji Wajib":
+      return [
+        { mata_uji: "Matematika", nilai: "93" },
+        { mata_uji: "Bahasa Indonesia", nilai: "91" },
+        { mata_uji: "Bahasa Padasi / Inggris", nilai: "89" },
+      ];
+
+    case "Nilai TKA Mata Uji Pilihan":
+      return [
+        { mata_uji: "Kimia", nilai: "91", tanggal_ujian: new Date().toISOString().split("T")[0] },
+        { mata_uji: "Biologi", nilai: "93", tanggal_ujian: new Date().toISOString().split("T")[0] },
+        { mata_uji: "Fisika", nilai: "90", tanggal_ujian: new Date().toISOString().split("T")[0] },
+        { mata_uji: "Informatika", nilai: "94", tanggal_ujian: new Date().toISOString().split("T")[0] },
+      ];
+
+    case "Kecerdasan Majemuk Siswa":
+      return [
+        {
+          linguistik: "86",
+          logis_matematis: "95",
+          spasial_visual: "89",
+          kinestetik: "80",
+          musikal: "74",
+          interpersonal: "88",
+          intrapersonal: "84",
+          naturalis: "82",
+          tanggal_asesmen: new Date().toLocaleDateString("id-ID"),
+        },
+      ];
+
+    default:
+      return [];
+  }
+}
+

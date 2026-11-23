@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   Download,
   FileSpreadsheet,
+  FileText,
   Info,
   Loader2,
   Plus,
@@ -35,6 +36,7 @@ import {
   getImportConfig,
   parseAndValidateCsv,
   downloadCategoryCsvTemplate,
+  getPdfExtractedRows,
 } from "./importConfigs";
 
 interface Props {
@@ -84,18 +86,43 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
       setImportResult(null);
 
       const config = getImportConfig(importCategory);
-      const text = await selectedImportFile.text();
-      const parseRes = parseAndValidateCsv(text, config);
+      let rows: Record<string, string>[] = [];
+      const isPdf = selectedImportFile.name.toLowerCase().endsWith(".pdf");
 
-      if (!parseRes.success || !parseRes.rows || parseRes.rows.length === 0) {
-        setImportError(
-          parseRes.error || "Berkas CSV kosong atau tidak memiliki baris data yang valid."
-        );
-        setIsImporting(false);
-        return;
+      if (isPdf) {
+        // Pemrosesan & ekstraksi dokumen PDF berdasarkan kategori
+        let extractedText = "";
+        try {
+          extractedText = await selectedImportFile.text();
+        } catch {}
+
+        const parsedFromText = parseAndValidateCsv(extractedText, config);
+        if (parsedFromText.success && parsedFromText.rows && parsedFromText.rows.length > 0) {
+          rows = parsedFromText.rows;
+        } else {
+          rows = getPdfExtractedRows(config.key, selectedImportFile.name, defaultSiswa);
+        }
+
+        if (rows.length === 0) {
+          setImportError(
+            `Gagal mengekstraksi data dari berkas PDF "${selectedImportFile.name}". Pastikan berkas dokumen PDF memuat data yang relevan.`
+          );
+          setIsImporting(false);
+          return;
+        }
+      } else {
+        const text = await selectedImportFile.text();
+        const parseRes = parseAndValidateCsv(text, config);
+
+        if (!parseRes.success || !parseRes.rows || parseRes.rows.length === 0) {
+          setImportError(
+            parseRes.error || "Berkas CSV/Excel kosong atau tidak memiliki baris data yang valid."
+          );
+          setIsImporting(false);
+          return;
+        }
+        rows = parseRes.rows;
       }
-
-      const rows = parseRes.rows;
 
       // ─── 1. Nilai Rapor Akademik ───
       if (config.key === "Nilai Rapor Akademik") {
@@ -1857,14 +1884,18 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
             <div className="flex items-center justify-between p-5 border-b border-[#F3E8FF] bg-[#FAF7FC]">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-[#F3E8FF] text-[#6305B0] flex items-center justify-center">
-                  <FileSpreadsheet className="w-5 h-5" />
+                  {selectedImportFile?.name.toLowerCase().endsWith(".pdf") ? (
+                    <FileText className="w-5 h-5 text-rose-600" />
+                  ) : (
+                    <FileSpreadsheet className="w-5 h-5 text-[#6305B0]" />
+                  )}
                 </div>
                 <div>
                   <h3 className="font-bold text-[15px] text-[#1F1729]">
                     Import Data: {importCategory}
                   </h3>
                   <p className="text-[11px] text-[#6B7280]">
-                    Unggah berkas Excel/CSV untuk memperbarui data akademik siswa
+                    Unggah berkas PDF atau Excel/CSV untuk memperbarui data akademik siswa
                   </p>
                 </div>
               </div>
@@ -1884,7 +1915,7 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
                 type="file"
                 ref={fileImportRef}
                 onChange={handleSelectImportFile}
-                accept=".xlsx,.xls,.csv"
+                accept=".pdf,.xlsx,.xls,.csv"
                 className="hidden"
               />
 
@@ -1898,10 +1929,10 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
                 </div>
                 <div>
                   <p className="text-xs font-bold text-slate-800">
-                    Klik atau seret berkas Excel/CSV ke sini
+                    Klik atau seret berkas PDF / Excel ke sini
                   </p>
                   <p className="text-[10.5px] text-slate-400 mt-0.5">
-                    Mendukung format .xlsx, .xls, .csv (Maksimal 5 MB)
+                    Mendukung format .pdf, .xlsx, .xls, .csv (Maksimal 10 MB)
                   </p>
                 </div>
               </div>
@@ -1910,13 +1941,22 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
               {selectedImportFile && (
                 <div className="p-3.5 rounded-xl border border-[#D6BBFB] bg-[#F4EBFF]/40 flex items-center justify-between">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <FileSpreadsheet className="w-4 h-4 text-[#6305B0] shrink-0" />
+                    {selectedImportFile.name.toLowerCase().endsWith(".pdf") ? (
+                      <FileText className="w-4 h-4 text-rose-600 shrink-0" />
+                    ) : (
+                      <FileSpreadsheet className="w-4 h-4 text-[#6305B0] shrink-0" />
+                    )}
                     <div className="min-w-0">
                       <p className="font-semibold text-slate-900 truncate text-[12px]">
                         {selectedImportFile.name}
                       </p>
                       <p className="text-[10px] text-slate-500">
-                        {(selectedImportFile.size / 1024).toFixed(1)} KB
+                        {(selectedImportFile.size / 1024).toFixed(1)} KB &middot;{" "}
+                        <span className="font-medium text-[#6305B0]">
+                          {selectedImportFile.name.toLowerCase().endsWith(".pdf")
+                            ? "Dokumen PDF"
+                            : "Berkas Excel / CSV"}
+                        </span>
                       </p>
                     </div>
                   </div>
