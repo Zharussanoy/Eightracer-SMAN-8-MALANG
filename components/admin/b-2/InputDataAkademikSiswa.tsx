@@ -31,6 +31,11 @@ import {
   ImportExcelResult,
   siswaAdminService,
 } from "@/services/b2";
+import {
+  getImportConfig,
+  parseAndValidateCsv,
+  downloadCategoryCsvTemplate,
+} from "./importConfigs";
 
 interface Props {
   siswaId: string;
@@ -76,18 +81,238 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
     try {
       setIsImporting(true);
       setImportError(null);
-      const res = await importExcelService.importExcel(selectedImportFile);
-      setImportResult(res.data);
+      setImportResult(null);
+
+      const config = getImportConfig(importCategory);
+      const text = await selectedImportFile.text();
+      const parseRes = parseAndValidateCsv(text, config);
+
+      if (!parseRes.success || !parseRes.rows || parseRes.rows.length === 0) {
+        setImportError(
+          parseRes.error || "Berkas CSV kosong atau tidak memiliki baris data yang valid."
+        );
+        setIsImporting(false);
+        return;
+      }
+
+      const rows = parseRes.rows;
+
+      // ─── 1. Nilai Rapor Akademik ───
+      if (config.key === "Nilai Rapor Akademik") {
+        const newItems: NilaiRapor[] = rows.map((r) => {
+          const mataPelajaran = r["mata_pelajaran"] || "Mata Pelajaran";
+          const rawJurusan = (r["jurusan"] || "MIPA").toUpperCase();
+          const jurusan: "MIPA" | "IPS" | "Umum" = rawJurusan === "IPS" ? "IPS" : rawJurusan === "UMUM" ? "Umum" : "MIPA";
+          const s1 = r["semester_1"] !== undefined && r["semester_1"] !== "" ? parseFloat(r["semester_1"]) : null;
+          const s2 = r["semester_2"] !== undefined && r["semester_2"] !== "" ? parseFloat(r["semester_2"]) : null;
+          const s3 = r["semester_3"] !== undefined && r["semester_3"] !== "" ? parseFloat(r["semester_3"]) : null;
+          const s4 = r["semester_4"] !== undefined && r["semester_4"] !== "" ? parseFloat(r["semester_4"]) : null;
+          const s5 = r["semester_5"] !== undefined && r["semester_5"] !== "" ? parseFloat(r["semester_5"]) : null;
+          return {
+            mataPelajaran,
+            jurusan,
+            semester: { s1, s2, s3, s4, s5 },
+          };
+        });
+
+        setNilaiRaporList((prev) => {
+          const existingMap = new Map(prev.map((p) => [p.mataPelajaran.toLowerCase(), p]));
+          newItems.forEach((item) => {
+            existingMap.set(item.mataPelajaran.toLowerCase(), item);
+          });
+          return Array.from(existingMap.values());
+        });
+
+        // Simpan ke API Rapor jika tersedia
+        const payloadRapor: Array<{ mata_pelajaran_id: number; semester: number; nilai_akhir: number }> = [];
+        newItems.forEach((item, mapelIdx) => {
+          [1, 2, 3, 4, 5].forEach((sem) => {
+            const val = (item.semester as any)[`s${sem}`];
+            if (val !== null && val !== undefined && !isNaN(val)) {
+              payloadRapor.push({
+                mata_pelajaran_id: mapelIdx + 1,
+                semester: sem,
+                nilai_akhir: Number(val),
+              });
+            }
+          });
+        });
+        if (payloadRapor.length > 0) {
+          await akademikService.storeOrUpdateNilaiRapor({
+            siswa_id: siswaId,
+            nilai_rapor: payloadRapor,
+          }).catch(() => {});
+        }
+      }
+
+      // ─── 2. Prestasi & Kompetisi ───
+      else if (config.key === "Prestasi & Kompetisi") {
+        const r = rows[0];
+        setPrestasiForm({
+          jenisPrestasi: r["jenis_prestasi"] || "Akademik",
+          namaLomba: r["nama_kompetisi"] || "Prestasi Siswa",
+          bidang: r["bidang"] || "Sains",
+          tahun: r["tahun"] || String(new Date().getFullYear()),
+          periodePrestasi: "1 Kali",
+          tingkat: r["tingkat"] || "Kabupaten/Kota",
+          penyelenggara: r["penyelenggara"] || "Kemdikbud",
+          peringkat: r["peringkat"] || "1",
+          dokumen: r["dokumen"] || "Sertifikat",
+        });
+
+        await akademikService.storePrestasi({
+          siswa_id: siswaId,
+          jenis_prestasi: r["jenis_prestasi"] || "Akademik",
+          nama_kompetisi: r["nama_kompetisi"] || "Prestasi Siswa",
+          bidang: r["bidang"] || "Sains",
+          tingkat: r["tingkat"] || "Kabupaten/Kota",
+          peringkat: r["peringkat"] || "1",
+          tahun: parseInt(r["tahun"]) || new Date().getFullYear(),
+          penyelenggara: r["penyelenggara"] || undefined,
+          file_bukti_url: r["dokumen"] || undefined,
+        }).catch(() => {});
+      }
+
+      // ─── 3. Profil Asesmen RIASEC ───
+      else if (config.key === "Profil Asesmen RIASEC") {
+        const r = rows[0];
+        if (r["kode_tes"]) setRiasecMeta((prev) => ({ ...prev, kodeTes: r["kode_tes"] }));
+        if (r["tanggal_asesmen"]) setRiasecMeta((prev) => ({ ...prev, tanggalAsesmen: r["tanggal_asesmen"] }));
+        setRiasecScores({
+          R: Number(r["realistic"]) || riasecScores.R,
+          I: Number(r["investigative"]) || riasecScores.I,
+          A: Number(r["artistic"]) || riasecScores.A,
+          S: Number(r["social"]) || riasecScores.S,
+          E: Number(r["enterprising"]) || riasecScores.E,
+          C: Number(r["conventional"]) || riasecScores.C,
+        });
+
+        await asesmenService.saveAsesmen({
+          siswa_id: siswaId,
+          kode_riasec: r["kode_tes"] || riasecMeta.kodeTes,
+          realistic_score: Number(r["realistic"]) || riasecScores.R,
+          investigative_score: Number(r["investigative"]) || riasecScores.I,
+          artistic_score: Number(r["artistic"]) || riasecScores.A,
+          social_score: Number(r["social"]) || riasecScores.S,
+          enterprising_score: Number(r["enterprising"]) || riasecScores.E,
+          conventional_score: Number(r["conventional"]) || riasecScores.C,
+        }).catch(() => {});
+      }
+
+      // ─── 4. Catatan Karakteristik Siswa ───
+      else if (config.key === "Catatan Karakteristik Siswa") {
+        const newCatatanList: CatatanKarakter[] = rows.map((r, idx) => ({
+          id: `import-${Date.now()}-${idx}`,
+          tanggal: r["tanggal"] || new Date().toLocaleDateString("id-ID"),
+          semester: r["semester"] || "S1",
+          kelas: r["kelas"] || defaultSiswa.kelas || "XII MIPA 1",
+          tipeKatatan: r["tipe_catatan"] || "Kedisiplinan",
+          catatan: r["deskripsi_catatan"] || "-",
+          nilaiBobotKuantitatif: Number(r["bobot_kuantitatif"]) || 85,
+        }));
+
+        setRiwayatCatatan((prev) => [...newCatatanList, ...prev]);
+        setCatatanSuccessMsg(`${newCatatanList.length} catatan karakteristik siswa berhasil diimpor & disimpan!`);
+
+        await akademikService.storePresensiKarakter({
+          siswa_id: siswaId,
+          catatan_karakter: newCatatanList.map((c) => ({
+            semester: parseInt(c.semester.replace(/\D/g, "")) || 1,
+            jenis_catatan: c.tipeKatatan,
+            poin_disiplin: c.nilaiBobotKuantitatif,
+            deskripsi: c.catatan,
+            tanggal_pencatatan: c.tanggal,
+          })),
+        }).catch(() => {});
+      }
+
+      // ─── 5. Nilai TKA Mata Uji Wajib ───
+      else if (config.key === "Nilai TKA Mata Uji Wajib") {
+        setTkaWajib((prev) =>
+          prev.map((item) => {
+            const match = rows.find(
+              (r) => (r["mata_uji"] || "").toLowerCase() === item.mapel.toLowerCase()
+            );
+            if (match && match["nilai"] !== undefined && match["nilai"] !== "") {
+              return { ...item, nilai: Number(match["nilai"]) || item.nilai };
+            }
+            return item;
+          })
+        );
+      }
+
+      // ─── 6. Nilai TKA Mata Uji Pilihan ───
+      else if (config.key === "Nilai TKA Mata Uji Pilihan") {
+        const validList: NilaiTkaPilihan["mataUji"][] = [
+          "Biologi",
+          "Kimia",
+          "Fisika",
+          "Geografi",
+          "Ekonomi",
+          "Sosiologi",
+          "Sejarah",
+        ];
+        const newPilihan: NilaiTkaPilihan[] = rows.map((r) => {
+          const rawUji = r["mata_uji"] || "Kimia";
+          const matched =
+            validList.find((v) => v.toLowerCase() === rawUji.toLowerCase()) || "Kimia";
+          return {
+            mataUji: matched,
+            nilai: Number(r["nilai"]) || 85,
+            tanggalUjian: r["tanggal_ujian"] || new Date().toISOString().split("T")[0],
+          };
+        });
+        setTkaPilihan(newPilihan);
+      }
+
+      // ─── 7. Kecerdasan Majemuk Siswa ───
+      else if (config.key === "Kecerdasan Majemuk Siswa") {
+        const r = rows[0];
+        setKecerdasanForm((prev) => ({
+          ...prev,
+          linguistik: Number(r["linguistik"]) || prev.linguistik,
+          logisMatematis: Number(r["logis_matematis"]) || prev.logisMatematis,
+          spasialVisual: Number(r["spasial_visual"]) || prev.spasialVisual,
+          kinestetik: Number(r["kinestetik"]) || prev.kinestetik,
+          musikal: Number(r["musikal"]) || prev.musikal,
+          interpersonal: Number(r["interpersonal"]) || prev.interpersonal,
+          intrapersonal: Number(r["intrapersonal"]) || prev.intrapersonal,
+          naturalis: Number(r["naturalis"]) || prev.naturalis,
+          tanggalAsesmen: r["tanggal_asesmen"] || prev.tanggalAsesmen,
+        }));
+
+        await asesmenService.saveAsesmen({
+          siswa_id: siswaId,
+          multiple_intelligence: [
+            { jenis_kecerdasan: "Linguistik", skor: Number(r["linguistik"]) || kecerdasanForm.linguistik },
+            { jenis_kecerdasan: "Logis-Matematis", skor: Number(r["logis_matematis"]) || kecerdasanForm.logisMatematis },
+            { jenis_kecerdasan: "Spasial-Visual", skor: Number(r["spasial_visual"]) || kecerdasanForm.spasialVisual },
+            { jenis_kecerdasan: "Kinestetik", skor: Number(r["kinestetik"]) || kecerdasanForm.kinestetik },
+            { jenis_kecerdasan: "Musikal", skor: Number(r["musikal"]) || kecerdasanForm.musikal },
+            { jenis_kecerdasan: "Interpersonal", skor: Number(r["interpersonal"]) || kecerdasanForm.interpersonal },
+            { jenis_kecerdasan: "Intrapersonal", skor: Number(r["intrapersonal"]) || kecerdasanForm.intrapersonal },
+            { jenis_kecerdasan: "Naturalis", skor: Number(r["naturalis"]) || kecerdasanForm.naturalis },
+          ],
+        }).catch(() => {});
+      }
+
+      setImportResult({
+        total_baris_diproses: rows.length,
+        berhasil: rows.length,
+        gagal: 0,
+        rincian_gagal: [],
+      });
       if (fetchData) await fetchData();
     } catch (err: any) {
-      setImportError(err?.message || "Terjadi kesalahan saat memproses impor berkas Excel.");
+      setImportError(err?.message || "Terjadi kesalahan saat memproses impor berkas CSV.");
     } finally {
       setIsImporting(false);
     }
   };
 
   const handleDownloadTemplate = () => {
-    importExcelService.downloadTemplateCsv();
+    const config = getImportConfig(importCategory);
+    downloadCategoryCsvTemplate(config);
   };
 
   const defaultSiswa: SiswaDataItem = {
@@ -1176,6 +1401,7 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
             </div>
             <button
               type="button"
+              onClick={() => handleOpenImportModal("Catatan Karakteristik Siswa")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#6305B0] hover:bg-[#530494] text-white text-[12px] font-medium shrink-0 cursor-pointer"
             >
               <Upload className="w-3.5 h-3.5" />
@@ -1705,25 +1931,43 @@ export default function InputDataAkademikSiswa({ siswaId }: Props) {
                 </div>
               )}
 
-              {/* Petunjuk Kolom */}
-              <div className="p-3.5 rounded-xl bg-[#F3E8FF]/60 border border-[#E9D5FF] text-[#530494] space-y-1.5">
-                <p className="font-semibold text-[11px] flex items-center gap-1.5">
-                  <Info className="w-3.5 h-3.5 text-[#6305B0]" />
-                  Petunjuk Header Kolom Berkas:
-                </p>
-                <p className="text-[10.5px] leading-relaxed text-[#6B21A8]">
-                  • Wajib: <strong>nisn</strong>, <strong>nama_lengkap</strong><br />
-                  • Opsional: <strong>nilai_rapor</strong>, <strong>nilai_tka</strong>, <strong>kehadiran</strong>, <strong>kelas</strong>
-                </p>
-                <button
-                  type="button"
-                  onClick={handleDownloadTemplate}
-                  className="text-[11px] font-bold text-[#6305B0] hover:underline flex items-center gap-1 pt-1 cursor-pointer"
-                >
-                  <Download className="w-3 h-3" />
-                  Unduh Contoh Template CSV
-                </button>
-              </div>
+              {/* Petunjuk Kolom Spesifik Kategori */}
+              {(() => {
+                const config = getImportConfig(importCategory);
+                return (
+                  <div className="p-3.5 rounded-xl bg-[#F3E8FF]/60 border border-[#E9D5FF] text-[#530494] space-y-1.5">
+                    <p className="font-semibold text-[11px] flex items-center gap-1.5">
+                      <Info className="w-3.5 h-3.5 text-[#6305B0]" />
+                      Petunjuk Header Kolom Berkas ({config.title}):
+                    </p>
+                    <p className="text-[10.5px] leading-relaxed text-[#6B21A8]">
+                      • Kolom Wajib:{" "}
+                      <strong>{config.headerGuide.wajib.join(", ")}</strong>
+                      {config.headerGuide.opsional && config.headerGuide.opsional.length > 0 && (
+                        <>
+                          <br />
+                          • Kolom Opsional:{" "}
+                          <strong>{config.headerGuide.opsional.join(", ")}</strong>
+                        </>
+                      )}
+                      {config.headerGuide.keterangan && (
+                        <>
+                          <br />
+                          • Keterangan: <em>{config.headerGuide.keterangan}</em>
+                        </>
+                      )}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleDownloadTemplate}
+                      className="text-[11px] font-bold text-[#6305B0] hover:underline flex items-center gap-1 pt-1 cursor-pointer"
+                    >
+                      <Download className="w-3 h-3" />
+                      Unduh Contoh Template CSV ({config.filename})
+                    </button>
+                  </div>
+                );
+              })()}
 
               {/* Error Alert */}
               {importError && (

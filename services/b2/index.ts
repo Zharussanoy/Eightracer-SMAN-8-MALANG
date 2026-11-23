@@ -496,8 +496,8 @@ export const importExcelService = {
     };
   },
 
-  downloadTemplateCsv: (filename = "template_import_siswa_rapor.csv") => {
-    const templateContent = `nisn,nama_lengkap,nis,jenis_kelamin,kelas,nilai_tka,nilai_rapor,kehadiran\n0061284731,Ahmad Rizky Pratama,12841,L,XII MIPA 1,88.5,89.2,98\n0061284732,Beatrix Anindya,12842,P,XII MIPA 1,91.0,92.4,100\n0061284733,Christian Wijaya,12843,L,XII IPS 1,84.0,86.0,96`;
+  downloadTemplateCsv: (filename = "template_import_siswa_rapor.csv", customContent?: string) => {
+    const templateContent = customContent || `nisn,nama_lengkap,nis,jenis_kelamin,kelas,nilai_tka,nilai_rapor,kehadiran\n0061284731,Ahmad Rizky Pratama,12841,L,XII MIPA 1,88.5,89.2,98\n0061284732,Beatrix Anindya,12842,P,XII MIPA 1,91.0,92.4,100\n0061284733,Christian Wijaya,12843,L,XII IPS 1,84.0,86.0,96`;
     const blob = new Blob([templateContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
