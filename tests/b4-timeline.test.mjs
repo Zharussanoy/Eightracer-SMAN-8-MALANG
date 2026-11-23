@@ -1,7 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { createRequire } from "node:module";
 import { renderToStaticMarkup } from "react-dom/server";
 import React from "react";
 import ts from "typescript";
@@ -59,7 +58,7 @@ const copy=url(await compile("../lib/display-copy.ts"));
 const samples=url((await compile("../components/b4/SampleData.tsx")).replace('"react/jsx-runtime"',JSON.stringify(jsxUrl)).replace('"react"',JSON.stringify(reactUrl)));
 const component = await import(url((await compile("../components/b4/AlumniAcademicTimeline.tsx"))
  .replace('"react/jsx-runtime"',JSON.stringify(jsxUrl)).replace('"react"',JSON.stringify(reactUrl))
- .replace('"./SampleData"',JSON.stringify(samples)).replace('"next/link"',JSON.stringify(link)).replace('"lucide-react"',JSON.stringify(icons))
+ .replace('"./FigmaIcon"',JSON.stringify(link)).replace('"./SampleData"',JSON.stringify(samples)).replace('"next/link"',JSON.stringify(link)).replace('"lucide-react"',JSON.stringify(icons))
  .replace('"@/lib/display-copy"',JSON.stringify(copy)).replace('"@/lib/b4-scholarship-evidence"',JSON.stringify(evidence)).replace('"@/lib/b4-timeline"',JSON.stringify(timeline)).replace('"@/lib/b4-progress"',JSON.stringify(status))));
 test("panel SMA, PT dan detail semester tetap dirender walaupun semua progres kosong", () => {
  const parsed=api.parseAlumniTimeline({data:{...data,progress:[],education_events:[data.education_events[1]]}});

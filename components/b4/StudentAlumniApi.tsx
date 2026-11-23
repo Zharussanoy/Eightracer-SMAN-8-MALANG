@@ -3,9 +3,10 @@
 import { scholarshipEvidenceLabel, kipEvidenceLabel, kipStatusLabel } from "@/lib/b4-scholarship-evidence";
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { Building2, GraduationCap, UserRound } from "lucide-react";
+import { UserRound } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import type { StudentAlumniDetail, StudentAlumniEvent, StudentAlumniPage } from "@/lib/b4-student-alumni";
+import FigmaIcon from "./FigmaIcon";
 import B4Shell from "./B4Shell";
 import NumberPagination from "./NumberPagination";
 import { displayTitle } from "@/lib/display-copy";
@@ -64,13 +65,14 @@ export default function StudentAlumniApi() {
     <div className="b4-filters"><label className="b4-searchField"><span className="b4-srOnly">Cari nama alumni pada halaman ini</span><input placeholder="Cari nama alumni" maxLength={100} value={search} onChange={(event) => setSearch(event.target.value)} /></label>{([['university', 'Perguruan Tinggi'], ['program', 'Program Studi'], ['admission', 'Jalur Masuk']] as const).map(([key, label]) => <label className="b4-selectField" key={key}><span className="b4-srOnly">{displayTitle(label)}</span><select aria-label={String(label)} value={filters[key]} onChange={(event) => setFilters({ ...filters, [key]: event.target.value })}><option value="">{displayTitle(label)}</option>{[...new Set(data?.data.map((item) => item[key]).filter((value): value is string => !!value))].map((value) => <option key={value} value={value}>{displayTitle(value)}</option>)}</select></label>)}</div>
     {data && data.lastPage > 1 && <p className="b4-chartFootnote">Pencarian dan filter berlaku pada halaman yang sedang dibuka.</p>}
     {!data ? <Notice error={result.error} retry={result.retry} /> : <>
-      <h2 className="bc4-listTitle">Daftar Alumni</h2>
-      {!rows.length ? <div className="bc4-empty">{data.total === 0 ? "Belum ada jejak alumni yang tersedia untuk siswa." : "Tidak ada alumni sesuai pencarian pada halaman ini."}</div> : <div className="bc4-grid3">{rows.map((alumni) => <article className="bc4-alumniCard" key={alumni.id}>
-        <header><ProfileIcon name={alumni.name} /><div><h3>{displayTitle(alumni.name)}</h3><p>Lulus SMA: {display(alumni.graduationYear)}</p></div></header>
-        <div className="bc4-campus"><Building2 size={27} aria-hidden="true" /><div><p>{displayTitle(display(alumni.university))}</p><small>{displayTitle(display(alumni.program))}</small></div></div>
-        <div className="bc4-cardTags">{alumni.admission && <span className="bc4-tag">{displayTitle(alumni.admission)}</span>}{alumni.status && <span className="bc4-tag">{displayTitle(alumni.status)}</span>}</div>
-        <Link className="bc4-button" href={`/siswa/jejak-alumni/${alumni.id}`}>Lihat Jejak Alumni</Link>
-      </article>)}</div>}
+      <div className="b4-scholarshipsFrame"><div className="b4-tableScroll" role="region" aria-label="Daftar jejak alumni, geser ke samping pada layar kecil" tabIndex={0}><table className="bc4-studentDirectoryTable">
+        <caption className="b4-srOnly">Daftar alumni yang dipublikasikan sekolah</caption>
+        <thead><tr>{["Nama Alumni", "Perguruan Tinggi", "Program Studi", "Jalur Masuk", "Status Terakhir", "Aksi"].map(label=><th key={label} scope="col">{label}</th>)}</tr></thead>
+        <tbody>{!rows.length?<tr><td colSpan={6} className="b4-scholarshipsEmpty">{data.total === 0 ? "Belum ada jejak alumni yang tersedia untuk siswa." : "Tidak ada alumni sesuai pencarian pada halaman ini."}</td></tr>:rows.map(alumni=><tr key={alumni.id}>
+          <td>{displayTitle(alumni.name)}</td><td>{displayTitle(display(alumni.university))}</td><td>{displayTitle(display(alumni.program))}</td><td>{displayTitle(display(alumni.admission))}</td><td>{displayTitle(display(alumni.status))}</td>
+          <td><Link className="bc4-button" aria-label={"Lihat jejak " + alumni.name} href={"/siswa/jejak-alumni/"+alumni.id}>Lihat Detail</Link></td>
+        </tr>)}</tbody>
+      </table></div></div>
       <footer className="bc4-studentAlumniFooter"><span>Menampilkan {rows.length} dari {data.total} jejak alumni</span><NumberPagination current={data.currentPage} last={data.lastPage} onChange={changePage} /></footer>
     </>}
   </div></Frame>;
@@ -91,7 +93,7 @@ function Detail({ id }: { id: string }) {
   const semesters = data.events.flatMap((event) => event.semester === null ? [] : [event.semester]);
   return <Frame detail preview={data?.preview}><div className="bc4-studentAlumniLive">
     <div className="bc4-profileRow"><div className="bc4-profile"><ProfileIcon name={alumni.name} /><div><h2>{displayTitle(alumni.name)}</h2><p>{displayTitle(display(alumni.university))} · {displayTitle(display(alumni.program))}</p>{alumni.admission && <span className="bc4-tag">{displayTitle(alumni.admission)}</span>}</div></div><div className="bc4-current"><h3>Ringkasan Publikasi</h3><dl className="bc4-metrics">{[["Semester tercatat", semesters.length ? Math.max(...semesters) : null], ["Masuk PT", alumni.entryYear], ["Lulus SMA", alumni.graduationYear]].map(([label, value]) => <div key={String(label)}><dt>{displayTitle(label)}</dt><dd>{displayTitle(value ?? "-")}</dd></div>)}</dl></div></div>
-    <div className="bc4-toggleRow" role="group" aria-label="Informasi alumni">{[["admission", "Data Masuk PT"], ["progress", "Progres Kuliah"]].map(([value, label]) => <button className={`bc4-button ${tab === value ? "bc4-primary" : ""}`} key={value} aria-pressed={tab === value} onClick={() => setTab(value)}>{displayTitle(label)}</button>)}</div>
+
     {tab === "admission" ? <>
       <section className="bc4-section"><h2 className="bc4-sectionHeading">Informasi Detail Masuk Perguruan Tinggi</h2><div className="bc4-sectionBody bc4-grid2">
         <div className="bc4-panel"><h3 className="bc4-underlined">Detail Penerimaan &amp; Program Studi</h3><Info rows={[["Perguruan Tinggi", alumni.university], ["Jenis Perguruan Tinggi", data.universityType], ["Fakultas", data.faculty], ["Program Studi", alumni.program], ["Strata Pendidikan", data.degree], ["Jalur Seleksi Masuk", alumni.admission], ["Pilihan Jurusan", data.admissionChoice], ["Tahun Masuk", alumni.entryYear], ["Status KIP-K", kipEvidenceLabel(data.scholarshipEvidence)], ["Beasiswa / Bantuan Tercatat", scholarshipEvidenceLabel(data.scholarshipEvidence)]]} /></div>
@@ -99,6 +101,7 @@ function Detail({ id }: { id: string }) {
       </div></section>
       <section className="bc4-section"><h2 className="bc4-sectionHeading">Prestasi &amp; Portofolio Pendukung</h2><div className="bc4-sectionBody">{alumni.achievements.length ? <div className="bc4-grid3">{alumni.achievements.map((item, index) => <article className="bc4-yellowCard" key={index}>{item.level && <span className="bc4-tag">{item.level}</span>}<h3>{display(item.name ?? item.type)}</h3><p>{[item.rank, item.field, item.provider, item.year].filter(Boolean).join(" · ")}</p></article>)}</div> : <p className="bc4-empty">-</p>}</div></section>
     </> : <PublishedTimeline events={data.events} />}
+    <div className="bc4-toggleRow" role="group" aria-label="Informasi alumni">{[["admission", "Data Masuk PT"], ["progress", "Progres Kuliah"]].map(([value, label]) => <button className={`bc4-button ${tab === value ? "bc4-primary" : ""}`} key={value} aria-pressed={tab === value} onClick={() => setTab(value)}>{displayTitle(label)}</button>)}</div>
   </div></Frame>;
 }
 function PublishedTimeline({ events }: { events: StudentAlumniEvent[] }) {
@@ -107,7 +110,7 @@ function PublishedTimeline({ events }: { events: StudentAlumniEvent[] }) {
   const [selectedKey, setSelectedKey] = useState(progress[0]?.key ?? "");
   const selected = progress.find((event) => event.key === selectedKey);
   return <>
-    <section className="bc4-section"><h2 className="bc4-sectionHeading">Perjalanan Pendidikan SMA</h2>{school.length ? <ol className="bc4-schoolTimeline">{school.map((event) => <li key={event.key}><span className="bc4-stageIcon"><GraduationCap size={39} aria-hidden="true" /></span><h3>{displayTitle(event.label)}</h3><strong>{display(event.date ?? event.year)}</strong></li>)}</ol> : <div className="bc4-sectionBody"><p className="bc4-empty">-</p></div>}</section>
+    <section className="bc4-section"><h2 className="bc4-sectionHeading">Perjalanan Pendidikan SMA</h2>{school.length ? <ol className="bc4-schoolTimeline">{school.map((event) => <li key={event.key}><span className="bc4-stageIcon"><FigmaIcon name="graduate" size={39} /></span><h3>{displayTitle(event.label)}</h3><strong>{display(event.date ?? event.year)}</strong></li>)}</ol> : <div className="bc4-sectionBody"><p className="bc4-empty">-</p></div>}</section>
     <section className="bc4-section"><h2 className="bc4-sectionHeading">Perjalanan Pendidikan Perguruan Tinggi</h2>{progress.length ? <div className="bc4-semesterScroll"><ol className="bc4-semesterTimeline">{progress.map((event) => <li key={event.key}><button className={event.key === selectedKey ? "bc4-semesterSelected" : ""} aria-pressed={event.key === selectedKey} aria-label={`Lihat semester ${event.semester}, ${event.period ?? event.label}`} onClick={() => setSelectedKey(event.key)}>S{event.semester}</button><h3>Semester {event.semester}</h3><p>{display(event.period)}</p><small>IPK: {display(event.ipk)}</small></li>)}</ol></div> : <div className="bc4-sectionBody"><p className="bc4-empty">-</p></div>}</section>
     {selected && <section className="bc4-section"><h2 className="bc4-sectionHeading">Detail Semester {selected.semester}{selected.period && ` - ${selected.period}`}</h2><div className="bc4-sectionBody bc4-grid3">
       <div className="bc4-yellowCard"><h3>Capaian Akademik</h3><Info rows={[["IP Kumulatif", selected.ipk], ["Status Pendidikan", selected.status]]} /></div>

@@ -10,7 +10,7 @@ const require=createRequire(import.meta.url), React=require('react'),{renderToSt
 const generated={automatic:true,state:'ready',generated_at:'2026-11-15T00:00:00+07:00',data:{target_jenjang:'SMA',llm_used:false,kandidat:[{beasiswa_id:4,beasiswa:{nama_beasiswa:'Program Akademik',jenjang:'SMA'},evaluasi:{skor:100,lengkap:true,memenuhi:true,checklist:[{kriteria:'nilai_tka',operator:'>=',syarat:'80',status:'terpenuhi'}]},alasan:'Nilai memenuhi kriteria yang tercatat.',persiapan:[]}]}};
 function harness(result={data:[],state:'not_started'},fetcher=async()=>Response.json(generated),extras={}){
  const cache=new Map(),mocks={
-  './B4Shell':{__esModule:true,default:({children})=>React.createElement('main',null,children),Avatar:()=>null},
+  './FigmaIcon':{__esModule:true,default:()=>null},'./B4Shell':{__esModule:true,default:({children})=>React.createElement('main',null,children),Avatar:()=>null},
   './SampleData':{SampleValue:({value})=>value??'-',sampleAlumniReference:()=>null},
   './useStudentRecommendations':{useStudentRecommendations:()=>({result,allowed:true})},
   '@/context/UserContext':{useUser:()=>({authStatus:'authenticated',currentUser:{id:'12',role:'siswa',name:'Siswa Terpilih'}})},

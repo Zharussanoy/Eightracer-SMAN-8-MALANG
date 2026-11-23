@@ -7,7 +7,8 @@ import {recommendationRequest} from "@/lib/b4-recommendation-data";
 import {recommendationCriterionLabel,recommendationEligibility} from "@/lib/b4-recommendations";
 import {sortProgramStudents,type ProgramBatch,type ProgramStudent,type ProgramNote} from "@/lib/b4-program-analysis";
 import type {GeneralScholarship,GeneralScholarshipPage} from "@/lib/b4-general-scholarships";
-import {REGISTRATION_STATUS_LABELS,parseScholarshipRow,type RegistrationStatus,type ScholarshipCriterion,type ScholarshipRow} from "@/lib/b4-scholarships";
+import {REGISTRATION_STATUS_LABELS,type RegistrationStatus,type ScholarshipCriterion,type ScholarshipRow} from "@/lib/b4-scholarships";
+import {getScholarship} from "@/lib/b4-scholarship-api";
 import {recommendationPeriod} from "@/lib/b4-recommendation-copy";
 import {displayTitle} from "@/lib/display-copy";
 import B4Shell,{Avatar} from "./B4Shell";
@@ -28,9 +29,8 @@ const eligibilityChip=(candidate:ProgramStudent["candidate"])=>candidate.complet
  :candidate.meets?{tone:"met",label:"Memenuhi"}:{tone:"unmet",label:"Belum memenuhi"};
 type DetailState={id:number;row?:ScholarshipRow;error?:string};
 
-async function getScholarshipDetail(id:number,signal?:AbortSignal):Promise<ScholarshipRow>{
- const payload=await recommendationRequest<{data?:unknown}>(`/api/b4/beasiswa/${id}`,{signal});
- const row=parseScholarshipRow(payload?.data);
+export async function getScholarshipDetail(id:number,signal?:AbortSignal):Promise<ScholarshipRow>{
+ const row=await getScholarship(id,signal);
  if(row.id!==id||!row.input)throw Error("Detail persyaratan belum lengkap. Coba muat ulang halaman.");
  return row;
 }

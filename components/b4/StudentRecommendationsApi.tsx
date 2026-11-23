@@ -2,9 +2,10 @@
 import {SampleValue, sampleAlumniReference} from "./SampleData";
 
 import Link from "next/link";
-import {GraduationCap,ShieldCheck,Sparkles,CheckCircle2,CircleHelp} from "lucide-react";
+import {ShieldCheck,Sparkles,CheckCircle2,CircleHelp} from "lucide-react";
 import {type StudentRecommendation} from "@/lib/b4-recommendation-data";
 import {recommendationEligibility,recommendationCriterionLabel} from "@/lib/b4-recommendations";
+import FigmaIcon from "./FigmaIcon";
 import B4Shell,{Avatar} from "./B4Shell";
 import {useStudentRecommendations} from "./useStudentRecommendations";
 import {recommendationPeriod} from "@/lib/b4-recommendation-copy";
@@ -20,7 +21,7 @@ export default function StudentRecommendationsApi(){
  return <B4Shell student showDemoProfile={false} title="Rekomendasi Beasiswa" description="Temukan peluang beasiswa yang sesuai dengan profil dan perjalanan akademikmu." dataNote="">
   {items.length>0&&<><div className="bc4-note"><ShieldCheck size={35}/><div><strong>Hasil Rekomendasi Terakhir</strong><p>Hasil disimpan setelah kamu meminta rekomendasi. Kecocokan dihitung dari profil dan kriteria beasiswa; keputusan penerimaan tetap mengikuti penyelenggara.</p></div></div><h2 className="bc4-listTitle">Rekomendasi Beasiswa Untukmu</h2></>}
   {!allowed?<p role="alert">Halaman ini tersedia untuk akun siswa.</p>:result?.error?<div className="bc4-empty" role="alert">{result.error}</div>:!result?<p role="status">Memuat rekomendasi sekolah…</p>:items.length?<div className="bc4-grid3 bc4-resultCards bc4-recommendationCards">{items.map(item=>
-   <article className="bc4-panel bc4-scholarCard" key={item.key}><div className="bc4-cardHighlight"><RecommendationHighlight candidate={item}/></div><h3><GraduationCap size={25} aria-hidden="true"/>{displayTitle(item.name)}</h3>
+   <article className="bc4-panel bc4-scholarCard" key={item.key}><div className="bc4-cardHighlight"><RecommendationHighlight candidate={item}/></div><h3><FigmaIcon name="graduate" size={25}/>{displayTitle(item.name)}</h3>
     <dl className="bc4-metrics bc4-cardFacts"><div><dt>Jenjang</dt><dd>{displayTitle(known(item.level))}</dd></div><div><dt>Tipe Pendanaan</dt><dd><SampleValue value={null} label="Pendanaan"/></dd></div><div className="bc4-cardPeriod"><dt>Periode Pendaftaran</dt><dd title={item.period??undefined}>{recommendationPeriod(item)}</dd></div></dl>
     <div className="bc4-reason"><h4>Alasan Rekomendasi</h4><p>{item.reason??recommendationEligibility(item)}</p></div><Link className="bc4-button bc4-cardDetail" href={"/siswa/rekomendasi-beasiswa/"+item.key}>{item.preview?"Lihat Detail Beasiswa":"Lihat Detail Rekomendasi"}</Link>
    </article>)}</div>:<div className="bc4-empty"><h2>{result.state==="needs_update"?"Perbarui Rekomendasimu":"Mulai Temukan Beasiswa yang Sesuai"}</h2><p>{result.state==="needs_update"?"Profil atau informasi beasiswa berubah. Minta perhitungan terbaru melalui Eightracer AI.":"Belum ada hasil rekomendasi. Mulai percakapan, pelajari pilihanmu, lalu minta AI menampilkan rekomendasi berdasarkan profilmu."}</p><Link className="bc4-button bc4-primary" href="/siswa/rekomendasi-beasiswa/chat">Mulai Rekomendasi AI</Link></div>}
@@ -32,14 +33,14 @@ export function StudentRecommendationDetailApi({id}:{id:string}){
  const reference=item?sampleAlumniReference(item.name):null;
  return <B4Shell student showDemoProfile={false} title="Detail Rekomendasi Beasiswa" description="Pelajari informasi dan alasan kecocokan beasiswa yang direkomendasikan untukmu." parent={{label:"Rekomendasi Beasiswa",href:"/siswa/rekomendasi-beasiswa"}} dataNote="">
   {!allowed?<p role="alert">Halaman ini tersedia untuk akun siswa.</p>:result?.error?<div className="bc4-empty" role="alert">{result.error}</div>:!result?<p role="status">Memuat rekomendasi sekolah…</p>:!item?<div className="bc4-empty">Belum ada hasil untuk beasiswa ini. Minta rekomendasi melalui Eightracer AI terlebih dahulu. <Link href="/siswa/rekomendasi-beasiswa">Kembali ke rekomendasi</Link></div>:<>
-   <section className="bc4-panel bc4-recommendationHeader"><GraduationCap size={45}/><div style={{flex:1}}><RecommendationHighlight candidate={item}/><h3>{displayTitle(item.name)}</h3><p>{displayTitle(known(item.provider))} · {displayTitle(known(item.level))}</p></div><div className="bc4-score"><span>Skor Kecocokan</span><strong>{item.complete&&item.score!==null?item.score+"/100":"Belum dapat dinilai"}</strong></div></section>
+   <section className="bc4-panel bc4-recommendationHeader"><FigmaIcon name="graduate" size={45}/><div style={{flex:1}}><RecommendationHighlight candidate={item}/><h2>{displayTitle(item.name)}</h2><p>{displayTitle(known(item.provider))} · {displayTitle(known(item.level))}</p></div><div className="bc4-score"><span>Skor Kecocokan</span><strong>{item.complete&&item.score!==null?item.score+"/100":"Belum dapat dinilai"}</strong></div></section>
    <div className="bc4-detailRecStack">
-    <aside className="bc4-panel"><h2>Informasi Beasiswa</h2><dl className="bc4-facts">{[["Penyelenggara",known(item.provider)],["Jenjang",known(item.level)],["Tipe Pendanaan","Belum tercatat"],["Periode Pendaftaran",recommendationPeriod(item)],["Waktu yang Disarankan",item.timing??item.opens??"-"]].map(([label,value])=><div key={label}><dt>{displayTitle(label)}</dt><dd><SampleValue value={value} label={label}/></dd></div>)}</dl></aside>
+    <aside className="bc4-panel"><h2>Informasi Beasiswa</h2><dl className="bc4-facts">{[["Penyelenggara",known(item.provider)],["Jenjang",known(item.level)],["Tipe Pendanaan","Belum tercatat"],["Periode Pendaftaran",recommendationPeriod(item)],["Waktu yang Disarankan",item.timing??"Belum tercatat"]].map(([label,value])=><div key={label}><dt>{displayTitle(label)}</dt><dd><SampleValue value={value} label={label}/></dd></div>)}</dl></aside>
     <section className="bc4-panel"><h2>Evaluasi Kriteria Siswa</h2><Evaluation item={item}/></section>
     <section className="bc4-panel"><h2>Referensi dari Jejak Alumni</h2><div className="bc4-yellowCard bc4-referenceAlumni" data-source={reference?"local-presentation":undefined}>{reference?<div className="bc4-profile" style={{padding:0,border:0}}><Avatar name={reference.name} example={false}/><div><h2>{displayTitle(reference.name)}</h2><p>{displayTitle(reference.university)} · {displayTitle(reference.program)}</p><p>Jalur {displayTitle(reference.admission)} · IPK {reference.gpa}</p><span className="bc4-tag">Angkatan {reference.cohort}</span><span className="bc4-tag">{displayTitle(reference.scholarship)}</span></div></div>:<p>Belum ada referensi alumni untuk beasiswa ini.</p>}<p style={{margin:"15px 0"}}>Pelajari catatan alumni yang telah dipublikasikan sekolah melalui Jejak Alumni. Hasil pemeriksaan kriteria ini bukan jaminan lolos seleksi.</p><Link className="bc4-button" href={reference?.detailHref??"/siswa/jejak-alumni"}>Lihat Jejak Alumni</Link></div></section>
     <aside className="bc4-aiCta"><h2>Pelajari Rekomendasi Ini</h2><p>Diskusikan persyaratan dan langkah pendaftaran bersama Eightracer AI.</p><Link className="bc4-button" href={"/siswa/rekomendasi-beasiswa/chat?beasiswa="+item.scholarshipId}>Bahas Beasiswa Ini</Link></aside>
    </div>
-   <div className="bc4-note" style={{marginTop:28}}><div><strong>{item.preview?"Informasi Katalog":"Alasan Rekomendasi"}</strong><p>{item.reason??recommendationEligibility(item)}</p></div></div>
+   <div className="bc4-note" style={{marginTop:28}}><div><h2>{item.preview?"Informasi Katalog":"Alasan Rekomendasi"}</h2><p>{item.reason??recommendationEligibility(item)}</p></div></div>
   </>}
  </B4Shell>;
 }

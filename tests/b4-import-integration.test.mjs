@@ -110,7 +110,7 @@ test('guru isi template XLSX (Beasiswa+Kriteria) → payload diterima backend', 
   assert.equal(results[0].errors.length, 0, `Program 1 errors: ${results[0].errors.join(', ')}`);
   assert.ok(results[0].input, 'Program 1 harus punya input');
   const p1errors = validatePayload(results[0].input);
-  assert.deepEqual(p1errors, [], `Payload Program 1 ditolak backend: ${p1errors.join('; ')}`);
+  assert.equal(p1errors.length, 0, `Payload Program 1 ditolak backend: ${p1errors.join('; ')}`);
   assert.equal(results[0].input.nama_beasiswa, 'Beasiswa Prestasi Akademik');
   assert.equal(results[0].input.jenjang, 'SMA');
   assert.equal(results[0].input.durasi, 12);
@@ -125,7 +125,7 @@ test('guru isi template XLSX (Beasiswa+Kriteria) → payload diterima backend', 
   // Program 2
   assert.equal(results[1].errors.length, 0, `Program 2 errors: ${results[1].errors.join(', ')}`);
   const p2errors = validatePayload(results[1].input);
-  assert.deepEqual(p2errors, [], `Payload Program 2 ditolak backend: ${p2errors.join('; ')}`);
+  assert.equal(p2errors.length, 0, `Payload Program 2 ditolak backend: ${p2errors.join('; ')}`);
   assert.equal(results[1].input.durasi, null, 'durasi kosong → null');
   assert.equal(results[1].input.satuan_durasi, null, 'satuan_durasi kosong → null');
   assert.equal(results[1].input.kriteria[0].tipe_kriteria, 'penghasilan_orang_tua');
@@ -198,7 +198,7 @@ test('satuan_durasi dari template dikirim lowercase dan diterima backend', () =>
   for (const r of results) {
     assert.equal(r.errors.length, 0, `Errors: ${r.errors.join(', ')}`);
     const errors = validatePayload(r.input);
-    assert.deepEqual(errors, [], `Backend validation errors: ${errors.join('; ')}`);
+    assert.equal(errors.length, 0, `Backend validation errors: ${errors.join('; ')}`);
     assert.ok(VALID_SATUAN.includes(r.input.satuan_durasi), `satuan_durasi '${r.input.satuan_durasi}' tidak diterima backend`);
   }
 });
@@ -273,7 +273,7 @@ test('setiap tipe kriteria dari template menghasilkan payload backend-valid', ()
     }]);
     assert.equal(rows[0].errors.length, 0, `Tipe '${label}' parse error: ${rows[0].errors.join(', ')}`);
     const backendErrors = validatePayload(rows[0].input);
-    assert.deepEqual(backendErrors, [], `Tipe '${label}' backend error: ${backendErrors.join('; ')}`);
+    assert.equal(backendErrors.length, 0, `Tipe '${label}' backend error: ${backendErrors.join('; ')}`);
   }
 });
 
@@ -292,6 +292,6 @@ test('jenjang Kuliah dan Keduanya diterima parser dan backend', () => {
     }]);
     assert.equal(rows[0].errors.length, 0, `Jenjang '${jenjang}' ditolak parser: ${rows[0].errors.join(', ')}`);
     const errors = validatePayload(rows[0].input);
-    assert.deepEqual(errors, [], `Jenjang '${jenjang}' ditolak backend mirror: ${errors.join('; ')}`);
+    assert.equal(errors.length, 0, `Jenjang '${jenjang}' ditolak backend mirror: ${errors.join('; ')}`);
   }
 });
