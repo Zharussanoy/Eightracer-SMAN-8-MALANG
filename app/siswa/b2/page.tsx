@@ -34,6 +34,7 @@ import {
   METRIK_KARAKTERISTIK,
   MOCK_CATATAN_LIST,
   NILAI_AKADEMIK,
+  NILAI_MAPEL_PILIHAN,
   OVERALL_SKOR,
   RECAP_ASESMEN,
 } from "@/components/siswa/b-2/mockDataSiswa";
@@ -550,6 +551,7 @@ export default function SiswaDashboardPage() {
             <DashboardChartsWrapper
               recapData={RECAP_ASESMEN}
               nilaiData={NILAI_AKADEMIK}
+              mapelPilihanData={NILAI_MAPEL_PILIHAN}
             />
           </div>
         )}

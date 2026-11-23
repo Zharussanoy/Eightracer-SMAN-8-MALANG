@@ -330,6 +330,67 @@ export const NILAI_AKADEMIK: NilaiSemester[] = [
   },
 ];
 
+// ---------- Nilai Mapel Pilihan ----------
+export interface MapelPilihanKompetensi {
+  nama: string;
+  nilai: number;
+  deskripsi: string;
+}
+
+export interface MapelPilihanItem {
+  nama: string;
+  nilai: number;
+  kompetensi?: MapelPilihanKompetensi[];
+}
+
+export const NILAI_MAPEL_PILIHAN: MapelPilihanItem[] = [
+  {
+    nama: "Fisika",
+    nilai: 89,
+    kompetensi: [
+      { nama: "Mekanika & Dinamika Gerak", nilai: 90, deskripsi: "Pemahaman konsep hukum Newton, energi, dan momentum sangat tinggi" },
+      { nama: "Termodinamika & Gelombang", nilai: 88, deskripsi: "Mampu menerapkan analisis perpindahan kalor dan gelombang secara analitis" },
+      { nama: "Praktikum Eksperimen Fisika", nilai: 89, deskripsi: "Keterampilan pengukuran presisi dan laporan observasi ilmiah lengkap" },
+    ],
+  },
+  {
+    nama: "Kimia",
+    nilai: 86,
+    kompetensi: [
+      { nama: "Struktur Atom & Ikatan Kimia", nilai: 88, deskripsi: "Memahami konfigurasi elektron, tabel periodik, dan geometri molekul" },
+      { nama: "Stoikiometri & Larutan", nilai: 85, deskripsi: "Mampu menghitung konsentrasi zat dan titrasi larutan secara tepat" },
+      { nama: "Praktikum Kimia Laboratorium", nilai: 86, deskripsi: "Penerapan keselamatan kerja laboratorium dan ketelitian instrumen memadai" },
+    ],
+  },
+  {
+    nama: "Biologi",
+    nilai: 88,
+    kompetensi: [
+      { nama: "Struktur & Fungsi Sel Jaringan", nilai: 90, deskripsi: "Mampu menganalisis mekanisme transport membran dan diferensiasi sel" },
+      { nama: "Genetika & Hereditas", nilai: 87, deskripsi: "Memahami prinsip hukum Mendel, sintesis protein, dan mutasi DNA" },
+      { nama: "Ekologi & Keanekaragaman Hayati", nilai: 88, deskripsi: "Mampu mengevaluasi interaksi ekosistem dan konservasi lingkungan" },
+    ],
+  },
+  {
+    nama: "Matematika Lanjut",
+    nilai: 92,
+    kompetensi: [
+      { nama: "Kalkulus & Diferensial Integral", nilai: 94, deskripsi: "Kemampuan analisis limit fungsi, turunan, dan integral sangat unggul" },
+      { nama: "Matriks & Aljabar Linear", nilai: 91, deskripsi: "Mampu menyelesaikan SPL kompleks dan transformasi geometri linear" },
+      { nama: "Statistika Inferensial & Peluang", nilai: 92, deskripsi: "Ketelitian tinggi dalam analisis distribusi data dan uji signifikansi" },
+    ],
+  },
+  {
+    nama: "Informatika",
+    nilai: 90,
+    kompetensi: [
+      { nama: "Algoritma & Pemrograman", nilai: 93, deskripsi: "Logika pemecahan masalah komputasional dan implementasi kode matang" },
+      { nama: "Struktur Data & Basis Data", nilai: 89, deskripsi: "Kemampuan merancang skema relasional dan manipulasi query efektif" },
+      { nama: "Jaringan Komputer & Keamanan", nilai: 88, deskripsi: "Pemahaman arsitektur jaringan lokal dan prinsip keamanan informasi" },
+    ],
+  },
+];
+
 // ============================================================
 // DATA SAW — Rekomendasi Program Studi (Fitur B2)
 // ============================================================

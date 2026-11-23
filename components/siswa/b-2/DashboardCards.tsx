@@ -1,17 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { RecapAsesmen, NilaiSemester } from "./mockDataSiswa";
+import {
+  RecapAsesmen,
+  NilaiSemester,
+  MapelPilihanItem,
+  NILAI_MAPEL_PILIHAN,
+} from "./mockDataSiswa";
 import { ChevronRight } from "lucide-react";
 
 interface DashboardCardsWrapperProps {
   recapData: RecapAsesmen[];
   nilaiData: NilaiSemester[];
+  mapelPilihanData?: MapelPilihanItem[];
 }
 
 export function DashboardChartsWrapper({
   recapData,
   nilaiData,
+  mapelPilihanData,
 }: DashboardCardsWrapperProps) {
   return (
     <div className="relative w-full rounded-[28px] bg-[#2E0249] p-5 sm:p-7 shadow-md flex flex-col gap-5">
@@ -21,7 +28,8 @@ export function DashboardChartsWrapper({
       {/* Kartu Nilai Akademik dengan Interaksi Klik Semester */}
       <NilaiAkademikCard data={nilaiData} />
 
-
+      {/* Kartu Rata-rata Nilai Mapel Pilihan */}
+      <NilaiMapelPilihanCard data={mapelPilihanData} />
     </div>
   );
 }
@@ -374,6 +382,234 @@ export function NilaiAkademikCard({ data }: NilaiAkademikCardProps) {
         style={{ fontFamily: "Inter, sans-serif" }}
       >
         * Klik donut chart untuk melihat atau menutup detail nilai per semester
+      </p>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────
+// 3. KARTU RATA-RATA NILAI MAPEL PILIHAN
+// ────────────────────────────────────────────────────────────
+interface NilaiMapelPilihanCardProps {
+  data?: MapelPilihanItem[];
+}
+
+export function NilaiMapelPilihanCard({
+  data = NILAI_MAPEL_PILIHAN,
+}: NilaiMapelPilihanCardProps) {
+  const [activeMapel, setActiveMapel] = useState<string | null>(null);
+
+  const handleToggle = (nama: string) => {
+    setActiveMapel((prev) => (prev === nama ? null : nama));
+  };
+
+  const selectedMapel =
+    activeMapel !== null ? data.find((m) => m.nama === activeMapel) : null;
+
+  return (
+    <div className="rounded-[18px] bg-white p-6 shadow-sm">
+      {/* Header Rata-rata Nilai Mapel Pilihan */}
+      <div className="flex items-center justify-between mb-5">
+        <h3
+          className="font-bold text-xl text-black"
+          style={{ fontFamily: "Montserrat, sans-serif" }}
+        >
+          Rata-rata Nilai Mapel Pilihan
+        </h3>
+
+        {/* Tombol panah navigasi kanan atas */}
+        <button
+          type="button"
+          onClick={() => {
+            if (activeMapel === null) {
+              setActiveMapel(data[0]?.nama ?? null);
+            } else {
+              const curIdx = data.findIndex((m) => m.nama === activeMapel);
+              const nextIdx = (curIdx + 1) % data.length;
+              setActiveMapel(data[nextIdx]?.nama ?? null);
+            }
+          }}
+          className="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+          title="Lihat mata pelajaran berikutnya"
+          aria-label="Mata pelajaran berikutnya"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Donut Charts Lingkaran Nilai Mapel Pilihan */}
+      <div className="flex items-start gap-4 sm:gap-6 overflow-x-auto pb-3 justify-between no-scrollbar">
+        {data.map((item) => {
+          const radius = 36;
+          const circ = 2 * Math.PI * radius;
+          const offset = circ - (item.nilai / 100) * circ;
+          const isActive = activeMapel === item.nama;
+
+          return (
+            <div
+              key={item.nama}
+              onClick={() => handleToggle(item.nama)}
+              role="button"
+              tabIndex={0}
+              aria-pressed={isActive}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleToggle(item.nama);
+                }
+              }}
+              className="flex flex-col items-center gap-2.5 shrink-0 cursor-pointer group select-none"
+            >
+              {/* Donut Chart Circle Button */}
+              <div
+                className={`relative w-[88px] h-[88px] rounded-full p-1 transition-all duration-200 ${
+                  isActive
+                    ? "ring-3 ring-[#226CE0] ring-offset-2 scale-110 shadow-lg"
+                    : "hover:scale-105 group-hover:ring-2 group-hover:ring-[#226CE0]/40"
+                }`}
+              >
+                <svg
+                  width="80"
+                  height="80"
+                  viewBox="0 0 88 88"
+                  className="rotate-[-90deg] w-full h-full"
+                >
+                  {/* Lingkaran latar belakang track */}
+                  <circle
+                    cx="44"
+                    cy="44"
+                    r={radius}
+                    fill="none"
+                    stroke="rgba(34,108,224,0.12)"
+                    strokeWidth="9"
+                  />
+
+                  {/* Lingkaran progress bar biru */}
+                  <circle
+                    cx="44"
+                    cy="44"
+                    r={radius}
+                    fill="none"
+                    stroke="#226CE0"
+                    strokeWidth="9"
+                    strokeDasharray={circ}
+                    strokeDashoffset={offset}
+                    strokeLinecap="round"
+                    className="transition-all duration-700"
+                  />
+                </svg>
+
+                {/* Angka Rata-rata di Tengah Lingkaran */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span
+                    className={`text-[15px] font-black transition-colors ${
+                      isActive ? "text-[#226CE0] scale-110" : "text-[#226CE0]"
+                    }`}
+                    style={{ fontFamily: "Montserrat, sans-serif" }}
+                  >
+                    {item.nilai}
+                  </span>
+                </div>
+              </div>
+
+              {/* Label Nama Mata Pelajaran */}
+              <span
+                className={`text-[15px] font-bold text-center transition-colors ${
+                  isActive ? "text-[#226CE0]" : "text-black group-hover:text-[#226CE0]"
+                }`}
+                style={{ fontFamily: "Montserrat, sans-serif" }}
+              >
+                {item.nama}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Detail kompetensi mata pelajaran — accordion expandable pop-up */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateRows: selectedMapel ? "1fr" : "0fr",
+          transition: "grid-template-rows 300ms cubic-bezier(0.4,0,0.2,1)",
+        }}
+      >
+        <div style={{ overflow: "hidden" }}>
+          {selectedMapel && (
+            <div
+              className="mt-5 rounded-[14px] bg-[#F0E6F5] p-5 animate-in fade-in slide-in-from-top-2 duration-200"
+              style={{ fontFamily: "Inter, sans-serif" }}
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-[#DECFE8]">
+                <div>
+                  <h4 className="font-bold text-[16px] text-[#14141C] leading-snug">
+                    Detail Capaian Kompetensi &middot; {selectedMapel.nama}
+                  </h4>
+                  <p className="font-normal text-[11px] text-[#6E6B78] mt-0.5">
+                    Rincian capaian pembelajaran dan kompetensi mata pelajaran pilihan
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-[#6E6B78]">Rata-rata:</span>
+                  <span className="text-[14px] font-extrabold text-[#6305B0] bg-white px-2.5 py-0.5 rounded-md border border-[#DECFE8]">
+                    {selectedMapel.nilai}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                {selectedMapel.kompetensi && selectedMapel.kompetensi.length > 0 ? (
+                  selectedMapel.kompetensi.map((komp, idx) => {
+                    const predikat = getPredikat(komp.nilai);
+                    return (
+                      <div
+                        key={idx}
+                        className="w-full bg-white rounded-[8px] p-3 border border-[#EADBEE] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
+                      >
+                        <div className="flex-1">
+                          <p className="text-[12px] font-bold text-[#14141C]">
+                            {komp.nama}
+                          </p>
+                          <p className="text-[10.5px] text-[#6E6B78] mt-0.5 leading-relaxed">
+                            {komp.deskripsi}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                          <span
+                            className={`inline-flex items-center justify-center px-2 py-0.5 rounded-[5px] text-[10px] font-bold ${
+                              predikat === "A"
+                                ? "bg-[#E0F5E8] text-[#148557]"
+                                : predikat === "B"
+                                ? "bg-[#FFF2D6] text-[#A6630F]"
+                                : "bg-[#FDECEA] text-[#C0392B]"
+                            }`}
+                          >
+                            Predikat {predikat}
+                          </span>
+                          <span className="text-[13px] font-bold text-[#6305B0] w-9 text-right">
+                            {komp.nilai}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="w-full bg-white rounded-[6px] py-4 text-center text-xs text-[#6E6B78]">
+                    Data kompetensi belum tersedia untuk mata pelajaran ini.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Hint */}
+      <p
+        className="text-[11px] text-[#6E6B7A] mt-4"
+        style={{ fontFamily: "Inter, sans-serif" }}
+      >
+        * Klik donut chart untuk melihat detail kompetensi mata pelajaran
       </p>
     </div>
   );
