@@ -1,4 +1,5 @@
 import ManajemenMasterProdi from "@/components/admin/b-2/ManajemenMasterProdi";
+import Footer from "@/components/shared/Footer";
 
 export const metadata = {
   title: "Manajemen Master Program Studi & Kuota SNBP PTN | Admin B2 SMAN 8 Malang",
@@ -12,6 +13,7 @@ export default function MasterProdiPage() {
       <main className="flex-1 w-full">
         <ManajemenMasterProdi />
       </main>
+      <Footer />
     </div>
   );
 }

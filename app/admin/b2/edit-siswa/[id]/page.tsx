@@ -1,4 +1,5 @@
 import InputDataAkademikSiswa from "@/components/admin/b-2/InputDataAkademikSiswa";
+import Footer from "@/components/shared/Footer";
 
 export const metadata = {
   title: "Input Data Akademik Siswa | Admin B2 SMAN 8 Malang",
@@ -18,6 +19,7 @@ export default async function EditSiswaPage({ params }: PageProps) {
       <main className="flex-1 w-full">
         <InputDataAkademikSiswa siswaId={resolvedParams.id} />
       </main>
+      <Footer />
     </div>
   );
 }

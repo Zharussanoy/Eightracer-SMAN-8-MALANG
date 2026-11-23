@@ -1,4 +1,5 @@
 import KustomisasiBobotRanking from "@/components/admin/b-2/KustomisasiBobotRanking";
+import Footer from "@/components/shared/Footer";
 
 export const metadata = {
   title: "Kustomisasi Bobot Ranking | Admin B2 SMAN 8 Malang",
@@ -12,6 +13,7 @@ export default function KustomisasiBobotPage() {
       <main className="flex-1 w-full flex flex-col">
         <KustomisasiBobotRanking />
       </main>
+      <Footer />
     </div>
   );
 }

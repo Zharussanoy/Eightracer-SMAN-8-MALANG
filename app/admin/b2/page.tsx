@@ -1,4 +1,5 @@
 import AdminB2Dashboard from "@/components/admin/b-2/AdminB2Dashboard";
+import Footer from "@/components/shared/Footer";
 
 export const metadata = {
   title: "Admin B2 - Rekam Data Siswa | Eightracer SMAN 8 Malang",
@@ -12,6 +13,7 @@ export default function AdminB2Page() {
       <main className="flex-1 w-full flex flex-col">
         <AdminB2Dashboard />
       </main>
+      <Footer />
     </div>
   );
 }
