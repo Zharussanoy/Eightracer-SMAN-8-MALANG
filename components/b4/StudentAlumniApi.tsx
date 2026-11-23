@@ -57,18 +57,26 @@ export default function StudentAlumniApi() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState({ university: "", program: "", admission: "" });
-  const result = useAlumni<StudentAlumniPage>(`/api/b4/student-alumni?page=${page}`);
+  const [debouncedSearch,setDebouncedSearch]=useState("");
+  useEffect(()=>{const timer=setTimeout(()=>setDebouncedSearch(search.trim()),300);return()=>clearTimeout(timer);},[search]);
+  const query=new URLSearchParams({page:String(page),include_filters:"1"});
+  if(debouncedSearch)query.set("search",debouncedSearch);
+  if(filters.university)query.set("perguruan_tinggi_id",filters.university);
+  if(filters.program)query.set("program_studi",filters.program);
+  if(filters.admission)query.set("jalur_masuk",filters.admission);
+  const result = useAlumni<StudentAlumniPage>(`/api/b4/student-alumni?${query}`);
   const data = result.data;
-  const rows = data?.data.filter((item) => item.name.toLocaleLowerCase("id-ID").includes(search.toLocaleLowerCase("id-ID")) && (Object.keys(filters) as (keyof typeof filters)[]).every((key) => !filters[key] || filters[key] === item[key])) ?? [];
-  const changePage = (value: number) => { setPage(value); setSearch(""); setFilters({ university: "", program: "", admission: "" }); };
+  const rows = data?.data ?? [];
+  const changePage = (value:number)=>setPage(value);
+  const options={university:data?.filters?.universities??[],program:(data?.filters?.programs??[]).map(value=>({value,label:value})),admission:(data?.filters?.paths??[]).map(value=>({value,label:value}))};
   return <Frame preview={data?.preview}><div className="bc4-studentAlumniLive">
-    <div className="b4-filters"><label className="b4-searchField"><span className="b4-srOnly">Cari nama alumni pada halaman ini</span><input placeholder="Cari nama alumni" maxLength={100} value={search} onChange={(event) => setSearch(event.target.value)} /></label>{([['university', 'Perguruan Tinggi'], ['program', 'Program Studi'], ['admission', 'Jalur Masuk']] as const).map(([key, label]) => <label className="b4-selectField" key={key}><span className="b4-srOnly">{displayTitle(label)}</span><select aria-label={String(label)} value={filters[key]} onChange={(event) => setFilters({ ...filters, [key]: event.target.value })}><option value="">{displayTitle(label)}</option>{[...new Set(data?.data.map((item) => item[key]).filter((value): value is string => !!value))].map((value) => <option key={value} value={value}>{displayTitle(value)}</option>)}</select></label>)}</div>
-    {data && data.lastPage > 1 && <p className="b4-chartFootnote">Pencarian dan filter berlaku pada halaman yang sedang dibuka.</p>}
+    <div className="b4-filters"><label className="b4-searchField"><span className="b4-srOnly">Cari nama alumni</span><input placeholder="Cari nama alumni" maxLength={100} value={search} onChange={(event) => {setSearch(event.target.value);setPage(1);}} /></label>{([['university', 'Perguruan Tinggi'], ['program', 'Program Studi'], ['admission', 'Jalur Masuk']] as const).map(([key, label]) => <label className="b4-selectField" key={key}><span className="b4-srOnly">{displayTitle(label)}</span><select aria-label={String(label)} value={filters[key]} onChange={(event) => {setFilters({ ...filters, [key]: event.target.value });setPage(1);}}><option value="">{displayTitle(label)}</option>{options[key].map(({value,label}) => <option key={value} value={value}>{displayTitle(label)}</option>)}</select></label>)}</div>
+
     {!data ? <Notice error={result.error} retry={result.retry} /> : <>
       <div className="b4-scholarshipsFrame"><div className="b4-tableScroll" role="region" aria-label="Daftar jejak alumni, geser ke samping pada layar kecil" tabIndex={0}><table className="bc4-studentDirectoryTable">
         <caption className="b4-srOnly">Daftar alumni yang dipublikasikan sekolah</caption>
         <thead><tr>{["Nama Alumni", "Perguruan Tinggi", "Program Studi", "Jalur Masuk", "Status Terakhir", "Aksi"].map(label=><th key={label} scope="col">{label}</th>)}</tr></thead>
-        <tbody>{!rows.length?<tr><td colSpan={6} className="b4-scholarshipsEmpty">{data.total === 0 ? "Belum ada jejak alumni yang tersedia untuk siswa." : "Tidak ada alumni sesuai pencarian pada halaman ini."}</td></tr>:rows.map(alumni=><tr key={alumni.id}>
+        <tbody>{!rows.length?<tr><td colSpan={6} className="b4-scholarshipsEmpty">{data.total === 0 ? "Belum ada jejak alumni yang tersedia untuk siswa." : "Tidak ada alumni sesuai pencarian dan filter."}</td></tr>:rows.map(alumni=><tr key={alumni.id}>
           <td>{displayTitle(alumni.name)}</td><td>{displayTitle(display(alumni.university))}</td><td>{displayTitle(display(alumni.program))}</td><td>{displayTitle(display(alumni.admission))}</td><td>{displayTitle(display(alumni.status))}</td>
           <td><Link className="bc4-button" aria-label={"Lihat jejak " + alumni.name} href={"/siswa/jejak-alumni/"+alumni.id}>Lihat Detail</Link></td>
         </tr>)}</tbody>

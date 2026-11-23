@@ -38,7 +38,14 @@ export default function ScholarshipChatApi({recommendationId,targetLevel}:{recom
    const overview=isRecommendationRequest(question);
    const focused=conversation.current.userId===String(currentUser.id)?conversation.current.scholarshipId:selected;
    if(overview){
-    const generated=await recommendationRequest<{data:StudentRecommendation[];state:string}>("/api/b4/recommendations/generate",{method:"POST",body:(targetLevel??(context&&["SMA","Kuliah"].includes(context.level??"")?context.level:undefined))?{target_jenjang:targetLevel??context?.level}:{}});
+    const generated=await recommendationRequest<({data:StudentRecommendation[];state:"ready"}|(ScholarshipChatReply&{state:"general_information"}))>("/api/b4/recommendations/generate",{method:"POST",body:(targetLevel??(context&&["SMA","Kuliah"].includes(context.level??"")?context.level:undefined))?{target_jenjang:targetLevel??context?.level}:{}});
+    if(generated.state==="general_information"){
+     const reply=focused?await recommendationRequest<ScholarshipChatReply>("/api/b4/recommendations/chat",{method:"POST",body:{message:question.trim(),beasiswa_id:focused,...(targetLevel?{target_jenjang:targetLevel}:{})}}):generated;
+     setMessages(v=>[...v,{role:"bot",text:reply.answer}]);
+     conversation.current={userId:String(currentUser.id),scholarshipId:reply.scholarshipId??focused};
+     setMode("Informasi umum beasiswa; kecocokan pribadi belum dihitung.");
+     return;
+    }
     setCalculated(generated.data);
     const focusedItems=focused?generated.data.filter(item=>item.scholarshipId===focused):generated.data;
     const first=focusedItems[0];

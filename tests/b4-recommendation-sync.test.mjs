@@ -43,10 +43,10 @@ test("alumni list reloads the school-published data on focus and drops data with
  };
  const compiled=ts.transpileModule(fs.readFileSync("components/b4/StudentAlumniApi.tsx","utf8"),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText;
  const testModule={exports:{}},fetch=async path=>{assert.match(path,/^\/api\/b4\/student-alumni/);calls++;return calls===1?Response.json({data:[{id:1}],total:1}):Response.json({message:"Alumni tidak dipublikasikan."},{status:404});};
- vm.runInNewContext(compiled,{module:testModule,exports:testModule.exports,require:id=>modules[id]??require(id),AbortController,Error,document,window,fetch,console});
+ vm.runInNewContext(compiled,{module:testModule,exports:testModule.exports,require:id=>modules[id]??require(id),AbortController,Error,document,window,fetch,console,URLSearchParams});
  testModule.exports.default();const cleanup=effect();await tick();
- assert.equal(states[4].data.total,1);
+ assert.equal(states[5].data.total,1);
  await events.get("focus")();await tick();
- assert.equal(states[4].data,undefined);assert.equal(states[4].error,"Alumni tidak dipublikasikan.");
+ assert.equal(states[5].data,undefined);assert.equal(states[5].error,"Alumni tidak dipublikasikan.");
  cleanup();assert.equal(events.size,0);assert.equal(intervals.size,0);
 });

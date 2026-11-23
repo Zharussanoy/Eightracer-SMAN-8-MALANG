@@ -9,13 +9,13 @@ import FigmaIcon from "./FigmaIcon";
 import B4Shell,{Avatar} from "./B4Shell";
 import NumberPagination from "./NumberPagination";
 import {useStudentScholarshipCatalog} from "./useStudentScholarshipCatalog";
-import {useStudentRecommendations} from "./useStudentRecommendations";
+
 const known=(value:string|null|undefined)=>value??"-";
 const duration=(p:GeneralScholarship)=>p.duration?new Intl.NumberFormat("id-ID").format(p.duration)+" "+known(p.durationUnit):"-";
 function Loading({error,retry}:{error?:string;retry:()=>void}){return error?<div className="bc4-empty"><p role="alert">{error}</p><button className="bc4-button" onClick={retry}>Coba Lagi</button></div>:<p role="status">Memuat informasi beasiswa…</p>;}
 export default function StudentScholarshipCatalogApi(){
  const [page,setPage]=useState(1),catalog=useStudentScholarshipCatalog<GeneralScholarshipPage>("/api/b4/student-scholarships?page="+page);
- const {result}=useStudentRecommendations();
+
  return <B4Shell student showDemoProfile={false} title="Rekomendasi Beasiswa" description="Kenali pilihan beasiswa dan tanyakan peluang yang sesuai untukmu kepada Eightracer AI." dataNote="">
   <h2 className="bc4-listTitle">Pilihan Beasiswa</h2>
   {!catalog.data?<Loading error={catalog.error} retry={catalog.retry}/>:catalog.data.data.length?<>
@@ -27,7 +27,7 @@ export default function StudentScholarshipCatalogApi(){
    </article>)}</div>
    {catalog.data.lastPage>1&&<NumberPagination current={catalog.data.currentPage} last={catalog.data.lastPage} onChange={setPage} label="Halaman katalog beasiswa"/>}
   </>:<div className="bc4-empty">Belum ada informasi beasiswa yang tersedia.</div>}
-  <div className="bc4-note" style={{marginTop:24}}><Sparkles size={32}/><div><strong>Temukan Beasiswa yang Sesuai Untukmu</strong><p>Tanyakan informasi beasiswa atau minta rekomendasi berdasarkan profilmu.</p></div><Link className="bc4-button bc4-primary" href="/siswa/rekomendasi-beasiswa/chat">Tanya Eightracer AI</Link>{result?.state==="ready"&&!!result.data?.length&&<Link className="bc4-button" href="/siswa/rekomendasi-beasiswa?hasil=1">Lihat Hasil Rekomendasi</Link>}</div>
+  <div className="bc4-note" style={{marginTop:24}}><Sparkles size={32}/><div><strong>Temukan Beasiswa yang Sesuai Untukmu</strong><p>Tanyakan informasi beasiswa atau minta rekomendasi berdasarkan profilmu.</p></div><Link className="bc4-button bc4-primary" href="/siswa/rekomendasi-beasiswa/chat">Tanya Eightracer AI</Link></div>
  </B4Shell>;
 }
 export function StudentScholarshipDetailApi({id}:{id:number}){

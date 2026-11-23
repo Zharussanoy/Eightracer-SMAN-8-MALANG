@@ -1,12 +1,13 @@
 "use client";
-import {SampleValue, sampleAlumniReference} from "./SampleData";
+import {SampleValue} from "./SampleData";
+import StudentRecommendationAlumniReferences from "./StudentRecommendationAlumniReferences";
 
 import Link from "next/link";
 import {ShieldCheck,Sparkles,CheckCircle2,CircleHelp} from "lucide-react";
 import {type StudentRecommendation} from "@/lib/b4-recommendation-data";
 import {recommendationEligibility,recommendationCriterionLabel} from "@/lib/b4-recommendations";
 import FigmaIcon from "./FigmaIcon";
-import B4Shell,{Avatar} from "./B4Shell";
+import B4Shell from "./B4Shell";
 import {useStudentRecommendations} from "./useStudentRecommendations";
 import {recommendationPeriod} from "@/lib/b4-recommendation-copy";
 import RecommendationHighlight from "./RecommendationHighlight";
@@ -30,14 +31,13 @@ export default function StudentRecommendationsApi(){
 }
 export function StudentRecommendationDetailApi({id}:{id:string}){
  const {result,allowed}=useStudentRecommendations(),item=result?.data?.find(v=>v.key===id);
- const reference=item?sampleAlumniReference(item.name):null;
  return <B4Shell student showDemoProfile={false} title="Detail Rekomendasi Beasiswa" description="Pelajari informasi dan alasan kecocokan beasiswa yang direkomendasikan untukmu." parent={{label:"Rekomendasi Beasiswa",href:"/siswa/rekomendasi-beasiswa"}} dataNote="">
   {!allowed?<p role="alert">Halaman ini tersedia untuk akun siswa.</p>:result?.error?<div className="bc4-empty" role="alert">{result.error}</div>:!result?<p role="status">Memuat rekomendasi sekolah…</p>:!item?<div className="bc4-empty">Belum ada hasil untuk beasiswa ini. Minta rekomendasi melalui Eightracer AI terlebih dahulu. <Link href="/siswa/rekomendasi-beasiswa">Kembali ke rekomendasi</Link></div>:<>
    <section className="bc4-panel bc4-recommendationHeader"><FigmaIcon name="graduate" size={45}/><div style={{flex:1}}><RecommendationHighlight candidate={item}/><h2>{displayTitle(item.name)}</h2><p>{displayTitle(known(item.provider))} · {displayTitle(known(item.level))}</p></div><div className="bc4-score"><span>Skor Kecocokan</span><strong>{item.complete&&item.score!==null?item.score+"/100":"Belum dapat dinilai"}</strong></div></section>
    <div className="bc4-detailRecStack">
     <aside className="bc4-panel"><h2>Informasi Beasiswa</h2><dl className="bc4-facts">{[["Penyelenggara",known(item.provider)],["Jenjang",known(item.level)],["Tipe Pendanaan","Belum tercatat"],["Periode Pendaftaran",recommendationPeriod(item)],["Waktu yang Disarankan",item.timing??"Belum tercatat"]].map(([label,value])=><div key={label}><dt>{displayTitle(label)}</dt><dd><SampleValue value={value} label={label}/></dd></div>)}</dl></aside>
     <section className="bc4-panel"><h2>Evaluasi Kriteria Siswa</h2><Evaluation item={item}/></section>
-    <section className="bc4-panel"><h2>Referensi dari Jejak Alumni</h2><div className="bc4-yellowCard bc4-referenceAlumni" data-source={reference?"local-presentation":undefined}>{reference?<div className="bc4-profile" style={{padding:0,border:0}}><Avatar name={reference.name} example={false}/><div><h2>{displayTitle(reference.name)}</h2><p>{displayTitle(reference.university)} · {displayTitle(reference.program)}</p><p>Jalur {displayTitle(reference.admission)} · IPK {reference.gpa}</p><span className="bc4-tag">Angkatan {reference.cohort}</span><span className="bc4-tag">{displayTitle(reference.scholarship)}</span></div></div>:<p>Belum ada referensi alumni untuk beasiswa ini.</p>}<p style={{margin:"15px 0"}}>Pelajari catatan alumni yang telah dipublikasikan sekolah melalui Jejak Alumni. Hasil pemeriksaan kriteria ini bukan jaminan lolos seleksi.</p><Link className="bc4-button" href={reference?.detailHref??"/siswa/jejak-alumni"}>Lihat Jejak Alumni</Link></div></section>
+    <StudentRecommendationAlumniReferences key={item.scholarshipId} scholarshipId={item.scholarshipId}/>
     <aside className="bc4-aiCta"><h2>Pelajari Rekomendasi Ini</h2><p>Diskusikan persyaratan dan langkah pendaftaran bersama Eightracer AI.</p><Link className="bc4-button" href={"/siswa/rekomendasi-beasiswa/chat?beasiswa="+item.scholarshipId}>Bahas Beasiswa Ini</Link></aside>
    </div>
    <div className="bc4-note" style={{marginTop:28}}><div><h2>{item.preview?"Informasi Katalog":"Alasan Rekomendasi"}</h2><p>{item.reason??recommendationEligibility(item)}</p></div></div>

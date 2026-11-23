@@ -33,7 +33,8 @@ function identity(row: Obj): StudentAlumni {
   return { id: positive(row.id), name, university: campus(entry.perguruan_tinggi ?? row.perguruan_tinggi) ?? text(entry.nama_perguruan_tinggi ?? row.nama_perguruan_tinggi),
     program: text(entry.program_studi ?? row.program_studi), admission: text(entry.jalur_masuk ?? row.jalur_masuk), entryYear: year(entry.tahun_masuk_pt ?? row.tahun_masuk_pt), graduationYear: year(student.tahun_lulus ?? row.tahun_lulus ?? entry.tahun_lulus), status: text(entry.status_penerimaan ?? row.status_penerimaan), achievements: achievements(entry.prestasi ?? row.prestasi) };
 }
-export interface StudentAlumniPage { preview?:boolean; data: StudentAlumni[]; currentPage: number; lastPage: number; perPage: number; total: number }
+export interface StudentAlumniFilters { universities:{value:string;label:string}[]; programs:string[]; paths:string[] }
+export interface StudentAlumniPage { filters?:StudentAlumniFilters; preview?:boolean; data: StudentAlumni[]; currentPage: number; lastPage: number; perPage: number; total: number }
 export function parseStudentAlumniPage(payload: unknown): StudentAlumniPage {
   const outer = required(payload), root = Array.isArray(outer.data) ? outer : required(outer.data), meta = root.meta === undefined ? root : required(root.meta);
   if (!Array.isArray(root.data)) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
@@ -41,6 +42,13 @@ export function parseStudentAlumniPage(payload: unknown): StudentAlumniPage {
   if (total === null || !Number.isSafeInteger(total) || total < root.data.length) throw new Error("Data alumni belum dapat dibaca. Silakan coba lagi.");
   const result = { preview:outer.preview===true, data: root.data.map((value) => identity(required(value))), currentPage: positive(meta.current_page), lastPage: positive(meta.last_page), perPage: positive(meta.per_page), total };
   if (result.currentPage > result.lastPage && result.data.length) throw new Error("Pagination Jejak Alumni tidak valid.");
+  if(root.filters!==undefined){
+    const filters=required(root.filters);
+    if(!Array.isArray(filters.universities)||!Array.isArray(filters.programs)||!Array.isArray(filters.paths)) throw new Error("Filter alumni belum dapat dibaca.");
+    const universities=filters.universities.map(value=>{const row=required(value);const label=text(row.label);if(!label)throw new Error("Nama kampus tidak valid.");return {value:String(positive(row.value)),label};});
+    const strings=(values:unknown[])=>values.map(value=>{const label=text(value);if(!label)throw new Error("Filter alumni tidak valid.");return label;});
+    return {...result,filters:{universities,programs:strings(filters.programs),paths:strings(filters.paths)}};
+  }
   return result;
 }
 export interface StudentAlumniEvent {
