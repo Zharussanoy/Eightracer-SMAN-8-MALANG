@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import InputDataAkademikSiswa from "@/components/admin/b-2/InputDataAkademikSiswa";
 import Footer from "@/components/shared/Footer";
 
@@ -11,13 +12,18 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function EditSiswaPage({ params }: PageProps) {
+async function EditSiswaContent({ params }: PageProps) {
   const resolvedParams = await params;
+  return <InputDataAkademikSiswa siswaId={resolvedParams.id} />;
+}
 
+export default function EditSiswaPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-[#FAF7FC] flex flex-col selection:bg-purple-100">
       <main className="flex-1 w-full">
-        <InputDataAkademikSiswa siswaId={resolvedParams.id} />
+        <Suspense fallback={<div className="p-8 text-center text-slate-500">Memuat formulir siswa...</div>}>
+          <EditSiswaContent params={params} />
+        </Suspense>
       </main>
       <Footer />
     </div>

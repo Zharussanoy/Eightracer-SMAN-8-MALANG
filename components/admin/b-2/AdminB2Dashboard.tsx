@@ -907,6 +907,49 @@ export default function AdminB2Dashboard() {
                 ))}
               </div>
             </div>
+
+            {/* Panel: Rata-rata Nilai Mata Pelajaran Pilihan */}
+            <div className="bg-white rounded-xl p-5 text-[#1F1729] shadow-xs">
+              <div className="mb-3.5">
+                <h4 className="text-[14px] font-bold text-[#1F1729]">
+                  Rata-rata Nilai Mata Pelajaran Pilihan
+                </h4>
+                <p className="text-[11px] text-[#6E6678]">
+                  Distribusi perolehan nilai rapor pada mata pelajaran pendukung peminatan
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                {[
+                  { label: "Bahasa & Sastra Inggris", value: 90.1 },
+                  { label: "Ekonomi", value: 89.0 },
+                  { label: "Matematika Tingkat Lanjut", value: 88.4 },
+                  { label: "Sosiologi / Geografi", value: 87.8 },
+                  { label: "Biologi", value: 87.2 },
+                  { label: "Kimia", value: 86.5 },
+                  { label: "Fisika", value: 85.8 },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="grid grid-cols-[170px_1fr_50px] items-center gap-3 text-[12px]"
+                  >
+                    <span className="text-[#6E6678] truncate">{item.label}</span>
+                    <div className="h-3 rounded-full bg-[#EFEAF4] overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-700"
+                        style={{
+                          width: `${item.value}%`,
+                          background: "#226CE0",
+                        }}
+                      />
+                    </div>
+                    <span className="text-right font-semibold text-[#1F1729]">
+                      {item.value.toFixed(1)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
